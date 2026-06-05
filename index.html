@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MinbarStream - Version Simple</title>
+    <title>MinbarStream - Application Complète</title>
     
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,94 +17,211 @@
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .fade-in { animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .recording { animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
 <body class="h-full bg-slate-900 flex justify-center items-center overflow-hidden font-sans">
 
-<div class="w-full h-full max-w-[480px] bg-zinc-950 flex flex-col relative overflow-hidden">
+<div class="w-full h-full max-w-[480px] md:h-[92vh] md:rounded-[40px] md:border-[10px] md:border-zinc-800 bg-zinc-950 flex flex-col relative overflow-hidden shadow-2xl">
 
-    <header class="bg-zinc-900 px-4 pt-6 pb-3 border-b border-zinc-800/80 flex justify-between">
+    <!-- Header -->
+    <header class="bg-zinc-900 px-4 pt-6 pb-3 border-b border-zinc-800/80 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-400 to-emerald-500 p-1 flex items-center justify-center">
-                <i class="fa-solid fa-play text-white text-xs"></i>
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-400 to-emerald-500 p-1 flex items-center justify-center shadow-lg">
+                <i class="fa-solid fa-play text-white text-xs pl-0.5"></i>
             </div>
-            <h1 class="text-sm font-bold text-white">Minbar<span class="text-orange-500">Stream</span></h1>
+            <div>
+                <h1 class="text-sm font-black tracking-tight text-white">Minbar<span class="text-videmateOrange">Stream</span></h1>
+                <p class="text-[8px] text-zinc-400 uppercase">Version Complète</p>
+            </div>
         </div>
-        <div class="bg-zinc-800/80 px-2 py-1 rounded-full text-[10px]">
-            <i class="fa-solid fa-user-check text-orange-500"></i>
+        <div class="bg-zinc-800/80 px-2 py-1 rounded-full text-[10px] text-zinc-300">
+            <i class="fa-solid fa-user-check text-videmateOrange text-[8px]"></i>
             <span id="header-user-status">Déconnecté</span>
         </div>
     </header>
 
-    <div class="flex-1 overflow-y-auto pb-24" id="main-content">
+    <!-- Main Content -->
+    <div class="flex-1 overflow-y-auto no-scrollbar pb-24" id="main-content">
         
         <!-- ACCUEIL -->
-        <div id="tab-home" class="p-4 space-y-4">
-            <input type="text" id="searchInput" oninput="filterVideos()" placeholder="Rechercher..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2 px-4 text-sm text-white">
-            
-            <div id="videosList" class="space-y-3"></div>
+        <div id="tab-home" class="p-4 space-y-6">
+            <div class="relative">
+                <input type="text" id="searchInput" oninput="filterMedia(this.value)" placeholder="Rechercher des prêches, imams, albums..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
+            </div>
+
+            <!-- Albums Imams -->
+            <div>
+                <h3 class="text-xs font-black text-zinc-400 uppercase mb-3 flex justify-between">
+                    <span>Albums & Séries des Imams</span>
+                    <span class="text-[10px] text-videmateOrange cursor-pointer" onclick="resetFilters()">Tout voir</span>
+                </h3>
+                <div class="flex gap-4 overflow-x-auto no-scrollbar py-1" id="albums-list"></div>
+            </div>
+
+            <!-- Recommandations -->
+            <div>
+                <h3 class="text-xs font-black text-zinc-400 uppercase mb-3">Sélection Recommandée</h3>
+                <div class="flex gap-4 overflow-x-auto no-scrollbar py-1" id="recommended-list"></div>
+            </div>
+
+            <!-- Bibliothèque -->
+            <div class="space-y-3">
+                <h3 class="text-xs font-black text-zinc-400 uppercase" id="library-title">Bibliothèque de Prêches</h3>
+                <div class="space-y-3" id="sermons-list"></div>
+            </div>
         </div>
 
         <!-- TELECHARGEMENTS -->
-        <div id="tab-downloads" class="hidden p-4">
-            <h2 class="text-lg font-bold text-white mb-3">📥 Téléchargements</h2>
-            <div id="downloadsList" class="space-y-3"></div>
+        <div id="tab-downloads" class="hidden">
+            <div class="p-4 border-b border-zinc-800 flex justify-between">
+                <h2 class="text-base font-bold text-white"><i class="fa-solid fa-circle-down text-videmateOrange mr-2"></i>Gestionnaire de Transfert</h2>
+                <span class="text-[11px] text-zinc-400" id="download-count-badge">0 actif(s)</span>
+            </div>
+            <div class="px-4 py-3 flex gap-2">
+                <button onclick="toggleDlSubTab('active')" id="btn-sub-active" class="px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950">En cours</button>
+                <button onclick="toggleDlSubTab('completed')" id="btn-sub-completed" class="px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400">Téléchargés</button>
+            </div>
+            <div id="dl-active-container" class="p-4 space-y-4">
+                <div id="active-downloads-list" class="space-y-3">
+                    <div class="text-center text-zinc-500 py-8 text-xs">Aucun téléchargement en cours</div>
+                </div>
+            </div>
+            <div id="dl-completed-container" class="hidden p-4 space-y-3">
+                <div id="completed-downloads-list" class="space-y-3"></div>
+            </div>
         </div>
 
         <!-- PROFIL -->
-        <div id="tab-profile" class="hidden p-4 space-y-4">
-            <div id="loginPanel" class="space-y-3">
-                <div class="text-center py-6 bg-zinc-900 rounded-2xl">
-                    <i class="fa-solid fa-user text-3xl text-zinc-600"></i>
-                    <h3 class="text-sm font-bold mt-2">Connectez-vous</h3>
+        <div id="tab-profile" class="hidden p-4 space-y-6">
+            <!-- Non connecté -->
+            <div id="profile-unauth" class="space-y-6">
+                <div class="text-center py-8 px-4 bg-zinc-900 rounded-2xl">
+                    <i class="fa-solid fa-folder-open text-3xl text-zinc-600"></i>
+                    <h3 class="text-sm font-bold text-white mt-2">Connectez-vous</h3>
+                    <p class="text-xs text-zinc-400">Pour créer votre album et poser des questions aux imams</p>
                 </div>
-                <button onclick="handleGoogleLogin()" class="w-full py-3 bg-white text-zinc-950 rounded-xl font-bold flex gap-2 justify-center">
-                    <i class="fa-brands fa-google text-red-500"></i> Google
-                </button>
-                <input type="email" id="email" placeholder="Email" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-white">
-                <input type="password" id="password" placeholder="Mot de passe" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-white">
-                <button onclick="login()" class="w-full py-2 bg-orange-500 rounded-xl font-bold">Se connecter</button>
-                <button onclick="signup()" class="w-full py-2 bg-zinc-800 rounded-xl">Créer un compte</button>
-            </div>
-            
-            <div id="userInfo" class="hidden space-y-4">
-                <div class="flex justify-between bg-zinc-900 p-4 rounded-2xl">
-                    <div><p class="font-bold text-white" id="userName"></p><p class="text-xs text-zinc-400" id="userEmail"></p></div>
-                    <button onclick="logout()" class="text-xs text-red-400">Déconnexion</button>
-                </div>
-                
-                <div class="bg-zinc-900 rounded-2xl p-4">
-                    <h3 class="text-sm font-bold mb-2">🎥 Upload vidéo</h3>
-                    <input type="file" id="videoFile" accept="video/*" class="hidden" onchange="uploadVideo()">
-                    <button onclick="document.getElementById('videoFile').click()" class="w-full py-2 bg-orange-500/20 rounded-xl text-orange-400">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Choisir une vidéo
+                <div class="bg-zinc-900 rounded-2xl p-5 space-y-3">
+                    <button onclick="handleGoogleSignIn()" class="w-full py-2.5 bg-white text-zinc-950 rounded-xl text-sm font-bold flex items-center justify-center gap-2">
+                        <i class="fa-brands fa-google text-red-500"></i> Google
                     </button>
-                    <div id="uploadProgress" class="hidden mt-2"><div class="h-1 bg-orange-500 rounded-full" style="width:0%"></div><p class="text-xs text-center mt-1" id="progressPercent">0%</p></div>
+                    <div class="relative flex py-2 items-center"><div class="flex-grow border-t border-zinc-800"></div><span class="flex-shrink mx-3 text-[10px] text-zinc-500">OU</span><div class="flex-grow border-t border-zinc-800"></div></div>
+                    <input type="email" id="loginEmail" placeholder="Email" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
+                    <input type="password" id="loginPassword" placeholder="Mot de passe" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
+                    <button onclick="handleLogin()" class="w-full py-2 bg-videmateOrange rounded-xl text-sm font-bold">Se connecter</button>
+                    <button onclick="handleSignup()" class="w-full py-2 bg-zinc-800 rounded-xl text-sm">Créer un compte</button>
+                </div>
+            </div>
+
+            <!-- Connecté sans album -->
+            <div id="profile-auth-no-album" class="hidden space-y-6">
+                <div class="flex justify-between bg-zinc-900 p-4 rounded-2xl">
+                    <div class="flex gap-3">
+                        <div class="w-10 h-10 rounded-full bg-videmateOrange/20 flex items-center justify-center text-videmateOrange font-bold" id="userAvatar1">U</div>
+                        <div><h4 id="userName1" class="text-sm font-bold text-white"></h4><p class="text-[10px] text-zinc-400" id="userEmail1"></p></div>
+                    </div>
+                    <button onclick="handleLogout()" class="text-xs underline text-zinc-500">Déconnexion</button>
+                </div>
+                <div class="bg-zinc-900 rounded-2xl p-5 space-y-3">
+                    <h4 class="text-xs font-black text-videmateOrange">✨ Créer mon album</h4>
+                    <input type="text" id="albumName" placeholder="Nom de l'album" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
+                    <textarea id="albumDesc" placeholder="Description" rows="2" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white"></textarea>
+                    <button onclick="createAlbum()" class="w-full py-2.5 bg-videmateOrange rounded-xl text-sm font-bold">Publier mon album</button>
+                </div>
+            </div>
+
+            <!-- Connecté avec album -->
+            <div id="profile-auth-with-album" class="hidden space-y-6">
+                <div class="flex justify-between bg-zinc-900 p-4 rounded-2xl">
+                    <div class="flex gap-3">
+                        <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold" id="userAvatar2">U</div>
+                        <div><h4 id="userName2" class="text-sm font-bold text-white"></h4><p class="text-[10px] text-zinc-400">Album: <span id="albumNameDisplay"></span></p></div>
+                    </div>
+                    <button onclick="handleLogout()" class="text-xs underline text-zinc-500">Déconnexion</button>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="bg-zinc-900 p-3 rounded-xl text-center"><p class="text-[9px] text-zinc-500">Vidéos</p><p class="text-lg font-bold text-white" id="statVideos">0</p></div>
+                    <div class="bg-zinc-900 p-3 rounded-xl text-center"><p class="text-[9px] text-zinc-500">Vues</p><p class="text-lg font-bold text-emerald-400" id="statViews">0</p></div>
+                    <div class="bg-zinc-900 p-3 rounded-xl text-center"><p class="text-[9px] text-zinc-500">Téléchargements</p><p class="text-lg font-bold text-videmateOrange" id="statDownloads">0</p></div>
+                </div>
+
+                <!-- Upload -->
+                <div class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed border-videmateOrange/50 text-center">
+                    <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="uploadVideoToFirebase(this)">
+                    <button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 bg-videmateOrange/20 rounded-xl text-videmateOrange text-sm font-bold">
+                        <i class="fa-solid fa-cloud-arrow-up mr-2"></i>Téléverser une vidéo
+                    </button>
+                    <div id="uploadProgress" class="hidden mt-2">
+                        <div class="h-1 bg-zinc-700 rounded-full overflow-hidden"><div id="progressBar" class="h-full bg-videmateOrange" style="width:0%"></div></div>
+                        <p id="progressText" class="text-[10px] text-zinc-400 mt-1">0%</p>
+                    </div>
+                </div>
+
+                <!-- Conversations -->
+                <div>
+                    <h3 class="text-xs font-black text-zinc-400 uppercase mb-2"><i class="fa-regular fa-message mr-1"></i> Mes questions aux Imams</h3>
+                    <div id="conversationsList" class="space-y-2"></div>
+                </div>
+
+                <!-- Poser une question -->
+                <div class="bg-gradient-to-r from-videmateOrange/10 to-emerald-500/10 rounded-2xl p-4 space-y-3">
+                    <h4 class="text-sm font-bold text-white">📢 Poser une question à un Imam</h4>
+                    <select id="targetImam" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
+                        <option value="cheikh_ousmane">Cheikh Ousmane</option>
+                        <option value="imam_mamadou">Imam Mamadou</option>
+                        <option value="ustadha_fatima">Ustadha Fatima</option>
+                    </select>
+                    <textarea id="questionText" placeholder="Votre question (texte ou vocal)..." rows="2" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white"></textarea>
+                    <div class="flex gap-2">
+                        <button onclick="sendTextQuestion()" class="flex-1 py-2 bg-videmateOrange rounded-xl text-sm font-bold"><i class="fa-regular fa-paper-plane mr-1"></i>Envoyer texte</button>
+                        <button id="recordBtn" onclick="toggleVoiceRecording()" class="py-2 px-4 bg-zinc-800 rounded-xl"><i id="recordIcon" class="fa-solid fa-microphone text-videmateOrange"></i></button>
+                    </div>
+                    <p id="recordingStatus" class="text-[10px] text-zinc-500 text-center hidden"></p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Bottom Navigation -->
-    <nav class="absolute bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800 py-3 flex justify-around">
-        <button onclick="showTab('home')" id="btn-home" class="text-orange-500"><i class="fa-solid fa-house text-xl"></i><span class="text-[10px] block">Accueil</span></button>
-        <button onclick="showTab('downloads')" id="btn-downloads" class="text-zinc-500"><i class="fa-solid fa-download text-xl"></i><span class="text-[10px] block">Downloads</span></button>
-        <button onclick="showTab('profile')" id="btn-profile" class="text-zinc-500"><i class="fa-solid fa-user text-xl"></i><span class="text-[10px] block">Profil</span></button>
+    <nav class="absolute bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800/80 py-2.5 px-6 flex items-center justify-around">
+        <button onclick="showTab('home')" id="nav-home" class="flex flex-col items-center gap-1 text-videmateOrange"><i class="fa-solid fa-house text-xl"></i><span class="text-[10px]">Accueil</span></button>
+        <button onclick="showTab('downloads')" id="nav-downloads" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-download text-xl"></i><span class="text-[10px]">Downloads</span></button>
+        <button onclick="showTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-user text-xl"></i><span class="text-[10px]">Profil</span></button>
     </nav>
 
-    <!-- Player Modal -->
-    <div id="playerModal" class="hidden fixed inset-0 bg-black z-50 flex flex-col">
-        <div class="bg-black p-4 flex justify-between">
-            <button onclick="closePlayer()" class="text-white"><i class="fa-solid fa-arrow-left text-xl"></i></button>
-            <h3 id="playerTitle" class="text-white text-sm">Lecture</h3>
+    <!-- Chat Modal -->
+    <div id="chatModal" class="hidden fixed inset-0 bg-black/95 z-50 flex flex-col">
+        <div class="bg-zinc-900 p-4 flex items-center justify-between border-b border-zinc-800">
+            <button onclick="closeChatModal()" class="w-8 h-8 rounded-full bg-zinc-800"><i class="fa-solid fa-arrow-left text-white"></i></button>
+            <h3 id="chatImamName" class="text-sm font-bold text-white">Imam</h3>
             <div class="w-8"></div>
         </div>
-        <video id="playerVideo" class="w-full flex-1" controls autoplay></video>
+        <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+        <div class="p-4 border-t border-zinc-800 flex gap-2">
+            <input type="text" id="chatInput" placeholder="Écrire un message..." class="flex-1 bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
+            <button onclick="sendChatMessage()" class="px-4 py-2 bg-videmateOrange rounded-xl"><i class="fa-regular fa-paper-plane text-white"></i></button>
+            <button id="chatRecordBtn" onclick="toggleChatVoiceRecording()" class="px-4 py-2 bg-zinc-800 rounded-xl"><i id="chatRecordIcon" class="fa-solid fa-microphone text-videmateOrange"></i></button>
+        </div>
+    </div>
+
+    <!-- Video Player Modal -->
+    <div id="video-overlay-player" class="hidden fixed inset-0 bg-black/95 z-50 flex flex-col">
+        <div class="absolute top-4 left-4 z-10"><button onclick="closeVideoPlayer()" class="w-10 h-10 rounded-full bg-black/60"><i class="fa-solid fa-arrow-left text-white"></i></button></div>
+        <div class="flex-1 flex items-center justify-center">
+            <video id="native-video" class="w-full max-h-full" controls autoplay><source id="video-source" src=""></video>
+        </div>
+        <div class="p-4 text-center"><h4 id="video-player-title" class="text-sm font-bold text-white"></h4><p id="video-player-speaker" class="text-xs text-zinc-400"></p></div>
     </div>
 </div>
 
 <script>
-    // Firebase config
+    // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyC3ybM8gMQZ-IjVLLXqs0MZLPEzqGmyREA",
         authDomain: "mimbar-e1bee.firebaseapp.com",
@@ -117,145 +236,275 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    let currentUser = null;
-    
-    // URLs Backblaze B2 (vos vidéos)
+    // URLs Backblaze B2 (vos vidéos existantes)
+    const BACKBLAZE_BASE = "https://f005.backblazeb2.com/file/minbar-media/";
     const BACKBLAZE_VIDEOS = [
-        { id: 1, title: "Vidéo 1 - Cours", speaker: "Cheikh Ousmane", url: "https://f005.backblazeb2.com/file/minbar-media/VideoConverter_30_06_2024_12_12_26.mp4" },
-        { id: 2, title: "Vidéo 2 - Rappel", speaker: "Imam Mamadou", url: "https://f005.backblazeb2.com/file/minbar-media/WhatsApp%20Video%202026-06-05%20at%2014.52.40.mp4" },
-        { id: 3, title: "Vidéo 3 - Méditation", speaker: "Ustadha Fatima", url: "https://f005.backblazeb2.com/file/minbar-media/WhatsApp%20Video%202026-06-05%20at%2014.58.10.mp4" }
+        { name: "VideoConverter_30_06_2024_12_12_26.mp4", title: "Vidéo d'ouverture", speaker: "Cheikh Ousmane", duration: "15:24", date: "2024-06-30" },
+        { name: "WhatsApp%20Video%202026-06-05%20at%2014.52.40.mp4", title: "Message spirituel", speaker: "Imam Mamadou", duration: "08:32", date: "2026-06-05" },
+        { name: "WhatsApp%20Video%202026-06-05%20at%2014.58.10.mp4", title: "Rappel du jour", speaker: "Ustadha Fatima", duration: "12:18", date: "2026-06-05" }
     ];
 
+    // Données
+    let currentUser = null;
+    let userAlbum = null;
     let userVideos = [];
-    let downloads = JSON.parse(localStorage.getItem('downloads') || '[]');
+    let completedDownloads = JSON.parse(localStorage.getItem('completedDownloads') || '[]');
+    let selectedAlbumFilter = null;
+    let currentChat = { imamId: null, imamName: null };
+    let mediaRecorder = null;
+    let isRecording = false;
+    let audioChunks = [];
 
-    // Auth
+    const albums = [
+        { id: 101, name: "Les Clés du Noble Comportement", speaker: "Cheikh Ousmane", theme: "from-emerald-950 to-zinc-900" },
+        { id: 102, name: "Sagesse face aux Épreuves", speaker: "Imam Mamadou", theme: "from-amber-950 to-zinc-900" },
+        { id: 103, name: "Éducation & Jeunesse active", speaker: "Ustadha Fatima", theme: "from-purple-950 to-zinc-900" }
+    ];
+
+    // Construction de la liste des sermons
+    let sermonsList = BACKBLAZE_VIDEOS.map((v, index) => ({
+        id: index + 1,
+        albumId: 101 + (index % 3),
+        title: v.title,
+        speaker: v.speaker,
+        duration: v.duration,
+        date: v.date,
+        views: Math.floor(Math.random() * 1000) + 100,
+        videoUrl: BACKBLAZE_BASE + v.name,
+        isRecommended: index < 3
+    }));
+
+    const imams = {
+        cheikh_ousmane: { name: "Cheikh Ousmane", avatar: "👨‍🏫" },
+        imam_mamadou: { name: "Imam Mamadou", avatar: "👳‍♂️" },
+        ustadha_fatima: { name: "Ustadha Fatima", avatar: "👩‍🏫" }
+    };
+
+    // Auth State
     auth.onAuthStateChanged(async (user) => {
         currentUser = user;
         if (user) {
-            document.getElementById('header-user-status').innerText = user.email?.split('@')[0];
-            document.getElementById('userName').innerText = user.email?.split('@')[0];
-            document.getElementById('userEmail').innerText = user.email;
-            document.getElementById('loginPanel').classList.add('hidden');
-            document.getElementById('userInfo').classList.remove('hidden');
-            await loadUserVideos();
+            document.getElementById('header-user-status').textContent = user.email?.split('@')[0] || 'Connecté';
+            await loadUserData();
         } else {
-            document.getElementById('header-user-status').innerText = 'Déconnecté';
-            document.getElementById('loginPanel').classList.remove('hidden');
-            document.getElementById('userInfo').classList.add('hidden');
+            document.getElementById('header-user-status').textContent = 'Déconnecté';
+            userAlbum = null;
+            userVideos = [];
+            updateProfileUI();
         }
-        showVideos();
+        renderAlbums();
+        renderRecommendations();
+        renderSermons();
     });
 
-    async function loadUserVideos() {
+    async function loadUserData() {
         if (!currentUser) return;
-        const snapshot = await db.collection('videos').where('userId', '==', currentUser.uid).get();
-        userVideos = [];
-        snapshot.forEach(doc => userVideos.push({ id: doc.id, ...doc.data() }));
+        try {
+            const albumQuery = await db.collection('albums').where('userId', '==', currentUser.uid).get();
+            if (!albumQuery.empty) {
+                userAlbum = { id: albumQuery.docs[0].id, ...albumQuery.docs[0].data() };
+                const videosQuery = await db.collection('videos').where('userId', '==', currentUser.uid).get();
+                userVideos = [];
+                videosQuery.forEach(doc => userVideos.push({ id: doc.id, ...doc.data() }));
+                // Ajouter les vidéos user à l'affichage
+                userVideos.forEach(v => {
+                    if (!sermonsList.find(s => s.videoUrl === v.downloadURL)) {
+                        sermonsList.push({
+                            id: v.id,
+                            albumId: userAlbum.id,
+                            title: v.title,
+                            speaker: currentUser.email?.split('@')[0],
+                            duration: "00:00",
+                            date: new Date(v.uploadedAt?.toDate()).toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+                            views: v.views || 0,
+                            videoUrl: v.downloadURL,
+                            isRecommended: false
+                        });
+                    }
+                });
+                renderSermons();
+                renderRecommendations();
+            } else {
+                userAlbum = null;
+            }
+        } catch(e) { console.log("Erreur chargement:", e); }
+        updateProfileUI();
     }
 
-    // Upload vers Firebase Storage (simple et fonctionnel)
-    async function uploadVideo() {
-        const fileInput = document.getElementById('videoFile');
-        if (!fileInput.files.length) return;
+    function updateProfileUI() {
+        const unauth = document.getElementById('profile-unauth');
+        const noAlbum = document.getElementById('profile-auth-no-album');
+        const withAlbum = document.getElementById('profile-auth-with-album');
+        unauth.classList.add('hidden');
+        noAlbum.classList.add('hidden');
+        withAlbum.classList.add('hidden');
         
-        const file = fileInput.files[0];
+        if (!currentUser) unauth.classList.remove('hidden');
+        else if (currentUser && !userAlbum) {
+            noAlbum.classList.remove('hidden');
+            document.getElementById('userName1').innerText = currentUser.email?.split('@')[0] || 'User';
+            document.getElementById('userEmail1').innerText = currentUser.email || '';
+            document.getElementById('userAvatar1').innerText = (currentUser.email?.charAt(0) || 'U').toUpperCase();
+        } else if (currentUser && userAlbum) {
+            withAlbum.classList.remove('hidden');
+            document.getElementById('userName2').innerText = currentUser.email?.split('@')[0] || 'User';
+            document.getElementById('userAvatar2').innerText = (currentUser.email?.charAt(0) || 'U').toUpperCase();
+            document.getElementById('albumNameDisplay').innerText = userAlbum.name || 'Mon Album';
+            document.getElementById('statVideos').innerText = userVideos.length;
+            const totalViews = userVideos.reduce((s, v) => s + (v.views || 0), 0);
+            const totalDownloads = userVideos.reduce((s, v) => s + (v.downloads || 0), 0);
+            document.getElementById('statViews').innerText = totalViews;
+            document.getElementById('statDownloads').innerText = totalDownloads;
+            loadConversations();
+        }
+    }
+
+    async function createAlbum() {
+        const name = document.getElementById('albumName').value.trim();
+        const desc = document.getElementById('albumDesc').value.trim();
+        if (!name) { alert("Nom d'album requis"); return; }
+        try {
+            await db.collection('albums').add({ userId: currentUser.uid, name, description: desc, createdAt: new Date() });
+            await loadUserData();
+            alert("Album créé avec succès !");
+        } catch(e) { alert("Erreur: " + e.message); }
+    }
+
+    // UPLOAD vers Firebase Storage (FONCTIONNEL)
+    async function uploadVideoToFirebase(input) {
+        if (!input.files?.length) return;
+        const file = input.files[0];
+        
+        if (!currentUser) { alert("Veuillez vous connecter d'abord"); return; }
+        if (!userAlbum) { alert("Veuillez créer un album d'abord"); return; }
+        
         const progressDiv = document.getElementById('uploadProgress');
-        const progressBar = progressDiv.querySelector('div');
-        const progressPercent = document.getElementById('progressPercent');
-        
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
         progressDiv.classList.remove('hidden');
         
-        const storageRef = storage.ref().child(`videos/${Date.now()}_${file.name}`);
+        const fileName = `${Date.now()}_${file.name}`;
+        const storageRef = storage.ref().child(`videos/${currentUser.uid}/${fileName}`);
         const uploadTask = storageRef.put(file);
         
         uploadTask.on('state_changed', 
             (snapshot) => {
                 const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                 progressBar.style.width = `${percent}%`;
-                progressPercent.innerText = `${Math.round(percent)}%`;
+                progressText.innerText = `${Math.round(percent)}%`;
             },
-            (error) => { alert("Erreur: " + error.message); progressDiv.classList.add('hidden'); },
+            (error) => { alert("Erreur upload: " + error.message); progressDiv.classList.add('hidden'); },
             async () => {
                 const url = await storageRef.getDownloadURL();
                 await db.collection('videos').add({
                     userId: currentUser.uid,
+                    albumId: userAlbum.id,
+                    fileName: file.name,
                     title: file.name,
-                    url: url,
-                    date: new Date().toISOString(),
-                    views: 0
+                    duration: "00:00",
+                    date: new Date().toISOString().split('T')[0],
+                    views: 0,
+                    downloads: 0,
+                    downloadURL: url,
+                    uploadedAt: new Date()
                 });
                 progressDiv.classList.add('hidden');
-                fileInput.value = '';
-                await loadUserVideos();
-                showVideos();
-                alert("✅ Vidéo uploadée !");
+                await loadUserData();
+                alert("✅ Vidéo téléversée avec succès !");
             }
         );
     }
 
-    // Afficher les vidéos (Backblaze + uploads utilisateur)
-    function showVideos() {
-        const container = document.getElementById('videosList');
-        let allVideos = [...BACKBLAZE_VIDEOS];
-        
-        if (currentUser) {
-            allVideos.push(...userVideos.map(v => ({
-                id: v.id,
-                title: v.title,
-                speaker: "Moi",
-                url: v.url
-            })));
-        }
-        
-        if (allVideos.length === 0) {
-            container.innerHTML = '<div class="text-center text-zinc-500 py-8">Aucune vidéo</div>';
-            return;
-        }
-        
-        container.innerHTML = allVideos.map(v => `
-            <div class="bg-zinc-900 p-3 rounded-2xl flex justify-between items-center">
-                <div class="flex gap-3 flex-1">
-                    <div class="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center">
-                        <i class="fa-solid fa-play text-orange-500"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-bold text-white">${v.title}</h4>
-                        <p class="text-xs text-orange-500">${v.speaker || "Imam"}</p>
+    function renderAlbums() {
+        const container = document.getElementById('albums-list');
+        container.innerHTML = albums.map(a => `
+            <div onclick="filterByAlbum(${a.id})" class="w-32 shrink-0 p-3 rounded-2xl bg-gradient-to-br ${a.theme} border ${selectedAlbumFilter === a.id ? 'border-videmateOrange' : 'border-zinc-800'} cursor-pointer">
+                <i class="fa-solid fa-folder-open text-videmateOrange text-xs"></i>
+                <h4 class="text-[10px] font-bold mt-1 text-white">${a.name}</h4>
+                <p class="text-[8px] text-zinc-500">${a.speaker}</p>
+            </div>
+        `).join('');
+    }
+
+    function renderRecommendations() {
+        const container = document.getElementById('recommended-list');
+        const recs = sermonsList.filter(s => s.isRecommended).slice(0, 5);
+        if (recs.length === 0) { container.innerHTML = '<div class="text-zinc-500 text-xs">Chargement...</div>'; return; }
+        container.innerHTML = recs.map(s => `
+            <div onclick="openVideoPlayer('${s.videoUrl}', '${s.title}', '${s.speaker}')" class="w-28 shrink-0 p-2 rounded-xl bg-zinc-900 text-center cursor-pointer">
+                <div class="h-24 rounded-lg bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-play text-videmateOrange text-xl"></i></div>
+                <p class="text-[9px] font-bold mt-1 truncate text-white">${s.title.substring(0, 20)}</p>
+                <p class="text-[8px] text-zinc-500">${s.speaker}</p>
+            </div>
+        `).join('');
+    }
+
+    function renderSermons() {
+        const container = document.getElementById('sermons-list');
+        let filtered = selectedAlbumFilter ? sermonsList.filter(s => s.albumId === selectedAlbumFilter) : sermonsList;
+        if (filtered.length === 0) { container.innerHTML = '<div class="text-center text-zinc-500 py-8">Aucun prêche trouvé</div>'; return; }
+        container.innerHTML = filtered.map(s => `
+            <div class="bg-zinc-900 p-3 rounded-2xl flex justify-between items-center fade-in">
+                <div class="flex gap-3 flex-1 min-w-0 cursor-pointer" onclick="openVideoPlayer('${s.videoUrl}', '${s.title}', '${s.speaker}')">
+                    <div class="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-play text-videmateOrange"></i></div>
+                    <div class="min-w-0">
+                        <h4 class="text-xs font-bold text-white truncate">${s.title}</h4>
+                        <p class="text-[9px] text-videmateOrange">${s.speaker}</p>
+                        <div class="flex gap-2 text-[8px] text-zinc-500 flex-wrap"><span><i class="fa-regular fa-clock"></i> ${s.duration}</span><span><i class="fa-regular fa-calendar"></i> ${s.date}</span><span><i class="fa-regular fa-eye"></i> ${s.views} vues</span></div>
                     </div>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="playVideo('${v.url}', '${v.title}')" class="px-3 py-1 bg-zinc-800 rounded-lg text-white">
-                        <i class="fa-solid fa-play"></i>
-                    </button>
-                    <button onclick="downloadVideo('${v.url}', '${v.title}.mp4')" class="px-3 py-1 bg-orange-500 rounded-lg text-white">
-                        <i class="fa-solid fa-download"></i>
-                    </button>
+                <div class="flex gap-2 shrink-0">
+                    <button onclick="event.stopPropagation(); openVideoPlayer('${s.videoUrl}', '${s.title}', '${s.speaker}')" class="px-2 py-1 bg-zinc-800 rounded text-[10px] text-white"><i class="fa-solid fa-eye"></i></button>
+                    <button onclick="event.stopPropagation(); downloadVideo('${s.videoUrl}', '${s.title}.mp4')" class="px-2 py-1 bg-videmateOrange rounded text-[10px] text-white"><i class="fa-solid fa-download"></i></button>
                 </div>
             </div>
         `).join('');
     }
 
-    function filterVideos() {
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        const items = document.querySelectorAll('#videosList > div');
-        items.forEach(item => {
-            const title = item.querySelector('h4')?.innerText.toLowerCase() || '';
-            item.style.display = title.includes(search) ? 'flex' : 'none';
-        });
+    function filterByAlbum(albumId) {
+        selectedAlbumFilter = selectedAlbumFilter === albumId ? null : albumId;
+        renderAlbums();
+        renderSermons();
     }
 
-    // Lecture vidéo
-    function playVideo(url, title) {
-        const modal = document.getElementById('playerModal');
-        const video = document.getElementById('playerVideo');
-        document.getElementById('playerTitle').innerText = title;
-        video.src = url;
+    function resetFilters() { selectedAlbumFilter = null; renderAlbums(); renderSermons(); document.getElementById('searchInput').value = ''; }
+    
+    function filterMedia(val) { 
+        const container = document.getElementById('sermons-list');
+        let filtered = selectedAlbumFilter ? sermonsList.filter(s => s.albumId === selectedAlbumFilter) : sermonsList;
+        filtered = filtered.filter(s => s.title.toLowerCase().includes(val.toLowerCase()) || s.speaker.toLowerCase().includes(val.toLowerCase()));
+        if (filtered.length === 0) { container.innerHTML = '<div class="text-center text-zinc-500 py-8">Aucun résultat</div>'; return; }
+        container.innerHTML = filtered.map(s => `
+            <div class="bg-zinc-900 p-3 rounded-2xl flex justify-between items-center">
+                <div class="flex gap-3 flex-1 min-w-0 cursor-pointer" onclick="openVideoPlayer('${s.videoUrl}', '${s.title}', '${s.speaker}')">
+                    <div class="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-play text-videmateOrange"></i></div>
+                    <div class="min-w-0">
+                        <h4 class="text-xs font-bold text-white truncate">${s.title}</h4>
+                        <p class="text-[9px] text-videmateOrange">${s.speaker}</p>
+                        <div class="flex gap-2 text-[8px] text-zinc-500"><span><i class="fa-regular fa-clock"></i> ${s.duration}</span><span>${s.date}</span><span>${s.views} vues</span></div>
+                    </div>
+                </div>
+                <div class="flex gap-2 shrink-0">
+                    <button onclick="event.stopPropagation(); openVideoPlayer('${s.videoUrl}', '${s.title}', '${s.speaker}')" class="px-2 py-1 bg-zinc-800 rounded"><i class="fa-solid fa-eye"></i></button>
+                    <button onclick="event.stopPropagation(); downloadVideo('${s.videoUrl}', '${s.title}.mp4')" class="px-2 py-1 bg-videmateOrange rounded"><i class="fa-solid fa-download"></i></button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function openVideoPlayer(url, title, speaker) {
+        const modal = document.getElementById('video-overlay-player');
+        document.getElementById('video-player-title').innerText = title;
+        document.getElementById('video-player-speaker').innerText = speaker;
+        const video = document.getElementById('native-video');
+        const source = document.getElementById('video-source');
+        source.src = url;
+        video.load();
         modal.classList.remove('hidden');
         video.play().catch(e => console.log(e));
     }
 
-    // Téléchargement SIMPLE avec <a> tag (pas de fetch CORS)
+    // TÉLÉCHARGEMENT SIMPLE - Pas de fetch, pas de CORS !
     function downloadVideo(url, filename) {
         const link = document.createElement('a');
         link.href = url;
@@ -265,72 +514,209 @@
         link.click();
         document.body.removeChild(link);
         
-        downloads.unshift({ title: filename, date: new Date().toLocaleString() });
-        localStorage.setItem('downloads', JSON.stringify(downloads));
-        showDownloads();
+        completedDownloads.unshift({ title: filename, date: new Date().toLocaleString() });
+        localStorage.setItem('completedDownloads', JSON.stringify(completedDownloads));
+        renderDownloads();
+        alert("✅ Téléchargement démarré !");
     }
 
-    function showDownloads() {
-        const container = document.getElementById('downloadsList');
-        if (downloads.length === 0) {
-            container.innerHTML = '<div class="text-center text-zinc-500 py-8">Aucun téléchargement</div>';
-            return;
+    function renderDownloads() {
+        const activeList = document.getElementById('active-downloads-list');
+        const completedList = document.getElementById('completed-downloads-list');
+        if (activeList) activeList.innerHTML = '<div class="text-center text-zinc-500 py-8 text-xs">Aucun téléchargement actif</div>';
+        if (completedList) completedList.innerHTML = completedDownloads.length ? completedDownloads.map(d => `<div class="bg-zinc-900 p-3 rounded-xl text-white">📹 ${d.title}<p class="text-[9px] text-zinc-500">📅 ${d.date}</p></div>`).join('') : '<div class="text-center text-zinc-500 py-8">Aucun téléchargement</div>';
+        document.getElementById('download-count-badge').innerText = `0 actif(s)`;
+    }
+
+    function toggleDlSubTab(sub) {
+        document.getElementById('dl-active-container').classList.toggle('hidden', sub !== 'active');
+        document.getElementById('dl-completed-container').classList.toggle('hidden', sub !== 'completed');
+        document.getElementById('btn-sub-active').className = sub === 'active' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
+        document.getElementById('btn-sub-completed').className = sub === 'completed' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
+    }
+
+    // CHAT
+    async function loadConversations() {
+        if (!currentUser) return;
+        try {
+            const chatsRef = db.collection('chats').where('userId', '==', currentUser.uid);
+            const snapshot = await chatsRef.get();
+            const container = document.getElementById('conversationsList');
+            if (snapshot.empty) { container.innerHTML = '<div class="text-center text-zinc-500 text-xs py-4">Aucune conversation</div>'; return; }
+            let html = '';
+            snapshot.forEach(doc => { const c = doc.data(); html += `<div onclick="openChat('${c.imamId}', '${c.imamName}')" class="bg-zinc-900 p-3 rounded-xl flex gap-3 cursor-pointer hover:bg-zinc-800"><div class="w-10 h-10 rounded-full bg-videmateOrange/20 flex items-center justify-center text-lg">${imams[c.imamId]?.avatar || '👳'}</div><div><h4 class="text-sm font-bold text-white">${c.imamName}</h4><p class="text-[10px] text-zinc-400 truncate">${c.lastMessage || 'Nouveau message'}</p></div></div>`; });
+            container.innerHTML = html;
+        } catch(e) { console.log(e); }
+    }
+
+    async function sendTextQuestion() {
+        const imamId = document.getElementById('targetImam').value;
+        const question = document.getElementById('questionText').value.trim();
+        if (!question) { alert("Écrivez votre question"); return; }
+        await sendMessage(imamId, imams[imamId].name, question, 'text');
+        document.getElementById('questionText').value = '';
+        alert("Question envoyée à l'imam !");
+    }
+
+    async function sendMessage(imamId, imamName, content, type) {
+        if (!currentUser) return;
+        const chatId = `${currentUser.uid}_${imamId}`;
+        try {
+            await db.collection('chats').doc(chatId).set({
+                userId: currentUser.uid, imamId, imamName, userName: currentUser.email?.split('@')[0],
+                updatedAt: new Date(), lastMessage: content.substring(0, 50)
+            }, { merge: true });
+            await db.collection('messages').add({
+                chatId, senderId: currentUser.uid, senderName: currentUser.email?.split('@')[0],
+                receiverId: imamId, content, type, timestamp: new Date(), read: false
+            });
+            loadConversations();
+        } catch(e) { console.log(e); }
+    }
+
+    async function openChat(imamId, imamName) {
+        currentChat = { imamId, imamName };
+        document.getElementById('chatImamName').innerText = imamName;
+        document.getElementById('chatModal').classList.remove('hidden');
+        await loadChatMessages();
+    }
+
+    async function loadChatMessages() {
+        const chatId = `${currentUser.uid}_${currentChat.imamId}`;
+        try {
+            const snapshot = await db.collection('messages').where('chatId', '==', chatId).orderBy('timestamp').get();
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = '';
+            snapshot.forEach(doc => {
+                const msg = doc.data();
+                const isMe = msg.senderId === currentUser.uid;
+                container.innerHTML += `<div class="flex ${isMe ? 'justify-end' : 'justify-start'} fade-in"><div class="max-w-[75%] ${isMe ? 'bg-videmateOrange' : 'bg-zinc-800'} rounded-2xl p-2 px-3"><p class="text-sm text-white">${msg.content}</p><p class="text-[9px] text-zinc-400 mt-1">${msg.timestamp?.toDate ? new Date(msg.timestamp.toDate()).toLocaleTimeString() : ''}</p></div></div>`;
+            });
+            container.scrollTop = container.scrollHeight;
+        } catch(e) { console.log(e); }
+    }
+
+    async function sendChatMessage() {
+        const content = document.getElementById('chatInput').value.trim();
+        if (!content) return;
+        await sendMessage(currentChat.imamId, currentChat.imamName, content, 'text');
+        document.getElementById('chatInput').value = '';
+        await loadChatMessages();
+    }
+
+    async function toggleVoiceRecording() {
+        if (isRecording) { stopRecording(); return; }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const imamId = document.getElementById('targetImam').value;
+                await sendMessage(imamId, imams[imamId].name, audioUrl, 'voice');
+                alert("Message vocal envoyé !");
+                document.getElementById('recordingStatus').classList.add('hidden');
+            };
+            mediaRecorder.start();
+            isRecording = true;
+            document.getElementById('recordIcon').className = "fa-solid fa-microphone-slash text-red-500";
+            document.getElementById('recordingStatus').classList.remove('hidden');
+            document.getElementById('recordingStatus').innerText = "🔴 Enregistrement en cours...";
+        } catch(e) { alert("Microphone non accessible"); }
+    }
+
+    function stopRecording() {
+        if (mediaRecorder && isRecording) {
+            mediaRecorder.stop();
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            isRecording = false;
+            document.getElementById('recordIcon').className = "fa-solid fa-microphone text-videmateOrange";
         }
-        container.innerHTML = downloads.map(d => `
-            <div class="bg-zinc-900 p-3 rounded-xl">
-                <p class="text-white">📹 ${d.title}</p>
-                <p class="text-xs text-zinc-500">📅 ${d.date}</p>
-            </div>
-        `).join('');
     }
 
-    function closePlayer() {
-        const modal = document.getElementById('playerModal');
-        const video = document.getElementById('playerVideo');
-        video.pause();
-        modal.classList.add('hidden');
+    async function toggleChatVoiceRecording() {
+        if (isRecording) { stopChatRecording(); return; }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                await sendMessage(currentChat.imamId, currentChat.imamName, audioUrl, 'voice');
+                await loadChatMessages();
+                document.getElementById('chatRecordIcon').className = "fa-solid fa-microphone text-videmateOrange";
+            };
+            mediaRecorder.start();
+            isRecording = true;
+            document.getElementById('chatRecordIcon').className = "fa-solid fa-microphone-slash text-red-500";
+        } catch(e) { alert("Microphone non accessible"); }
     }
 
-    // Auth
-    async function login() {
-        const email = document.getElementById('email').value;
-        const pwd = document.getElementById('password').value;
-        try { await auth.signInWithEmailAndPassword(email, pwd); showTab('home'); } 
-        catch(e) { alert(e.message); }
+    function stopChatRecording() {
+        if (mediaRecorder && isRecording) {
+            mediaRecorder.stop();
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            isRecording = false;
+        }
     }
-    
-    async function signup() {
-        const email = document.getElementById('email').value;
-        const pwd = document.getElementById('password').value;
-        if (pwd.length < 6) { alert("6 caractères minimum"); return; }
-        try { await auth.createUserWithEmailAndPassword(email, pwd); showTab('home'); } 
-        catch(e) { alert(e.message); }
+
+    function closeChatModal() { stopChatRecording(); document.getElementById('chatModal').classList.add('hidden'); }
+    function closeVideoPlayer() { document.getElementById('video-overlay-player').classList.add('hidden'); document.getElementById('native-video').pause(); }
+
+    // Auth functions
+    async function handleLogin() {
+        const email = document.getElementById('loginEmail').value.trim();
+        const pwd = document.getElementById('loginPassword').value;
+        if (!email || !email.includes('@')) { alert("Email valide requis"); return; }
+        if (pwd.length < 6) { alert("Mot de passe min 6 caractères"); return; }
+        try {
+            await auth.signInWithEmailAndPassword(email, pwd);
+            showTab('home');
+        } catch(e) { alert("Erreur: " + e.message); }
     }
-    
-    async function handleGoogleLogin() {
-        try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); showTab('home'); } 
-        catch(e) { alert(e.message); }
+
+    async function handleSignup() {
+        const email = document.getElementById('loginEmail').value.trim();
+        const pwd = document.getElementById('loginPassword').value;
+        if (!email || !email.includes('@')) { alert("Email valide requis"); return; }
+        if (pwd.length < 6) { alert("Mot de passe min 6 caractères"); return; }
+        try {
+            await auth.createUserWithEmailAndPassword(email, pwd);
+            showTab('home');
+        } catch(e) { alert("Erreur: " + e.message); }
     }
-    
-    function logout() { auth.signOut(); showTab('profile'); }
+
+    async function handleGoogleSignIn() {
+        try {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            await auth.signInWithPopup(provider);
+            showTab('home');
+        } catch(e) { alert("Erreur Google: " + e.message); }
+    }
+
+    function handleLogout() { auth.signOut(); showTab('profile'); }
 
     function showTab(tab) {
         document.getElementById('tab-home').classList.add('hidden');
         document.getElementById('tab-downloads').classList.add('hidden');
         document.getElementById('tab-profile').classList.add('hidden');
         document.getElementById(`tab-${tab}`).classList.remove('hidden');
-        
-        document.getElementById('btn-home').classList.toggle('text-orange-500', tab === 'home');
-        document.getElementById('btn-home').classList.toggle('text-zinc-500', tab !== 'home');
-        document.getElementById('btn-downloads').classList.toggle('text-orange-500', tab === 'downloads');
-        document.getElementById('btn-downloads').classList.toggle('text-zinc-500', tab !== 'downloads');
-        document.getElementById('btn-profile').classList.toggle('text-orange-500', tab === 'profile');
-        document.getElementById('btn-profile').classList.toggle('text-zinc-500', tab !== 'profile');
-        
-        if (tab === 'downloads') showDownloads();
+        ['home','downloads','profile'].forEach(t => {
+            const btn = document.getElementById(`nav-${t}`);
+            if (t === tab) { btn.classList.add('text-videmateOrange'); btn.classList.remove('text-zinc-500'); }
+            else { btn.classList.add('text-zinc-500'); btn.classList.remove('text-videmateOrange'); }
+        });
+        if (tab === 'downloads') renderDownloads();
+        if (tab === 'profile' && currentUser) loadConversations();
     }
 
+    // Initialisation
     showTab('home');
+    renderDownloads();
 </script>
 </body>
 </html>
