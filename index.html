@@ -2,7 +2,7 @@
 <html lang="fr" class="h-full bg-zinc-950 text-white select-none">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MinbarStream - Application Complète</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -133,7 +133,6 @@
                     <div class="bg-zinc-900 p-3 rounded-xl text-center"><p class="text-[9px] text-zinc-500">Téléchargements</p><p class="text-lg font-bold text-videmateOrange" id="statDownloads">0</p></div>
                 </div>
 
-                <!-- UPLOAD B2 -->
                 <div class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed border-videmateOrange/50 text-center">
                     <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="uploadVideoToB2(this)">
                     <button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 bg-videmateOrange/20 rounded-xl text-videmateOrange text-sm font-bold">
@@ -213,14 +212,14 @@
     const db = firebase.firestore();
 
     // ============================================
-    // ☁️ BACKBLAZE B2 CONFIG - VOS IDENTIFIANTS
+    // ☁️ BACKBLAZE B2 CONFIG - CORRIGÉ
     // ============================================
     const B2_CONFIG = {
         keyId: '786f70c49f56',
         applicationKey: '00520e2e6d3e781324475e4c32461dbde50183a548',
         bucketName: 'minbar-media',
-        downloadBaseUrl: 'https://f005.backblazeb2.com/file/minbar-media/',
-        bucketId: null // ⚠️ SERA DÉTECTÉ AUTOMATIQUEMENT
+        bucketId: '57e8c67fa7e09c7499ef0516',  // ✅ VOTRE BUCKET ID
+        downloadBaseUrl: 'https://f005.backblazeb2.com/file/minbar-media/'
     };
 
     // ============================================
@@ -244,7 +243,7 @@
 
     const imams = {
         cheikh_ousmane: { name: "Cheikh Ousmane", avatar: "👨‍🏫" },
-        imam_mamadou: { name: "Imam Mamadou", avatar: "👳♂️" },
+        imam_mamadou: { name: "Imam Mamadou", avatar: "👳‍♂️" },
         ustadha_fatima: { name: "Ustadha Fatima", avatar: "👩‍🏫" }
     };
 
@@ -383,53 +382,8 @@
     }
 
     // ============================================
-    // ☁️ UPLOAD B2 - DÉTECTION AUTO DU BUCKET ID
+    // ☁️ UPLOAD B2 - VERSION CORRIGÉE
     // ============================================
-    async function getBucketId() {
-        if (B2_CONFIG.bucketId) return B2_CONFIG.bucketId;
-        
-        try {
-            const authResponse = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Basic ' + btoa(`${B2_CONFIG.keyId}:${B2_CONFIG.applicationKey}`)
-                }
-            });
-            
-            if (!authResponse.ok) throw new Error('Auth B2 échouée');
-            
-            const authData = await authResponse.json();
-            const apiUrl = authData.apiUrl;
-            const authorizationToken = authData.authorizationToken;
-            
-            // Lister les buckets pour trouver le bon
-            const listResponse = await fetch(`${apiUrl}/b2api/v2/b2_list_buckets`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': authorizationToken,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ accountId: authData.accountId })
-            });
-            
-            const listData = await listResponse.json();
-            const bucket = listData.buckets.find(b => b.bucketName === B2_CONFIG.bucketName);
-            
-            if (!bucket) throw new Error(`Bucket "${B2_CONFIG.bucketName}" introuvable`);
-            
-            B2_CONFIG.bucketId = bucket.bucketId;
-            B2_CONFIG.accountId = authData.accountId;
-            B2_CONFIG.apiUrl = apiUrl;
-            
-            console.log("✅ Bucket ID détecté:", B2_CONFIG.bucketId);
-            return B2_CONFIG.bucketId;
-            
-        } catch(e) {
-            console.error("Erreur détection bucket:", e);
-            throw new Error("Impossible de détecter le Bucket ID. Vérifiez vos identifiants B2.");
-        }
-    }
-
     async function uploadVideoToB2(input) {
         if (!input.files?.length) return;
         const file = input.files[0];
@@ -449,10 +403,10 @@
         progressDetail.innerText = 'Authentification B2...';
         
         try {
-            // ÉTAPE 1: Obtenir le Bucket ID
-            const bucketId = await getBucketId();
+            console.log("🔑 Authentification B2...");
+            console.log("Bucket ID:", B2_CONFIG.bucketId);
             
-            // ÉTAPE 2: Authentifier
+            // ÉTAPE 1: Authentifier
             const authResponse = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
                 method: 'GET',
                 headers: {
@@ -460,7 +414,10 @@
                 }
             });
             
-            if (!authResponse.ok) throw new Error('Auth B2 échouée: ' + authResponse.status);
+            if (!authResponse.ok) {
+                const errorText = await authResponse.text();
+                throw new Error(`Auth B2 échouée (${authResponse.status}): ${errorText}`);
+            }
             
             const authData = await authResponse.json();
             const apiUrl = authData.apiUrl;
@@ -469,17 +426,20 @@
             progressText.innerText = '10%';
             progressDetail.innerText = 'Récupération URL upload...';
             
-            // ÉTAPE 3: Obtenir URL d'upload
+            // ÉTAPE 2: Obtenir URL d'upload
             const uploadUrlResponse = await fetch(`${apiUrl}/b2api/v2/b2_get_upload_url`, {
                 method: 'POST',
                 headers: {
                     'Authorization': authorizationToken,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ bucketId: bucketId })
+                body: JSON.stringify({ bucketId: B2_CONFIG.bucketId })
             });
             
-            if (!uploadUrlResponse.ok) throw new Error('Get upload URL échoué');
+            if (!uploadUrlResponse.ok) {
+                const errorText = await uploadUrlResponse.text();
+                throw new Error(`Get upload URL échoué (${uploadUrlResponse.status}): ${errorText}`);
+            }
             
             const uploadUrlData = await uploadUrlResponse.json();
             const uploadUrl = uploadUrlData.uploadUrl;
@@ -488,7 +448,7 @@
             progressText.innerText = '20%';
             progressDetail.innerText = 'Envoi vers B2...';
             
-            // ÉTAPE 4: Upload avec XHR pour progression
+            // ÉTAPE 3: Upload avec XHR pour progression
             const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
             
             const uploadResult = await new Promise((resolve, reject) => {
@@ -508,7 +468,7 @@
                     if (xhr.status === 200) {
                         resolve(JSON.parse(xhr.responseText));
                     } else {
-                        reject(new Error('Upload B2 échoué: ' + xhr.status));
+                        reject(new Error(`Upload B2 échoué (${xhr.status})`));
                     }
                 };
                 
@@ -526,10 +486,10 @@
             progressText.innerText = '95%';
             progressDetail.innerText = 'Sauvegarde métadonnées...';
             
-            // ÉTAPE 5: URL publique
+            // ÉTAPE 4: URL publique
             const publicUrl = B2_CONFIG.downloadBaseUrl + encodeURIComponent(fileName);
             
-            // ÉTAPE 6: Firestore
+            // ÉTAPE 5: Firestore
             await db.collection('videos').add({
                 userId: currentUser.uid,
                 albumId: userAlbum.id,
@@ -642,12 +602,12 @@
             alert("✅ Téléchargement terminé !");
             
         } catch(e) {
-            console.error('Erreur:', e);
+            console.error('Erreur téléchargement:', e);
             activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
             localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
             renderDownloads();
             
-            if (confirm("️ CORS bloqué. Ouvrir dans un nouvel onglet ?")) {
+            if (confirm("⚠️ CORS bloqué. Ouvrir dans un nouvel onglet ?")) {
                 window.open(url, '_blank');
             }
         }
