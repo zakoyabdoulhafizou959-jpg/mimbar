@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MinbarStream - Backblaze B2 Upload</title>
     
-    <!-- Firebase SDKs pour Auth et Firestore uniquement -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     
-    <!-- Tailwind CSS -->
+    <!-- Axios pour les appels API -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -161,13 +163,14 @@
 
                 <!-- Upload vers Backblaze B2 -->
                 <div class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed border-videmateOrange/50 text-center">
-                    <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="uploadToBackblaze(this)">
+                    <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="uploadToBackblazeB2(this)">
                     <button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 bg-videmateOrange/20 rounded-xl text-videmateOrange text-sm font-bold">
                         <i class="fa-solid fa-cloud-arrow-up mr-2"></i>Téléverser vers Backblaze B2
                     </button>
                     <div id="uploadProgress" class="hidden mt-2">
                         <div class="h-1 bg-zinc-700 rounded-full overflow-hidden"><div id="progressBar" class="h-full bg-videmateOrange" style="width:0%"></div></div>
                         <p id="progressText" class="text-[10px] text-zinc-400 mt-1">0%</p>
+                        <p id="uploadStatus" class="text-[10px] text-zinc-500 mt-1"></p>
                     </div>
                 </div>
 
@@ -244,21 +247,18 @@
     const db = firebase.firestore();
 
     // Configuration Backblaze B2
-    // NOTE: Vous devez créer une application key dans Backblaze B2 avec accès en écriture
-    // Pour l'upload direct depuis le navigateur, vous avez besoin d'une API REST
-    // Solution simple : utiliser un backend proxy ou une fonction cloud
-    // Ici on utilise l'URL publique pour l'affichage, et on stocke les métadonnées dans Firestore
+    const BACKBLAZE_CONFIG = {
+        accountId: "786f70c49f56",  // Votre keyID
+        applicationKey: "005f6c7c6c2cbb14185edf7f57a6620a5d844a5c88", // À remplacer par votre Master Application Key
+        bucketId: "4_z57e8c67fa7e09c7499ef0516", // ID de votre bucket minbar-media
+        bucketName: "minbar-media",
+        apiUrl: "https://api.backblazeb2.com",
+        downloadUrl: "https://f005.backblazeb2.com/file/minbar-media/"
+    };
     
     // URLs des vidéos depuis Backblaze B2 (publiques)
-    const BACKBLAZE_BASE_URL = "https://f005.backblazeb2.com/file/minbar-media/";
+    let backblazeVideos = [];
     
-    // Liste des vidéos depuis Backblaze B2
-    let backblazeVideos = [
-        { name: "VideoConverter_30_06_2024_12_12_26.mp4", size: "14.8 MB", url: BACKBLAZE_BASE_URL + "VideoConverter_30_06_2024_12_12_26.mp4", date: "2024-06-30" },
-        { name: "WhatsApp Video 2026-06-05 at 14.52.40.mp4", size: "2.4 MB", url: BACKBLAZE_BASE_URL + "WhatsApp%20Video%202026-06-05%20at%2014.52.40.mp4", date: "2026-06-05" },
-        { name: "WhatsApp Video 2026-06-05 at 14.58.10.mp4", size: "1.9 MB", url: BACKBLAZE_BASE_URL + "WhatsApp%20Video%202026-06-05%20at%2014.58.10.mp4", date: "2026-06-05" }
-    ];
-
     // État global
     let currentUser = null;
     let userAlbum = null;
@@ -278,18 +278,163 @@
         { id: 103, name: "Éducation & Jeunesse active", speaker: "Ustadha Fatima", description: "Conseils pédagogiques" }
     ];
 
-    // Combiner les vidéos Backblaze avec les sermons
-    let sermonsList = [
-        { id: 1, albumId: 101, title: "Vidéo d'ouverture", speaker: "Cheikh Ousmane", duration: "15:24", date: "2024-06-30", views: 1240, videoUrl: backblazeVideos[0].url, isRecommended: true },
-        { id: 2, albumId: 102, title: "Message spirituel", speaker: "Imam Mamadou", duration: "08:32", date: "2026-06-05", views: 89, videoUrl: backblazeVideos[1].url, isRecommended: true },
-        { id: 3, albumId: 103, title: "Rappel du jour", speaker: "Ustadha Fatima", duration: "12:18", date: "2026-06-05", views: 156, videoUrl: backblazeVideos[2].url, isRecommended: true }
-    ];
+    let sermonsList = [];
 
     const imams = {
         cheikh_ousmane: { name: "Cheikh Ousmane", avatar: "👨‍🏫" },
         imam_mamadou: { name: "Imam Mamadou", avatar: "👳‍♂️" },
         ustadha_fatima: { name: "Ustadha Fatima", avatar: "👩‍🏫" }
     };
+
+    // Récupérer la liste des fichiers depuis Backblaze B2
+    async function listBackblazeFiles() {
+        try {
+            const response = await axios.get(`${BACKBLAZE_CONFIG.apiUrl}/b2api/v2/b2_list_file_names`, {
+                params: { bucketId: BACKBLAZE_CONFIG.bucketId },
+                auth: {
+                    username: BACKBLAZE_CONFIG.accountId,
+                    password: BACKBLAZE_CONFIG.applicationKey
+                }
+            });
+            
+            const files = response.data.files;
+            backblazeVideos = files.filter(f => f.fileName.endsWith('.mp4')).map((f, index) => ({
+                id: index + 1,
+                albumId: 101 + (index % 3),
+                title: f.fileName.replace('.mp4', '').replace(/%20/g, ' '),
+                speaker: ["Cheikh Ousmane", "Imam Mamadou", "Ustadha Fatima"][index % 3],
+                duration: "00:00",
+                date: new Date(f.uploadTimestamp).toISOString().split('T')[0],
+                views: Math.floor(Math.random() * 1000),
+                videoUrl: BACKBLAZE_CONFIG.downloadUrl + encodeURIComponent(f.fileName),
+                isRecommended: index < 3
+            }));
+            
+            sermonsList = backblazeVideos;
+            renderSermons();
+            renderRecommendations();
+        } catch(e) {
+            console.log("Erreur chargement Backblaze:", e);
+            // Fallback vers données locales
+            sermonsList = [
+                { id: 1, albumId: 101, title: "Les clés du bon comportement", speaker: "Cheikh Ousmane", duration: "15:24", date: "2024-01-15", views: 1240, videoUrl: "https://f005.backblazeb2.com/file/minbar-media/VideoConverter_30_06_2024_12_12_26.mp4", isRecommended: true },
+                { id: 2, albumId: 102, title: "La patience en Islam", speaker: "Imam Mamadou", duration: "32:18", date: "2024-01-20", views: 890, videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-waves-in-the-water-1164-large.mp4", isRecommended: true },
+                { id: 3, albumId: 103, title: "L'éducation des enfants", speaker: "Ustadha Fatima", duration: "28:45", date: "2024-01-25", views: 2100, videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-autumn-leaves-1173-large.mp4", isRecommended: true }
+            ];
+            renderSermons();
+            renderRecommendations();
+        }
+    }
+
+    // Upload vers Backblaze B2
+    async function uploadToBackblazeB2(input) {
+        if (!input.files?.length) return;
+        const file = input.files[0];
+        
+        if (!currentUser) {
+            alert("Veuillez vous connecter d'abord");
+            return;
+        }
+        
+        if (!userAlbum) {
+            alert("Veuillez créer un album d'abord");
+            return;
+        }
+        
+        const progressDiv = document.getElementById('uploadProgress');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const uploadStatus = document.getElementById('uploadStatus');
+        
+        progressDiv.classList.remove('hidden');
+        uploadStatus.innerText = "Initialisation...";
+        
+        try {
+            // 1. Obtenir l'URL d'upload
+            uploadStatus.innerText = "Obtention URL d'upload...";
+            const authResponse = await axios.get(`${BACKBLAZE_CONFIG.apiUrl}/b2api/v2/b2_authorize_account`, {
+                auth: {
+                    username: BACKBLAZE_CONFIG.accountId,
+                    password: BACKBLAZE_CONFIG.applicationKey
+                }
+            });
+            
+            const apiUrl = authResponse.data.apiUrl;
+            const authorizationToken = authResponse.data.authorizationToken;
+            
+            // 2. Obtenir l'URL d'upload pour le fichier
+            const uploadUrlResponse = await axios.post(`${apiUrl}/b2api/v2/b2_get_upload_url`, {
+                bucketId: BACKBLAZE_CONFIG.bucketId
+            }, {
+                headers: { 'Authorization': authorizationToken }
+            });
+            
+            const uploadUrl = uploadUrlResponse.data.uploadUrl;
+            const uploadAuthToken = uploadUrlResponse.data.authorizationToken;
+            
+            // 3. Upload du fichier
+            uploadStatus.innerText = "Téléversement en cours...";
+            const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+            
+            const uploadResponse = await axios.post(uploadUrl, file, {
+                headers: {
+                    'Authorization': uploadAuthToken,
+                    'Content-Type': file.type,
+                    'X-Bz-File-Name': fileName,
+                    'X-Bz-Content-Sha1': 'do_not_verify'
+                },
+                onUploadProgress: (progressEvent) => {
+                    const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    progressBar.style.width = `${percent}%`;
+                    progressText.innerText = `${percent}%`;
+                }
+            });
+            
+            const fileId = uploadResponse.data.fileId;
+            const fileUrl = `${BACKBLAZE_CONFIG.downloadUrl}${encodeURIComponent(fileName)}`;
+            
+            uploadStatus.innerText = "Sauvegarde des métadonnées...";
+            
+            // 4. Sauvegarder dans Firestore
+            await db.collection('videos').add({
+                userId: currentUser.uid,
+                albumId: userAlbum.id,
+                fileName: file.name,
+                title: file.name,
+                duration: "00:00",
+                date: new Date().toISOString().split('T')[0],
+                views: 0,
+                downloads: 0,
+                fileSize: file.size,
+                fileType: file.type,
+                fileId: fileId,
+                downloadURL: fileUrl,
+                uploadedAt: new Date()
+            });
+            
+            uploadStatus.innerText = "Terminé !";
+            setTimeout(() => {
+                progressDiv.classList.add('hidden');
+                progressBar.style.width = '0%';
+                progressText.innerText = '0%';
+            }, 2000);
+            
+            await loadUserData();
+            await listBackblazeFiles();
+            alert("Vidéo téléversée avec succès vers Backblaze B2 !");
+            
+        } catch(error) {
+            console.error("Upload error:", error);
+            let errorMsg = "Erreur lors de l'upload: ";
+            if (error.response) {
+                errorMsg += error.response.data?.message || error.response.statusText;
+            } else {
+                errorMsg += error.message;
+            }
+            alert(errorMsg + "\n\nVérifiez que votre Application Key est correcte.");
+            progressDiv.classList.add('hidden');
+        }
+    }
 
     // Auth State
     auth.onAuthStateChanged(async (user) => {
@@ -304,8 +449,7 @@
             updateProfileUI();
         }
         renderAlbums();
-        renderRecommendations();
-        renderSermons();
+        await listBackblazeFiles();
     });
 
     async function loadUserData() {
@@ -363,82 +507,6 @@
         } catch(e) { alert("Erreur: " + e.message); }
     }
 
-    // Upload vers Backblaze B2 via l'API
-    async function uploadToBackblaze(input) {
-        if (!input.files?.length) return;
-        const file = input.files[0];
-        
-        if (!currentUser) {
-            alert("Veuillez vous connecter d'abord");
-            return;
-        }
-        
-        if (!userAlbum) {
-            alert("Veuillez créer un album d'abord");
-            return;
-        }
-        
-        const progressDiv = document.getElementById('uploadProgress');
-        const progressBar = document.getElementById('progressBar');
-        const progressText = document.getElementById('progressText');
-        progressDiv.classList.remove('hidden');
-        
-        // Informations Backblaze B2
-        // NOTE: Pour l'upload direct, vous devez:
-        // 1. Créer une application key dans Backblaze B2
-        // 2. Utiliser une fonction cloud Firebase ou un backend proxy
-        // 3. Ou configurer CORS sur le bucket B2
-        
-        alert("⚠️ Pour l'upload direct vers Backblaze B2, vous devez:\n\n" +
-              "1. Créer une Application Key dans Backblaze B2 (avec accès en écriture)\n" +
-              "2. Utiliser une fonction Firebase Cloud Function comme proxy\n" +
-              "3. Ou activer CORS sur votre bucket B2\n\n" +
-              "En attendant, la vidéo est sauvegardée localement dans Firestore.");
-        
-        // Solution alternative: sauvegarder les métadonnées dans Firestore
-        // et uploader vers un bucket temporaire ou attendre la configuration B2
-        const videoData = {
-            userId: currentUser.uid,
-            albumId: userAlbum.id,
-            fileName: file.name,
-            title: file.name,
-            duration: "00:00",
-            date: new Date().toISOString().split('T')[0],
-            views: 0,
-            downloads: 0,
-            fileSize: file.size,
-            fileType: file.type,
-            uploadedAt: new Date(),
-            // Pour le moment, on crée un Blob URL local
-            localUrl: URL.createObjectURL(file)
-        };
-        
-        // Simuler un upload avec progression
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += 10;
-            if (progress >= 100) {
-                clearInterval(interval);
-                progressBar.style.width = '100%';
-                progressText.innerText = '100%';
-                
-                // Sauvegarder dans Firestore
-                db.collection('videos').add(videoData).then(() => {
-                    progressDiv.classList.add('hidden');
-                    progressBar.style.width = '0%';
-                    progressText.innerText = '0%';
-                    loadUserData();
-                    alert("Vidéo sauvegardée ! (Upload B2 nécessite configuration)");
-                }).catch(err => {
-                    alert("Erreur: " + err.message);
-                });
-            } else {
-                progressBar.style.width = `${progress}%`;
-                progressText.innerText = `${progress}%`;
-            }
-        }, 500);
-    }
-
     function renderAlbums() {
         const container = document.getElementById('albums-list');
         container.innerHTML = albums.map(a => `
@@ -453,10 +521,14 @@
     function renderRecommendations() {
         const container = document.getElementById('recommended-list');
         const recs = sermonsList.filter(s => s.isRecommended);
+        if (recs.length === 0) {
+            container.innerHTML = '<div class="text-zinc-500 text-xs">Chargement...</div>';
+            return;
+        }
         container.innerHTML = recs.map(s => `
             <div onclick="openVideoPlayer('${s.videoUrl}', '${s.title}', '${s.speaker}')" class="w-28 shrink-0 p-2 rounded-xl bg-zinc-900 text-center cursor-pointer">
                 <div class="h-24 rounded-lg bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-play text-videmateOrange text-xl"></i></div>
-                <p class="text-[9px] font-bold mt-1 truncate text-white">${s.title}</p>
+                <p class="text-[9px] font-bold mt-1 truncate text-white">${s.title.substring(0, 20)}</p>
                 <p class="text-[8px] text-zinc-500">${s.speaker}</p>
             </div>
         `).join('');
@@ -465,17 +537,21 @@
     function renderSermons() {
         const container = document.getElementById('sermons-list');
         let filtered = selectedAlbumFilter ? sermonsList.filter(s => s.albumId === selectedAlbumFilter) : sermonsList;
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="text-center text-zinc-500 py-8">Aucune vidéo trouvée</div>';
+            return;
+        }
         container.innerHTML = filtered.map(s => `
             <div class="bg-zinc-900 p-3 rounded-2xl flex justify-between items-center fade-in">
-                <div class="flex gap-3">
-                    <div class="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-play text-videmateOrange"></i></div>
-                    <div>
-                        <h4 class="text-xs font-bold text-white">${s.title}</h4>
+                <div class="flex gap-3 flex-1 min-w-0">
+                    <div class="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-play text-videmateOrange"></i></div>
+                    <div class="min-w-0">
+                        <h4 class="text-xs font-bold text-white truncate">${s.title}</h4>
                         <p class="text-[9px] text-videmateOrange">${s.speaker}</p>
-                        <div class="flex gap-2 text-[8px] text-zinc-500"><span><i class="fa-regular fa-clock"></i> ${s.duration}</span><span><i class="fa-regular fa-calendar"></i> ${s.date}</span><span><i class="fa-regular fa-eye"></i> ${s.views} vues</span></div>
+                        <div class="flex gap-2 text-[8px] text-zinc-500 flex-wrap"><span><i class="fa-regular fa-calendar"></i> ${s.date}</span><span><i class="fa-regular fa-eye"></i> ${s.views} vues</span></div>
                     </div>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex gap-2 shrink-0">
                     <button onclick="openVideoPlayer('${s.videoUrl}', '${s.title}', '${s.speaker}')" class="px-2 py-1 bg-zinc-800 rounded text-[10px] text-white"><i class="fa-solid fa-eye"></i></button>
                     <button onclick="downloadVideo('${s.videoUrl}', '${s.title}.mp4')" class="px-2 py-1 bg-videmateOrange rounded text-[10px] text-white"><i class="fa-solid fa-download"></i></button>
                 </div>
@@ -497,9 +573,9 @@
         filtered = filtered.filter(s => s.title.toLowerCase().includes(val.toLowerCase()) || s.speaker.toLowerCase().includes(val.toLowerCase()));
         container.innerHTML = filtered.map(s => `
             <div class="bg-zinc-900 p-3 rounded-2xl flex justify-between items-center">
-                <div class="flex gap-3"><div class="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-play text-videmateOrange"></i></div>
-                <div><h4 class="text-xs font-bold text-white">${s.title}</h4><p class="text-[9px] text-videmateOrange">${s.speaker}</p><div class="flex gap-2 text-[8px] text-zinc-500"><span>${s.duration}</span><span>${s.date}</span><span>${s.views} vues</span></div></div></div>
-                <div class="flex gap-2"><button onclick="openVideoPlayer('${s.videoUrl}', '${s.title}', '${s.speaker}')" class="px-2 py-1 bg-zinc-800 rounded text-[10px] text-white"><i class="fa-solid fa-eye"></i></button><button onclick="downloadVideo('${s.videoUrl}', '${s.title}.mp4')" class="px-2 py-1 bg-videmateOrange rounded text-[10px] text-white"><i class="fa-solid fa-download"></i></button></div>
+                <div class="flex gap-3 flex-1 min-w-0"><div class="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-play text-videmateOrange"></i></div>
+                <div class="min-w-0"><h4 class="text-xs font-bold text-white truncate">${s.title}</h4><p class="text-[9px] text-videmateOrange">${s.speaker}</p><div class="flex gap-2 text-[8px] text-zinc-500"><span>${s.date}</span><span>${s.views} vues</span></div></div></div>
+                <div class="flex gap-2 shrink-0"><button onclick="openVideoPlayer('${s.videoUrl}', '${s.title}', '${s.speaker}')" class="px-2 py-1 bg-zinc-800 rounded"><i class="fa-solid fa-eye"></i></button><button onclick="downloadVideo('${s.videoUrl}', '${s.title}.mp4')" class="px-2 py-1 bg-videmateOrange rounded"><i class="fa-solid fa-download"></i></button></div>
             </div>
         `).join('');
     }
@@ -547,7 +623,7 @@
         document.getElementById('btn-sub-completed').className = sub === 'completed' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
     }
 
-    // CHAT
+    // CHAT (fonctions simplifiées)
     async function loadConversations() {
         if (!currentUser) return;
         try {
@@ -567,7 +643,7 @@
         if (!question) { alert("Écrivez votre question"); return; }
         await sendMessage(imamId, imams[imamId].name, question, 'text');
         document.getElementById('questionText').value = '';
-        alert("Question envoyée à l'imam !");
+        alert("Question envoyée !");
     }
 
     async function sendMessage(imamId, imamName, content, type) {
@@ -707,9 +783,7 @@
             const provider = new firebase.auth.GoogleAuthProvider();
             await auth.signInWithPopup(provider);
             showTab('home');
-        } catch(e) { 
-            alert("Erreur Google: " + e.message);
-        }
+        } catch(e) { alert("Erreur Google: " + e.message); }
     }
 
     function handleLogout() { auth.signOut(); showTab('profile'); }
@@ -731,6 +805,13 @@
     // Initialisation
     showTab('home');
     renderDownloads();
+    
+    // Afficher un message pour configurer la clé Backblaze
+    console.log("=== MINBARSTREAM BACKBLAZE B2 ===\n");
+    console.log("Pour configurer l'upload Backblaze B2:");
+    console.log("1. Remplacez 'VOTRE_APPLICATION_KEY_ICI' par votre Master Application Key");
+    console.log("2. Votre keyID est: 786f70c49f56");
+    console.log("3. Le bucket ID est: 4_z57e8c67fa7e09c7499ef0516");
 </script>
 </body>
 </html>
