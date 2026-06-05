@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MinbarStream - Application Complète</title>
     
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
@@ -26,6 +27,7 @@
 
 <div class="w-full h-full max-w-[480px] md:h-[92vh] md:rounded-[40px] md:border-[10px] md:border-zinc-800 bg-zinc-950 flex flex-col relative overflow-hidden shadow-2xl">
 
+    <!-- Header -->
     <header class="bg-zinc-900 px-4 pt-6 pb-3 border-b border-zinc-800/80 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-400 to-emerald-500 p-1 flex items-center justify-center shadow-lg">
@@ -42,14 +44,17 @@
         </div>
     </header>
 
+    <!-- Main Content -->
     <div class="flex-1 overflow-y-auto no-scrollbar pb-24" id="main-content">
         
+        <!-- ACCUEIL -->
         <div id="tab-home" class="p-4 space-y-6">
             <div class="relative">
                 <input type="text" id="searchInput" oninput="filterMedia(this.value)" placeholder="Rechercher des prêches, imams, albums..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
             </div>
 
+            <!-- Albums Imams -->
             <div>
                 <h3 class="text-xs font-black text-zinc-400 uppercase mb-3 flex justify-between">
                     <span>Albums & Séries des Imams</span>
@@ -58,17 +63,20 @@
                 <div class="flex gap-4 overflow-x-auto no-scrollbar py-1" id="albums-list"></div>
             </div>
 
+            <!-- Recommandations -->
             <div>
                 <h3 class="text-xs font-black text-zinc-400 uppercase mb-3">Sélection Recommandée</h3>
                 <div class="flex gap-4 overflow-x-auto no-scrollbar py-1" id="recommended-list"></div>
             </div>
 
+            <!-- Bibliothèque -->
             <div class="space-y-3">
                 <h3 class="text-xs font-black text-zinc-400 uppercase" id="library-title">Bibliothèque de Prêches</h3>
                 <div class="space-y-3" id="sermons-list"></div>
             </div>
         </div>
 
+        <!-- TELECHARGEMENTS -->
         <div id="tab-downloads" class="hidden">
             <div class="p-4 border-b border-zinc-800 flex justify-between">
                 <h2 class="text-base font-bold text-white"><i class="fa-solid fa-circle-down text-videmateOrange mr-2"></i>Gestionnaire de Transfert</h2>
@@ -88,7 +96,9 @@
             </div>
         </div>
 
+        <!-- PROFIL -->
         <div id="tab-profile" class="hidden p-4 space-y-6">
+            <!-- Non connecté -->
             <div id="profile-unauth" class="space-y-6">
                 <div class="text-center py-8 px-4 bg-zinc-900 rounded-2xl">
                     <i class="fa-solid fa-folder-open text-3xl text-zinc-600"></i>
@@ -107,6 +117,7 @@
                 </div>
             </div>
 
+            <!-- Connecté sans album -->
             <div id="profile-auth-no-album" class="hidden space-y-6">
                 <div class="flex justify-between bg-zinc-900 p-4 rounded-2xl">
                     <div class="flex gap-3">
@@ -123,6 +134,7 @@
                 </div>
             </div>
 
+            <!-- Connecté avec album -->
             <div id="profile-auth-with-album" class="hidden space-y-6">
                 <div class="flex justify-between bg-zinc-900 p-4 rounded-2xl">
                     <div class="flex gap-3">
@@ -132,12 +144,14 @@
                     <button onclick="handleLogout()" class="text-xs underline text-zinc-500">Déconnexion</button>
                 </div>
 
+                <!-- Stats -->
                 <div class="grid grid-cols-3 gap-2">
                     <div class="bg-zinc-900 p-3 rounded-xl text-center"><p class="text-[9px] text-zinc-500">Vidéos</p><p class="text-lg font-bold text-white" id="statVideos">0</p></div>
                     <div class="bg-zinc-900 p-3 rounded-xl text-center"><p class="text-[9px] text-zinc-500">Vues</p><p class="text-lg font-bold text-emerald-400" id="statViews">0</p></div>
                     <div class="bg-zinc-900 p-3 rounded-xl text-center"><p class="text-[9px] text-zinc-500">Téléchargements</p><p class="text-lg font-bold text-videmateOrange" id="statDownloads">0</p></div>
                 </div>
 
+                <!-- Upload -->
                 <div class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed border-videmateOrange/50 text-center">
                     <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="uploadVideoToFirebase(this)">
                     <button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 bg-videmateOrange/20 rounded-xl text-videmateOrange text-sm font-bold">
@@ -149,11 +163,13 @@
                     </div>
                 </div>
 
+                <!-- Conversations -->
                 <div>
                     <h3 class="text-xs font-black text-zinc-400 uppercase mb-2"><i class="fa-regular fa-message mr-1"></i> Mes questions aux Imams</h3>
                     <div id="conversationsList" class="space-y-2"></div>
                 </div>
 
+                <!-- Poser une question -->
                 <div class="bg-gradient-to-r from-videmateOrange/10 to-emerald-500/10 rounded-2xl p-4 space-y-3">
                     <h4 class="text-sm font-bold text-white">📢 Poser une question à un Imam</h4>
                     <select id="targetImam" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
@@ -172,12 +188,14 @@
         </div>
     </div>
 
+    <!-- Bottom Navigation -->
     <nav class="absolute bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800/80 py-2.5 px-6 flex items-center justify-around">
         <button onclick="showTab('home')" id="nav-home" class="flex flex-col items-center gap-1 text-videmateOrange"><i class="fa-solid fa-house text-xl"></i><span class="text-[10px]">Accueil</span></button>
         <button onclick="showTab('downloads')" id="nav-downloads" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-download text-xl"></i><span class="text-[10px]">Downloads</span></button>
         <button onclick="showTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-user text-xl"></i><span class="text-[10px]">Profil</span></button>
     </nav>
 
+    <!-- Chat Modal -->
     <div id="chatModal" class="hidden fixed inset-0 bg-black/95 z-50 flex flex-col">
         <div class="bg-zinc-900 p-4 flex items-center justify-between border-b border-zinc-800">
             <button onclick="closeChatModal()" class="w-8 h-8 rounded-full bg-zinc-800"><i class="fa-solid fa-arrow-left text-white"></i></button>
@@ -192,6 +210,7 @@
         </div>
     </div>
 
+    <!-- Video Player Modal -->
     <div id="video-overlay-player" class="hidden fixed inset-0 bg-black/95 z-50 flex flex-col">
         <div class="absolute top-4 left-4 z-10"><button onclick="closeVideoPlayer()" class="w-10 h-10 rounded-full bg-black/60"><i class="fa-solid fa-arrow-left text-white"></i></button></div>
         <div class="flex-1 flex items-center justify-center">
@@ -202,6 +221,7 @@
 </div>
 
 <script>
+    // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyC3ybM8gMQZ-IjVLLXqs0MZLPEzqGmyREA",
         authDomain: "mimbar-e1bee.firebaseapp.com",
@@ -216,6 +236,7 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
+    // URLs Backblaze B2 (vos vidéos existantes)
     const BACKBLAZE_BASE = "https://f005.backblazeb2.com/file/minbar-media/";
     const BACKBLAZE_VIDEOS = [
         { name: "VideoConverter_30_06_2024_12_12_26.mp4", title: "Vidéo d'ouverture", speaker: "Cheikh Ousmane", duration: "15:24", date: "2024-06-30" },
@@ -223,11 +244,12 @@
         { name: "WhatsApp%20Video%202026-06-05%20at%2014.58.10.mp4", title: "Rappel du jour", speaker: "Ustadha Fatima", duration: "12:18", date: "2026-06-05" }
     ];
 
+    // Données
     let currentUser = null;
     let userAlbum = null;
     let userVideos = [];
     let completedDownloads = JSON.parse(localStorage.getItem('completedDownloads') || '[]');
-    let activeDownloads = JSON.parse(localStorage.getItem('activeDownloads') || '[]');
+    let activeDownloads = [];
     let selectedAlbumFilter = null;
     let currentChat = { imamId: null, imamName: null };
     let mediaRecorder = null;
@@ -240,6 +262,7 @@
         { id: 103, name: "Éducation & Jeunesse active", speaker: "Ustadha Fatima", theme: "from-purple-950 to-zinc-900" }
     ];
 
+    // Construction de la liste des sermons
     let sermonsList = BACKBLAZE_VIDEOS.map((v, index) => ({
         id: index + 1,
         albumId: 101 + (index % 3),
@@ -258,6 +281,7 @@
         ustadha_fatima: { name: "Ustadha Fatima", avatar: "👩‍🏫" }
     };
 
+    // Auth State
     auth.onAuthStateChanged(async (user) => {
         currentUser = user;
         if (user) {
@@ -283,6 +307,7 @@
                 const videosQuery = await db.collection('videos').where('userId', '==', currentUser.uid).get();
                 userVideos = [];
                 videosQuery.forEach(doc => userVideos.push({ id: doc.id, ...doc.data() }));
+                // Ajouter les vidéos user à l'affichage
                 userVideos.forEach(v => {
                     if (!sermonsList.find(s => s.videoUrl === v.downloadURL)) {
                         sermonsList.push({
@@ -290,7 +315,7 @@
                             albumId: userAlbum.id,
                             title: v.title,
                             speaker: currentUser.email?.split('@')[0],
-                            duration: v.duration || "00:00",
+                            duration: "00:00",
                             date: new Date(v.uploadedAt?.toDate()).toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
                             views: v.views || 0,
                             videoUrl: v.downloadURL,
@@ -346,26 +371,20 @@
         } catch(e) { alert("Erreur: " + e.message); }
     }
 
-    // ✅ UPLOAD CORRIGÉ ET AMÉLIORÉ
+    // UPLOAD vers Firebase Storage
     async function uploadVideoToFirebase(input) {
         if (!input.files?.length) return;
         const file = input.files[0];
         
-        if (!currentUser) { alert("Veuillez vous connecter d'abord"); input.value = ''; return; }
-        if (!userAlbum) { alert("Veuillez créer un album d'abord"); input.value = ''; return; }
-        
-        if (file.size > 100 * 1024 * 1024) {
-            alert("Fichier trop volumineux (max 100 Mo)");
-            input.value = '';
-            return;
-        }
+        if (!currentUser) { alert("Veuillez vous connecter d'abord"); return; }
+        if (!userAlbum) { alert("Veuillez créer un album d'abord"); return; }
         
         const progressDiv = document.getElementById('uploadProgress');
         const progressBar = document.getElementById('progressBar');
         const progressText = document.getElementById('progressText');
         progressDiv.classList.remove('hidden');
         
-        const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+        const fileName = `${Date.now()}_${file.name}`;
         const storageRef = storage.ref().child(`videos/${currentUser.uid}/${fileName}`);
         const uploadTask = storageRef.put(file);
         
@@ -373,39 +392,26 @@
             (snapshot) => {
                 const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                 progressBar.style.width = `${percent}%`;
-                progressText.innerText = `${Math.round(percent)}% - Téléversement en cours...`;
+                progressText.innerText = `${Math.round(percent)}%`;
             },
-            (error) => { 
-                console.error("Erreur upload:", error);
-                alert("Erreur upload: " + error.message); 
-                progressDiv.classList.add('hidden');
-                input.value = '';
-            },
+            (error) => { alert("Erreur upload: " + error.message); progressDiv.classList.add('hidden'); },
             async () => {
-                try {
-                    const url = await storageRef.getDownloadURL();
-                    await db.collection('videos').add({
-                        userId: currentUser.uid,
-                        albumId: userAlbum.id,
-                        fileName: file.name,
-                        title: file.name.replace(/\.[^/.]+$/, ""),
-                        duration: "00:00",
-                        date: new Date().toISOString().split('T')[0],
-                        views: 0,
-                        downloads: 0,
-                        downloadURL: url,
-                        uploadedAt: new Date()
-                    });
-                    progressDiv.classList.add('hidden');
-                    input.value = '';
-                    await loadUserData();
-                    alert("✅ Vidéo téléversée avec succès !");
-                } catch(e) {
-                    console.error("Erreur sauvegarde:", e);
-                    alert("Erreur sauvegarde: " + e.message);
-                    progressDiv.classList.add('hidden');
-                    input.value = '';
-                }
+                const url = await storageRef.getDownloadURL();
+                await db.collection('videos').add({
+                    userId: currentUser.uid,
+                    albumId: userAlbum.id,
+                    fileName: file.name,
+                    title: file.name,
+                    duration: "00:00",
+                    date: new Date().toISOString().split('T')[0],
+                    views: 0,
+                    downloads: 0,
+                    downloadURL: url,
+                    uploadedAt: new Date()
+                });
+                progressDiv.classList.add('hidden');
+                await loadUserData();
+                alert("✅ Vidéo téléversée avec succès !");
             }
         );
     }
@@ -499,28 +505,33 @@
         video.play().catch(e => console.log(e));
     }
 
-    // ✅ TÉLÉCHARGEMENT CORRIGÉ - Utilise fetch + blob pour forcer le téléchargement
+    // TÉLÉCHARGEMENT - Utilisation de fetch avec blob (CORRIGÉ)
     async function downloadVideo(url, filename) {
-        const downloadId = 'dl_' + Date.now();
-        const downloadItem = {
-            id: downloadId,
-            title: filename,
-            url: url,
-            progress: 0,
-            status: 'downloading',
-            startTime: new Date().toISOString()
-        };
-        
-        activeDownloads.push(downloadItem);
-        localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-        renderDownloads();
+        const btn = event.target.closest('button');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        btn.disabled = true;
         
         try {
-            const response = await fetch(url, { mode: 'cors' });
-            if (!response.ok) throw new Error('Erreur réseau: ' + response.status);
+            // Afficher la progression
+            const progressDiv = document.createElement('div');
+            progressDiv.className = 'fixed bottom-24 left-4 right-4 bg-zinc-900 p-3 rounded-xl z-50';
+            progressDiv.innerHTML = `
+                <div class="flex justify-between text-xs mb-1">
+                    <span>Téléchargement de ${filename.substring(0, 30)}...</span>
+                    <span id="dlPercent">0%</span>
+                </div>
+                <div class="h-1 bg-zinc-700 rounded-full overflow-hidden">
+                    <div id="dlProgressBar" class="h-full bg-videmateOrange" style="width:0%"></div>
+                </div>
+            `;
+            document.body.appendChild(progressDiv);
+            
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Erreur réseau");
             
             const contentLength = response.headers.get('content-length');
-            const total = contentLength ? parseInt(contentLength) : 0;
+            const total = parseInt(contentLength, 10);
             let loaded = 0;
             
             const reader = response.body.getReader();
@@ -529,115 +540,45 @@
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
-                
                 chunks.push(value);
                 loaded += value.length;
-                
-                if (total > 0) {
-                    const percent = (loaded / total) * 100;
-                    const dl = activeDownloads.find(d => d.id === downloadId);
-                    if (dl) {
-                        dl.progress = percent;
-                        localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-                        renderDownloads();
-                    }
-                }
+                const percent = Math.round((loaded / total) * 100);
+                document.getElementById('dlPercent').innerText = `${percent}%`;
+                document.getElementById('dlProgressBar').style.width = `${percent}%`;
             }
             
-            const blob = new Blob(chunks);
+            const blob = new Blob(chunks, { type: 'video/mp4' });
             const blobUrl = URL.createObjectURL(blob);
-            
             const link = document.createElement('a');
             link.href = blobUrl;
             link.download = filename;
-            link.style.display = 'none';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
             
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+            progressDiv.remove();
             
-            activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
-            completedDownloads.unshift({ 
-                title: filename, 
-                date: new Date().toLocaleString(),
-                size: (blob.size / 1024 / 1024).toFixed(2) + ' Mo'
-            });
-            
-            localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
+            completedDownloads.unshift({ title: filename, date: new Date().toLocaleString() });
             localStorage.setItem('completedDownloads', JSON.stringify(completedDownloads));
-            
             renderDownloads();
+            
             alert("✅ Téléchargement terminé !");
-            
         } catch(e) {
-            console.error('Erreur téléchargement:', e);
-            activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
-            localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-            renderDownloads();
-            
-            // Fallback : ouvrir dans un nouvel onglet
-            const confirmOpen = confirm("⚠️ Téléchargement direct impossible (CORS).\n\nVoulez-vous ouvrir la vidéo dans un nouvel onglet ?");
-            if (confirmOpen) {
-                window.open(url, '_blank');
-            }
+            console.error("Erreur téléchargement:", e);
+            alert("❌ Erreur: " + e.message);
+        } finally {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
         }
     }
 
     function renderDownloads() {
         const activeList = document.getElementById('active-downloads-list');
         const completedList = document.getElementById('completed-downloads-list');
-        const badge = document.getElementById('download-count-badge');
-        
-        badge.innerText = `${activeDownloads.length} actif(s)`;
-        
-        if (activeDownloads.length === 0) {
-            activeList.innerHTML = '<div class="text-center text-zinc-500 py-8 text-xs">Aucun téléchargement en cours</div>';
-        } else {
-            activeList.innerHTML = activeDownloads.map(d => `
-                <div class="bg-zinc-900 p-3 rounded-xl space-y-2">
-                    <div class="flex justify-between items-center">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-bold text-white truncate">📹 ${d.title}</p>
-                            <p class="text-[9px] text-zinc-500">Téléchargement en cours...</p>
-                        </div>
-                        <button onclick="cancelDownload('${d.id}')" class="ml-2 w-6 h-6 bg-red-900/30 hover:bg-red-900 text-red-400 rounded flex items-center justify-center">
-                            <i class="fa-solid fa-xmark text-xs"></i>
-                        </button>
-                    </div>
-                    <div class="relative h-1.5 bg-zinc-700 rounded-full overflow-hidden">
-                        <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-videmateOrange to-emerald-500 transition-all" style="width: ${d.progress}%"></div>
-                    </div>
-                    <p class="text-[10px] text-zinc-400 text-right">${Math.round(d.progress)}%</p>
-                </div>
-            `).join('');
-        }
-        
-        if (completedList) {
-            completedList.innerHTML = completedDownloads.length ? completedDownloads.map(d => `
-                <div class="bg-zinc-900 p-3 rounded-xl text-white flex justify-between items-center">
-                    <div>
-                        <p class="text-xs font-bold">📹 ${d.title}</p>
-                        <p class="text-[9px] text-zinc-500">📅 ${d.date} · ${d.size || 'Taille inconnue'}</p>
-                    </div>
-                    <button onclick="removeCompleted('${d.title}')" class="w-6 h-6 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 rounded flex items-center justify-center">
-                        <i class="fa-solid fa-trash-can text-xs"></i>
-                    </button>
-                </div>
-            `).join('') : '<div class="text-center text-zinc-500 py-8">Aucun téléchargement</div>';
-        }
-    }
-
-    function cancelDownload(id) {
-        activeDownloads = activeDownloads.filter(d => d.id !== id);
-        localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-        renderDownloads();
-    }
-
-    function removeCompleted(title) {
-        completedDownloads = completedDownloads.filter(d => d.title !== title);
-        localStorage.setItem('completedDownloads', JSON.stringify(completedDownloads));
-        renderDownloads();
+        if (activeList) activeList.innerHTML = activeDownloads.length ? activeDownloads.map(d => `<div class="bg-zinc-900 p-3 rounded-xl">${d.title} - ${d.progress}%</div>`).join('') : '<div class="text-center text-zinc-500 py-8 text-xs">Aucun téléchargement actif</div>';
+        if (completedList) completedList.innerHTML = completedDownloads.length ? completedDownloads.map(d => `<div class="bg-zinc-900 p-3 rounded-xl text-white">📹 ${d.title}<p class="text-[9px] text-zinc-500">📅 ${d.date}</p></div>`).join('') : '<div class="text-center text-zinc-500 py-8">Aucun téléchargement</div>';
+        document.getElementById('download-count-badge').innerText = `${activeDownloads.length} actif(s)`;
     }
 
     function toggleDlSubTab(sub) {
@@ -647,6 +588,7 @@
         document.getElementById('btn-sub-completed').className = sub === 'completed' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
     }
 
+    // CHAT
     async function loadConversations() {
         if (!currentUser) return;
         try {
@@ -778,6 +720,7 @@
     function closeChatModal() { stopChatRecording(); document.getElementById('chatModal').classList.add('hidden'); }
     function closeVideoPlayer() { document.getElementById('video-overlay-player').classList.add('hidden'); document.getElementById('native-video').pause(); }
 
+    // Auth functions
     async function handleLogin() {
         const email = document.getElementById('loginEmail').value.trim();
         const pwd = document.getElementById('loginPassword').value;
@@ -824,6 +767,7 @@
         if (tab === 'profile' && currentUser) loadConversations();
     }
 
+    // Initialisation
     showTab('home');
     renderDownloads();
 </script>
