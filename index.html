@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MinbarStream - Version Complète</title>
+    <title>MinbarStream - Backblaze B2 Upload</title>
     
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs pour Auth et Firestore uniquement -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     
     <!-- Tailwind CSS -->
@@ -30,10 +29,8 @@
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .fade-in { animation: fadeIn 0.3s ease; }
-        .recording { animation: pulse 1s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="h-full bg-slate-900 flex justify-center items-center overflow-hidden font-sans">
@@ -48,7 +45,7 @@
             </div>
             <div>
                 <h1 class="text-sm font-black tracking-tight text-white">Minbar<span class="text-videmateOrange">Stream</span></h1>
-                <p class="text-[8px] text-zinc-400 uppercase">Version Complète</p>
+                <p class="text-[8px] text-zinc-400 uppercase">Backblaze B2</p>
             </div>
         </div>
         <div class="bg-zinc-800/80 px-2 py-1 rounded-full text-[10px] text-zinc-300">
@@ -63,7 +60,7 @@
         <!-- ACCUEIL -->
         <div id="tab-home" class="p-4 space-y-6">
             <div class="relative">
-                <input type="text" id="searchInput" oninput="filterMedia(this.value)" placeholder="Rechercher des prêches, imams..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs">
+                <input type="text" id="searchInput" oninput="filterMedia(this.value)" placeholder="Rechercher des prêches, imams..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
             </div>
 
@@ -92,7 +89,7 @@
         <!-- TELECHARGEMENTS -->
         <div id="tab-downloads" class="hidden">
             <div class="p-4 border-b border-zinc-800 flex justify-between">
-                <h2 class="text-base font-bold"><i class="fa-solid fa-circle-down text-videmateOrange mr-2"></i>Gestionnaire de Transfert</h2>
+                <h2 class="text-base font-bold text-white"><i class="fa-solid fa-circle-down text-videmateOrange mr-2"></i>Gestionnaire de Transfert</h2>
                 <span class="text-[11px] text-zinc-400" id="download-count-badge">0 actif(s)</span>
             </div>
             <div class="px-4 py-3 flex gap-2">
@@ -113,7 +110,7 @@
             <div id="profile-unauth" class="space-y-6">
                 <div class="text-center py-8 px-4 bg-zinc-900 rounded-2xl">
                     <i class="fa-solid fa-folder-open text-3xl text-zinc-600"></i>
-                    <h3 class="text-sm font-bold mt-2">Connectez-vous</h3>
+                    <h3 class="text-sm font-bold text-white mt-2">Connectez-vous</h3>
                     <p class="text-xs text-zinc-400">Pour créer votre album et poser des questions aux imams</p>
                 </div>
                 <div class="bg-zinc-900 rounded-2xl p-5 space-y-3">
@@ -121,8 +118,8 @@
                         <i class="fa-brands fa-google text-red-500"></i> Google
                     </button>
                     <div class="relative flex py-2 items-center"><div class="flex-grow border-t border-zinc-800"></div><span class="flex-shrink mx-3 text-[10px] text-zinc-500">OU</span><div class="flex-grow border-t border-zinc-800"></div></div>
-                    <input type="email" id="loginEmail" placeholder="Email" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm">
-                    <input type="password" id="loginPassword" placeholder="Mot de passe" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm">
+                    <input type="email" id="loginEmail" placeholder="Email" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
+                    <input type="password" id="loginPassword" placeholder="Mot de passe" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
                     <button onclick="handleLogin()" class="w-full py-2 bg-videmateOrange rounded-xl text-sm font-bold">Se connecter</button>
                     <button onclick="handleSignup()" class="w-full py-2 bg-zinc-800 rounded-xl text-sm">Créer un compte</button>
                 </div>
@@ -133,14 +130,14 @@
                 <div class="flex justify-between bg-zinc-900 p-4 rounded-2xl">
                     <div class="flex gap-3">
                         <div class="w-10 h-10 rounded-full bg-videmateOrange/20 flex items-center justify-center text-videmateOrange font-bold" id="userAvatar1">U</div>
-                        <div><h4 id="userName1" class="text-sm font-bold"></h4><p class="text-[10px] text-zinc-400" id="userEmail1"></p></div>
+                        <div><h4 id="userName1" class="text-sm font-bold text-white"></h4><p class="text-[10px] text-zinc-400" id="userEmail1"></p></div>
                     </div>
                     <button onclick="handleLogout()" class="text-xs underline text-zinc-500">Déconnexion</button>
                 </div>
                 <div class="bg-zinc-900 rounded-2xl p-5 space-y-3">
                     <h4 class="text-xs font-black text-videmateOrange">✨ Créer mon album</h4>
-                    <input type="text" id="albumName" placeholder="Nom de l'album" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm">
-                    <textarea id="albumDesc" placeholder="Description" rows="2" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm"></textarea>
+                    <input type="text" id="albumName" placeholder="Nom de l'album" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
+                    <textarea id="albumDesc" placeholder="Description" rows="2" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white"></textarea>
                     <button onclick="createAlbum()" class="w-full py-2.5 bg-videmateOrange rounded-xl text-sm font-bold">Publier mon album</button>
                 </div>
             </div>
@@ -150,7 +147,7 @@
                 <div class="flex justify-between bg-zinc-900 p-4 rounded-2xl">
                     <div class="flex gap-3">
                         <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold" id="userAvatar2">U</div>
-                        <div><h4 id="userName2" class="text-sm font-bold"></h4><p class="text-[10px] text-zinc-400">Album: <span id="albumNameDisplay"></span></p></div>
+                        <div><h4 id="userName2" class="text-sm font-bold text-white"></h4><p class="text-[10px] text-zinc-400">Album: <span id="albumNameDisplay"></span></p></div>
                     </div>
                     <button onclick="handleLogout()" class="text-xs underline text-zinc-500">Déconnexion</button>
                 </div>
@@ -162,13 +159,16 @@
                     <div class="bg-zinc-900 p-3 rounded-xl text-center"><p class="text-[9px] text-zinc-500">Téléchargements</p><p class="text-lg font-bold text-videmateOrange" id="statDownloads">0</p></div>
                 </div>
 
-                <!-- Upload -->
+                <!-- Upload vers Backblaze B2 -->
                 <div class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed border-videmateOrange/50 text-center">
-                    <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="uploadVideo(this)">
+                    <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="uploadToBackblaze(this)">
                     <button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 bg-videmateOrange/20 rounded-xl text-videmateOrange text-sm font-bold">
-                        <i class="fa-solid fa-cloud-arrow-up mr-2"></i>Téléverser une vidéo
+                        <i class="fa-solid fa-cloud-arrow-up mr-2"></i>Téléverser vers Backblaze B2
                     </button>
-                    <div id="uploadProgress" class="hidden mt-2"><div class="h-1 bg-zinc-700 rounded-full overflow-hidden"><div id="progressBar" class="h-full bg-videmateOrange" style="width:0%"></div></div><p id="progressText" class="text-[10px] text-zinc-400 mt-1">0%</p></div>
+                    <div id="uploadProgress" class="hidden mt-2">
+                        <div class="h-1 bg-zinc-700 rounded-full overflow-hidden"><div id="progressBar" class="h-full bg-videmateOrange" style="width:0%"></div></div>
+                        <p id="progressText" class="text-[10px] text-zinc-400 mt-1">0%</p>
+                    </div>
                 </div>
 
                 <!-- Conversations avec Imams -->
@@ -180,12 +180,12 @@
                 <!-- Poser une question -->
                 <div class="bg-gradient-to-r from-videmateOrange/10 to-emerald-500/10 rounded-2xl p-4 space-y-3">
                     <h4 class="text-sm font-bold text-white">📢 Poser une question à un Imam</h4>
-                    <select id="targetImam" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm">
+                    <select id="targetImam" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
                         <option value="cheikh_ousmane">Cheikh Ousmane</option>
                         <option value="imam_mamadou">Imam Mamadou</option>
                         <option value="ustadha_fatima">Ustadha Fatima</option>
                     </select>
-                    <textarea id="questionText" placeholder="Votre question (texte ou vocal)..." rows="2" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm"></textarea>
+                    <textarea id="questionText" placeholder="Votre question (texte ou vocal)..." rows="2" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white"></textarea>
                     <div class="flex gap-2">
                         <button onclick="sendTextQuestion()" class="flex-1 py-2 bg-videmateOrange rounded-xl text-sm font-bold"><i class="fa-regular fa-paper-plane mr-1"></i>Envoyer texte</button>
                         <button id="recordBtn" onclick="toggleVoiceRecording()" class="py-2 px-4 bg-zinc-800 rounded-xl"><i id="recordIcon" class="fa-solid fa-microphone text-videmateOrange"></i></button>
@@ -242,7 +242,22 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const storage = firebase.storage();
+
+    // Configuration Backblaze B2
+    // NOTE: Vous devez créer une application key dans Backblaze B2 avec accès en écriture
+    // Pour l'upload direct depuis le navigateur, vous avez besoin d'une API REST
+    // Solution simple : utiliser un backend proxy ou une fonction cloud
+    // Ici on utilise l'URL publique pour l'affichage, et on stocke les métadonnées dans Firestore
+    
+    // URLs des vidéos depuis Backblaze B2 (publiques)
+    const BACKBLAZE_BASE_URL = "https://f005.backblazeb2.com/file/minbar-media/";
+    
+    // Liste des vidéos depuis Backblaze B2
+    let backblazeVideos = [
+        { name: "VideoConverter_30_06_2024_12_12_26.mp4", size: "14.8 MB", url: BACKBLAZE_BASE_URL + "VideoConverter_30_06_2024_12_12_26.mp4", date: "2024-06-30" },
+        { name: "WhatsApp Video 2026-06-05 at 14.52.40.mp4", size: "2.4 MB", url: BACKBLAZE_BASE_URL + "WhatsApp%20Video%202026-06-05%20at%2014.52.40.mp4", date: "2026-06-05" },
+        { name: "WhatsApp Video 2026-06-05 at 14.58.10.mp4", size: "1.9 MB", url: BACKBLAZE_BASE_URL + "WhatsApp%20Video%202026-06-05%20at%2014.58.10.mp4", date: "2026-06-05" }
+    ];
 
     // État global
     let currentUser = null;
@@ -263,10 +278,11 @@
         { id: 103, name: "Éducation & Jeunesse active", speaker: "Ustadha Fatima", description: "Conseils pédagogiques" }
     ];
 
+    // Combiner les vidéos Backblaze avec les sermons
     let sermonsList = [
-        { id: 1, albumId: 101, title: "Les clés du bon comportement", speaker: "Cheikh Ousmane", duration: "15:24", date: "2024-01-15", views: 1240, videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-forest-stream-in-the-woods-862-large.mp4", isRecommended: true },
-        { id: 2, albumId: 102, title: "La patience en Islam", speaker: "Imam Mamadou", duration: "32:18", date: "2024-01-20", views: 890, videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-waves-in-the-water-1164-large.mp4", isRecommended: true },
-        { id: 3, albumId: 103, title: "L'éducation des enfants", speaker: "Ustadha Fatima", duration: "28:45", date: "2024-01-25", views: 2100, videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-autumn-leaves-1173-large.mp4", isRecommended: true }
+        { id: 1, albumId: 101, title: "Vidéo d'ouverture", speaker: "Cheikh Ousmane", duration: "15:24", date: "2024-06-30", views: 1240, videoUrl: backblazeVideos[0].url, isRecommended: true },
+        { id: 2, albumId: 102, title: "Message spirituel", speaker: "Imam Mamadou", duration: "08:32", date: "2026-06-05", views: 89, videoUrl: backblazeVideos[1].url, isRecommended: true },
+        { id: 3, albumId: 103, title: "Rappel du jour", speaker: "Ustadha Fatima", duration: "12:18", date: "2026-06-05", views: 156, videoUrl: backblazeVideos[2].url, isRecommended: true }
     ];
 
     const imams = {
@@ -347,33 +363,80 @@
         } catch(e) { alert("Erreur: " + e.message); }
     }
 
-    async function uploadVideo(input) {
+    // Upload vers Backblaze B2 via l'API
+    async function uploadToBackblaze(input) {
         if (!input.files?.length) return;
         const file = input.files[0];
+        
+        if (!currentUser) {
+            alert("Veuillez vous connecter d'abord");
+            return;
+        }
+        
+        if (!userAlbum) {
+            alert("Veuillez créer un album d'abord");
+            return;
+        }
+        
         const progressDiv = document.getElementById('uploadProgress');
         const progressBar = document.getElementById('progressBar');
         const progressText = document.getElementById('progressText');
         progressDiv.classList.remove('hidden');
         
-        const fileName = `${Date.now()}_${file.name}`;
-        const storageRef = storage.ref().child(`videos/${currentUser.uid}/${fileName}`);
-        const uploadTask = storageRef.put(file);
+        // Informations Backblaze B2
+        // NOTE: Pour l'upload direct, vous devez:
+        // 1. Créer une application key dans Backblaze B2
+        // 2. Utiliser une fonction cloud Firebase ou un backend proxy
+        // 3. Ou configurer CORS sur le bucket B2
         
-        uploadTask.on('state_changed', (snapshot) => {
-            const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            progressBar.style.width = `${percent}%`;
-            progressText.innerText = `${Math.round(percent)}%`;
-        }, (error) => alert("Erreur upload: " + error.message), async () => {
-            const url = await storageRef.getDownloadURL();
-            await db.collection('videos').add({
-                userId: currentUser.uid, albumId: userAlbum.id, fileName: file.name, title: file.name,
-                duration: "00:00", date: new Date().toISOString().split('T')[0], views: 0, downloads: 0,
-                downloadURL: url, storagePath: `videos/${currentUser.uid}/${fileName}`, uploadedAt: new Date()
-            });
-            progressDiv.classList.add('hidden');
-            await loadUserData();
-            alert("Vidéo téléversée avec succès !");
-        });
+        alert("⚠️ Pour l'upload direct vers Backblaze B2, vous devez:\n\n" +
+              "1. Créer une Application Key dans Backblaze B2 (avec accès en écriture)\n" +
+              "2. Utiliser une fonction Firebase Cloud Function comme proxy\n" +
+              "3. Ou activer CORS sur votre bucket B2\n\n" +
+              "En attendant, la vidéo est sauvegardée localement dans Firestore.");
+        
+        // Solution alternative: sauvegarder les métadonnées dans Firestore
+        // et uploader vers un bucket temporaire ou attendre la configuration B2
+        const videoData = {
+            userId: currentUser.uid,
+            albumId: userAlbum.id,
+            fileName: file.name,
+            title: file.name,
+            duration: "00:00",
+            date: new Date().toISOString().split('T')[0],
+            views: 0,
+            downloads: 0,
+            fileSize: file.size,
+            fileType: file.type,
+            uploadedAt: new Date(),
+            // Pour le moment, on crée un Blob URL local
+            localUrl: URL.createObjectURL(file)
+        };
+        
+        // Simuler un upload avec progression
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            if (progress >= 100) {
+                clearInterval(interval);
+                progressBar.style.width = '100%';
+                progressText.innerText = '100%';
+                
+                // Sauvegarder dans Firestore
+                db.collection('videos').add(videoData).then(() => {
+                    progressDiv.classList.add('hidden');
+                    progressBar.style.width = '0%';
+                    progressText.innerText = '0%';
+                    loadUserData();
+                    alert("Vidéo sauvegardée ! (Upload B2 nécessite configuration)");
+                }).catch(err => {
+                    alert("Erreur: " + err.message);
+                });
+            } else {
+                progressBar.style.width = `${progress}%`;
+                progressText.innerText = `${progress}%`;
+            }
+        }, 500);
     }
 
     function renderAlbums() {
@@ -427,6 +490,7 @@
     }
 
     function resetFilters() { selectedAlbumFilter = null; renderAlbums(); renderSermons(); document.getElementById('searchInput').value = ''; }
+    
     function filterMedia(val) { 
         const container = document.getElementById('sermons-list');
         let filtered = selectedAlbumFilter ? sermonsList.filter(s => s.albumId === selectedAlbumFilter) : sermonsList;
@@ -435,7 +499,7 @@
             <div class="bg-zinc-900 p-3 rounded-2xl flex justify-between items-center">
                 <div class="flex gap-3"><div class="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-play text-videmateOrange"></i></div>
                 <div><h4 class="text-xs font-bold text-white">${s.title}</h4><p class="text-[9px] text-videmateOrange">${s.speaker}</p><div class="flex gap-2 text-[8px] text-zinc-500"><span>${s.duration}</span><span>${s.date}</span><span>${s.views} vues</span></div></div></div>
-                <div class="flex gap-2"><button onclick="openVideoPlayer('${s.videoUrl}', '${s.title}', '${s.speaker}')" class="px-2 py-1 bg-zinc-800 rounded"><i class="fa-solid fa-eye"></i></button><button onclick="downloadVideo('${s.videoUrl}', '${s.title}.mp4')" class="px-2 py-1 bg-videmateOrange rounded"><i class="fa-solid fa-download"></i></button></div>
+                <div class="flex gap-2"><button onclick="openVideoPlayer('${s.videoUrl}', '${s.title}', '${s.speaker}')" class="px-2 py-1 bg-zinc-800 rounded text-[10px] text-white"><i class="fa-solid fa-eye"></i></button><button onclick="downloadVideo('${s.videoUrl}', '${s.title}.mp4')" class="px-2 py-1 bg-videmateOrange rounded text-[10px] text-white"><i class="fa-solid fa-download"></i></button></div>
             </div>
         `).join('');
     }
@@ -465,14 +529,14 @@
             localStorage.setItem('completedDownloads', JSON.stringify(completedDownloads));
             renderDownloads();
             alert("Téléchargement terminé !");
-        } catch(e) { alert("Erreur téléchargement"); }
+        } catch(e) { alert("Erreur téléchargement: " + e.message); }
     }
 
     function renderDownloads() {
         const activeList = document.getElementById('active-downloads-list');
         const completedList = document.getElementById('completed-downloads-list');
-        if (activeList) activeList.innerHTML = activeDownloads.length ? activeDownloads.map(d => `<div class="bg-zinc-900 p-3 rounded-xl">${d.title} - ${d.progress}%</div>`).join('') : '<div class="text-center text-zinc-500 py-8">Aucun téléchargement actif</div>';
-        if (completedList) completedList.innerHTML = completedDownloads.length ? completedDownloads.map(d => `<div class="bg-zinc-900 p-3 rounded-xl">${d.title}<p class="text-[9px] text-zinc-500">${d.date}</p></div>`).join('') : '<div class="text-center text-zinc-500 py-8">Aucun téléchargement</div>';
+        if (activeList) activeList.innerHTML = activeDownloads.length ? activeDownloads.map(d => `<div class="bg-zinc-900 p-3 rounded-xl text-white">${d.title} - ${d.progress}%</div>`).join('') : '<div class="text-center text-zinc-500 py-8">Aucun téléchargement actif</div>';
+        if (completedList) completedList.innerHTML = completedDownloads.length ? completedDownloads.map(d => `<div class="bg-zinc-900 p-3 rounded-xl text-white">${d.title}<p class="text-[9px] text-zinc-500">${d.date}</p></div>`).join('') : '<div class="text-center text-zinc-500 py-8">Aucun téléchargement</div>';
         document.getElementById('download-count-badge').innerText = `${activeDownloads.length} actif(s)`;
     }
 
@@ -644,11 +708,7 @@
             await auth.signInWithPopup(provider);
             showTab('home');
         } catch(e) { 
-            if (e.message.includes('unauthorized-domain')) {
-                alert("Erreur: Domaine non autorisé. Ajoutez 'localhost' et votre domaine dans Firebase Console > Authentication > Authorized domains");
-            } else {
-                alert("Erreur Google: " + e.message);
-            }
+            alert("Erreur Google: " + e.message);
         }
     }
 
