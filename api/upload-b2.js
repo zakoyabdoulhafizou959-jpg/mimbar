@@ -1,5 +1,6 @@
 // api/upload-b2.js
 export default async function handler(req, res) {
+    // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -12,6 +13,7 @@ export default async function handler(req, res) {
     const B2_BUCKET_ID = '57e8c67fa7e09c7499ef0516';
     
     try {
+        // 1. Auth B2
         const authResponse = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
             method: 'GET',
             headers: {
@@ -19,12 +21,10 @@ export default async function handler(req, res) {
             }
         });
         
-        if (!authResponse.ok) {
-            throw new Error('Auth B2 échouée: ' + authResponse.status);
-        }
-        
+        if (!authResponse.ok) throw new Error('Auth B2 échouée: ' + authResponse.status);
         const authData = await authResponse.json();
         
+        // 2. Get upload URL
         const uploadUrlResponse = await fetch(`${authData.apiUrl}/b2api/v2/b2_get_upload_url`, {
             method: 'POST',
             headers: {
@@ -34,10 +34,7 @@ export default async function handler(req, res) {
             body: JSON.stringify({ bucketId: B2_BUCKET_ID })
         });
         
-        if (!uploadUrlResponse.ok) {
-            throw new Error('Get upload URL échoué: ' + uploadUrlResponse.status);
-        }
-        
+        if (!uploadUrlResponse.ok) throw new Error('Get upload URL échoué');
         const uploadData = await uploadUrlResponse.json();
         
         return res.status(200).json({
