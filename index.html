@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MinbarStream - B2 Storage</title>
+    <title>MinbarStream - Vidéos</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -16,13 +16,17 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .fade-in { animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .video-card:hover .thumbnail-overlay { opacity: 1; }
+        .thumbnail-overlay { opacity: 0; transition: opacity 0.2s; }
+        .checkbox-selected { border-color: #ff5722 !important; background: rgba(255,87,34,0.2) !important; }
     </style>
 </head>
 <body class="h-full bg-slate-900 flex justify-center items-center overflow-hidden font-sans">
 
 <div class="w-full h-full max-w-[480px] md:h-[92vh] md:rounded-[40px] md:border-[10px] md:border-zinc-800 bg-zinc-950 flex flex-col relative overflow-hidden shadow-2xl">
 
+    <!-- HEADER -->
     <header class="bg-zinc-900 px-4 pt-6 pb-3 border-b border-zinc-800/80 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-400 to-emerald-500 p-1 flex items-center justify-center shadow-lg">
@@ -30,7 +34,7 @@
             </div>
             <div>
                 <h1 class="text-sm font-black tracking-tight text-white">Minbar<span style="color:#ff5722">Stream</span></h1>
-                <p class="text-[8px] text-zinc-400 uppercase">B2 Storage</p>
+                <p class="text-[8px] text-zinc-400 uppercase">Vidéos & Prêches</p>
             </div>
         </div>
         <div class="bg-zinc-800/80 px-2 py-1 rounded-full text-[10px] text-zinc-300">
@@ -39,43 +43,34 @@
         </div>
     </header>
 
-    <div class="flex-1 overflow-y-auto no-scrollbar pb-24" id="main-content">
+    <!-- CONTENU -->
+    <div class="flex-1 overflow-y-auto no-scrollbar pb-20" id="main-content">
         
-        <div id="tab-home" class="p-4 space-y-6">
+        <!-- ====== ACCUEIL (Style YouTube) ====== -->
+        <div id="tab-home" class="p-4 space-y-4">
             <div class="relative">
                 <input type="text" id="searchInput" oninput="filterMedia(this.value)" placeholder="Rechercher..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
             </div>
 
-            <div>
-                <h3 class="text-xs font-black text-zinc-400 uppercase mb-3 flex justify-between">
-                    <span>Albums & Séries des Imams</span>
-                    <span class="text-[10px] cursor-pointer" style="color:#ff5722" onclick="resetFilters()">Tout voir</span>
-                </h3>
-                <div class="flex gap-4 overflow-x-auto no-scrollbar py-1" id="albums-list"></div>
-            </div>
+            <!-- Filtres par album -->
+            <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="album-chips"></div>
 
-            <div>
-                <h3 class="text-xs font-black text-zinc-400 uppercase mb-3">Sélection Recommandée</h3>
-                <div class="flex gap-4 overflow-x-auto no-scrollbar py-1" id="recommended-list"></div>
-            </div>
-
-            <div class="space-y-3">
-                <h3 class="text-xs font-black text-zinc-400 uppercase">Bibliothèque de Prêches</h3>
-                <div class="space-y-3" id="sermons-list"></div>
-            </div>
+            <!-- Grille vidéos style YouTube -->
+            <div id="video-grid" class="space-y-4"></div>
         </div>
 
+        <!-- ====== TÉLÉCHARGEMENTS ====== -->
         <div id="tab-downloads" class="hidden">
             <div class="p-4 border-b border-zinc-800 flex justify-between">
-                <h2 class="text-base font-bold text-white"><i class="fa-solid fa-circle-down mr-2" style="color:#ff5722"></i>Gestionnaire</h2>
+                <h2 class="text-base font-bold text-white"><i class="fa-solid fa-circle-down mr-2" style="color:#ff5722"></i>Téléchargements</h2>
                 <span class="text-[11px] text-zinc-400" id="download-count-badge">0</span>
             </div>
             <div class="px-4 py-3 flex gap-2">
                 <button onclick="toggleDlSubTab('active')" id="btn-sub-active" class="px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950">En cours</button>
-                <button onclick="toggleDlSubTab('completed')" id="btn-sub-completed" class="px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400">Téléchargés</button>
+                <button onclick="toggleDlSubTab('completed')" id="btn-sub-completed" class="px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400">Terminés</button>
             </div>
-            <div id="dl-active-container" class="p-4 space-y-4">
+            <div id="dl-active-container" class="p-4 space-y-3">
                 <div id="active-downloads-list" class="space-y-3">
                     <div class="text-center text-zinc-500 py-8 text-xs">Aucun téléchargement</div>
                 </div>
@@ -85,11 +80,82 @@
             </div>
         </div>
 
-        <div id="tab-profile" class="hidden p-4 space-y-6">
-            <div id="profile-unauth" class="space-y-6">
+        <!-- ====== MON ALBUM ====== -->
+        <div id="tab-myalbum" class="hidden p-4 space-y-4">
+            <div id="myalbum-unauth" class="text-center py-12">
+                <i class="fa-solid fa-lock text-4xl text-zinc-600"></i>
+                <h3 class="text-sm font-bold text-white mt-3">Connectez-vous</h3>
+                <p class="text-xs text-zinc-400 mt-1">Pour gérer votre album</p>
+                <button onclick="showTab('profile')" class="mt-4 px-4 py-2 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Se connecter</button>
+            </div>
+
+            <div id="myalbum-content" class="hidden space-y-4">
+                <!-- En-tête album -->
+                <div class="bg-gradient-to-br from-orange-950 to-zinc-900 rounded-2xl p-4 border border-orange-500/30">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="px-2 py-0.5 rounded bg-orange-500 text-zinc-950 text-[9px] font-black uppercase">Mon Album</span>
+                        <button onclick="toggleSelectionMode()" id="btn-select-mode" class="text-[10px] px-2 py-1 bg-zinc-800 rounded text-white">
+                            <i class="fa-regular fa-square-check mr-1"></i>Sélectionner
+                        </button>
+                    </div>
+                    <h3 class="text-base font-black text-white" id="my-album-title">Mon Album</h3>
+                    <p class="text-[10px] text-zinc-400 mt-1"><span id="my-videos-count">0</span> vidéos · <span id="my-album-views">0</span> vues</p>
+                </div>
+
+                <!-- Barre d'actions en mode sélection -->
+                <div id="selection-bar" class="hidden bg-zinc-900 rounded-xl p-3 border border-orange-500/30 flex items-center justify-between">
+                    <span class="text-xs text-white"><span id="selected-count">0</span> sélectionnée(s)</span>
+                    <div class="flex gap-2">
+                        <button onclick="downloadSelected()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold text-white" style="background:#ff5722">
+                            <i class="fa-solid fa-download mr-1"></i>Télécharger
+                        </button>
+                        <button onclick="deleteSelected()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-red-600 text-white">
+                            <i class="fa-solid fa-trash mr-1"></i>Supprimer
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Upload -->
+                <div class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed" style="border-color:rgba(255,87,34,0.5)">
+                    <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="handleFileSelected(this)">
+                    <button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 rounded-xl text-sm font-bold" style="background:rgba(255,87,34,0.2);color:#ff5722">
+                        <i class="fa-solid fa-cloud-arrow-up mr-2"></i>Ajouter une vidéo
+                    </button>
+                    
+                    <!-- Formulaire de titre après sélection -->
+                    <div id="upload-form" class="hidden mt-3 space-y-2">
+                        <div class="flex items-center gap-2 bg-zinc-800 rounded-lg p-2">
+                            <i class="fa-solid fa-film text-orange-500"></i>
+                            <span id="selected-file-name" class="text-xs text-white truncate flex-1"></span>
+                            <button onclick="cancelFileSelection()" class="text-zinc-400 hover:text-red-400"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <input type="text" id="videoTitle" placeholder="Titre de la vidéo" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
+                        <button onclick="uploadVideoToB2()" class="w-full py-2 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
+                            <i class="fa-solid fa-upload mr-1"></i>Publier
+                        </button>
+                        <div id="uploadProgress" class="hidden space-y-1">
+                            <div class="h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                                <div id="progressBar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
+                            </div>
+                            <p id="progressText" class="text-[10px] text-zinc-400 text-center">0%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mes vidéos -->
+                <div>
+                    <h3 class="text-xs font-black text-zinc-400 uppercase mb-2">Mes vidéos</h3>
+                    <div id="my-videos-list" class="space-y-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====== PROFIL ====== -->
+        <div id="tab-profile" class="hidden p-4 space-y-4">
+            <div id="profile-unauth" class="space-y-4">
                 <div class="text-center py-8 px-4 bg-zinc-900 rounded-2xl">
-                    <i class="fa-solid fa-folder-open text-3xl text-zinc-600"></i>
-                    <h3 class="text-sm font-bold text-white mt-2">Connectez-vous</h3>
+                    <i class="fa-solid fa-user-circle text-5xl text-zinc-600"></i>
+                    <h3 class="text-sm font-bold text-white mt-3">Connectez-vous</h3>
                 </div>
                 <div class="bg-zinc-900 rounded-2xl p-5 space-y-3">
                     <button onclick="handleGoogleSignIn()" class="w-full py-2.5 bg-white text-zinc-950 rounded-xl text-sm font-bold flex items-center justify-center gap-2">
@@ -98,31 +164,18 @@
                     <input type="email" id="loginEmail" placeholder="Email" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
                     <input type="password" id="loginPassword" placeholder="Mot de passe" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
                     <button onclick="handleLogin()" class="w-full py-2 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Se connecter</button>
-                    <button onclick="handleSignup()" class="w-full py-2 bg-zinc-800 rounded-xl text-sm">Créer un compte</button>
+                    <button onclick="handleSignup()" class="w-full py-2 bg-zinc-800 rounded-xl text-sm text-white">Créer un compte</button>
                 </div>
             </div>
 
-            <div id="profile-auth-no-album" class="hidden space-y-6">
-                <div class="flex justify-between bg-zinc-900 p-4 rounded-2xl">
+            <div id="profile-auth" class="hidden space-y-4">
+                <div class="bg-zinc-900 p-4 rounded-2xl flex items-center justify-between">
                     <div class="flex gap-3">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold" style="background:rgba(255,87,34,0.2);color:#ff5722" id="userAvatar1">U</div>
-                        <div><h4 id="userName1" class="text-sm font-bold text-white"></h4><p class="text-[10px] text-zinc-400" id="userEmail1"></p></div>
-                    </div>
-                    <button onclick="handleLogout()" class="text-xs underline text-zinc-500">Déconnexion</button>
-                </div>
-                <div class="bg-zinc-900 rounded-2xl p-5 space-y-3">
-                    <h4 class="text-xs font-black" style="color:#ff5722">✨ Créer mon album</h4>
-                    <input type="text" id="albumName" placeholder="Nom de l'album" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
-                    <textarea id="albumDesc" placeholder="Description" rows="2" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white"></textarea>
-                    <button onclick="createAlbum()" class="w-full py-2.5 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Publier</button>
-                </div>
-            </div>
-
-            <div id="profile-auth-with-album" class="hidden space-y-6">
-                <div class="flex justify-between bg-zinc-900 p-4 rounded-2xl">
-                    <div class="flex gap-3">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-emerald-400 font-bold" style="background:rgba(16,185,129,0.2)" id="userAvatar2">U</div>
-                        <div><h4 id="userName2" class="text-sm font-bold text-white"></h4><p class="text-[10px] text-zinc-400">Album: <span id="albumNameDisplay"></span></p></div>
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold" style="background:rgba(255,87,34,0.2);color:#ff5722" id="userAvatar">U</div>
+                        <div>
+                            <h4 id="userName" class="text-sm font-bold text-white"></h4>
+                            <p class="text-[10px] text-zinc-400" id="userEmail"></p>
+                        </div>
                     </div>
                     <button onclick="handleLogout()" class="text-xs underline text-zinc-500">Déconnexion</button>
                 </div>
@@ -130,73 +183,47 @@
                 <div class="grid grid-cols-3 gap-2">
                     <div class="bg-zinc-900 p-3 rounded-xl text-center"><p class="text-[9px] text-zinc-500">Vidéos</p><p class="text-lg font-bold text-white" id="statVideos">0</p></div>
                     <div class="bg-zinc-900 p-3 rounded-xl text-center"><p class="text-[9px] text-zinc-500">Vues</p><p class="text-lg font-bold text-emerald-400" id="statViews">0</p></div>
-                    <div class="bg-zinc-900 p-3 rounded-xl text-center"><p class="text-[9px] text-zinc-500">Téléchargements</p><p class="text-lg font-bold" style="color:#ff5722" id="statDownloads">0</p></div>
+                    <div class="bg-zinc-900 p-3 rounded-xl text-center"><p class="text-[9px] text-zinc-500">DL</p><p class="text-lg font-bold" style="color:#ff5722" id="statDownloads">0</p></div>
                 </div>
 
-                <div class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed text-center" style="border-color:rgba(255,87,34,0.5)">
-                    <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="uploadVideoToB2(this)">
-                    <button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 rounded-xl text-sm font-bold" style="background:rgba(255,87,34,0.2);color:#ff5722">
-                        <i class="fa-solid fa-cloud-arrow-up mr-2"></i>Téléverser une vidéo (B2)
-                    </button>
-                    <div id="uploadProgress" class="hidden mt-3 space-y-2">
-                        <div class="h-2 bg-zinc-700 rounded-full overflow-hidden">
-                            <div id="progressBar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
-                        </div>
-                        <p id="progressText" class="text-[10px] text-zinc-400">0%</p>
-                        <p id="progressDetail" class="text-[9px] text-zinc-500"></p>
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="text-xs font-black text-zinc-400 uppercase mb-2"><i class="fa-regular fa-message mr-1"></i> Mes questions</h3>
-                    <div id="conversationsList" class="space-y-2"></div>
-                </div>
-
-                <div class="rounded-2xl p-4 space-y-3" style="background:linear-gradient(to right,rgba(255,87,34,0.1),rgba(16,185,129,0.1))">
-                    <h4 class="text-sm font-bold text-white">📢 Poser une question</h4>
-                    <select id="targetImam" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
-                        <option value="cheikh_ousmane">Cheikh Ousmane</option>
-                        <option value="imam_mamadou">Imam Mamadou</option>
-                        <option value="ustadha_fatima">Ustadha Fatima</option>
-                    </select>
-                    <textarea id="questionText" placeholder="Votre question..." rows="2" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white"></textarea>
-                    <button onclick="sendTextQuestion()" class="w-full py-2 rounded-xl text-sm font-bold text-white" style="background:#ff5722"><i class="fa-regular fa-paper-plane mr-1"></i>Envoyer</button>
-                </div>
+                <button onclick="showTab('myalbum')" class="w-full py-3 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 border border-zinc-800">
+                    <i class="fa-solid fa-photo-film" style="color:#ff5722"></i>
+                    Gérer mon album
+                </button>
             </div>
         </div>
     </div>
 
-    <nav class="absolute bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800/80 py-2.5 px-6 flex items-center justify-around">
-        <button onclick="showTab('home')" id="nav-home" class="flex flex-col items-center gap-1" style="color:#ff5722"><i class="fa-solid fa-house text-xl"></i><span class="text-[10px]">Accueil</span></button>
-        <button onclick="showTab('downloads')" id="nav-downloads" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-download text-xl"></i><span class="text-[10px]">Downloads</span></button>
-        <button onclick="showTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-user text-xl"></i><span class="text-[10px]">Profil</span></button>
+    <!-- NAVIGATION -->
+    <nav class="absolute bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800/80 py-2 px-4 flex items-center justify-around">
+        <button onclick="showTab('home')" id="nav-home" class="flex flex-col items-center gap-1" style="color:#ff5722"><i class="fa-solid fa-house text-lg"></i><span class="text-[9px]">Accueil</span></button>
+        <button onclick="showTab('downloads')" id="nav-downloads" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-download text-lg"></i><span class="text-[9px]">Downloads</span></button>
+        <button onclick="showTab('myalbum')" id="nav-myalbum" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-photo-film text-lg"></i><span class="text-[9px]">Mon Album</span></button>
+        <button onclick="showTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-user text-lg"></i><span class="text-[9px]">Profil</span></button>
     </nav>
 
-    <div id="chatModal" class="hidden fixed inset-0 bg-black/95 z-50 flex flex-col">
-        <div class="bg-zinc-900 p-4 flex items-center justify-between border-b border-zinc-800">
-            <button onclick="closeChatModal()" class="w-8 h-8 rounded-full bg-zinc-800"><i class="fa-solid fa-arrow-left text-white"></i></button>
-            <h3 id="chatImamName" class="text-sm font-bold text-white">Imam</h3>
+    <!-- LECTEUR VIDÉO -->
+    <div id="video-overlay-player" class="hidden fixed inset-0 bg-black z-50 flex flex-col">
+        <div class="bg-zinc-900 p-3 flex items-center justify-between">
+            <button onclick="closeVideoPlayer()" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-white"></i></button>
+            <h3 id="video-player-title" class="text-sm font-bold text-white flex-1 mx-3 truncate"></h3>
             <div class="w-8"></div>
         </div>
-        <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
-        <div class="p-4 border-t border-zinc-800 flex gap-2">
-            <input type="text" id="chatInput" placeholder="Écrire..." class="flex-1 bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
-            <button onclick="sendChatMessage()" class="px-4 py-2 rounded-xl" style="background:#ff5722"><i class="fa-regular fa-paper-plane text-white"></i></button>
-        </div>
-    </div>
-
-    <div id="video-overlay-player" class="hidden fixed inset-0 bg-black/95 z-50 flex flex-col">
-        <div class="absolute top-4 left-4 z-10"><button onclick="closeVideoPlayer()" class="w-10 h-10 rounded-full bg-black/60"><i class="fa-solid fa-arrow-left text-white"></i></button></div>
-        <div class="flex-1 flex items-center justify-center">
+        <div class="flex-1 flex items-center justify-center bg-black">
             <video id="native-video" class="w-full max-h-full" controls autoplay><source id="video-source" src=""></video>
         </div>
-        <div class="p-4 text-center"><h4 id="video-player-title" class="text-sm font-bold text-white"></h4><p id="video-player-speaker" class="text-xs text-zinc-400"></p></div>
+        <div class="bg-zinc-900 p-3 flex items-center justify-between">
+            <p id="video-player-speaker" class="text-xs text-zinc-400"></p>
+            <button onclick="downloadCurrentVideo()" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
+                <i class="fa-solid fa-download mr-1"></i>Télécharger
+            </button>
+        </div>
     </div>
 </div>
 
 <script>
 // ============================================
-// 🔥 FIREBASE CONFIG
+// 🔥 FIREBASE
 // ============================================
 const firebaseConfig = {
     apiKey: "AIzaSyC3ybM8gMQZ-IjVLLXqs0MZLPEzqGmyREA",
@@ -206,52 +233,32 @@ const firebaseConfig = {
     messagingSenderId: "287190157826",
     appId: "1:287190157826:web:c1fd927c6cf0ea0ecdb51b"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ============================================
-// 🔧 FONCTION D'ÉCHAPPEMENT
-// ============================================
 function escapeAttr(str) {
     if (!str) return '';
     return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ').replace(/\r/g, '');
 }
 
 // ============================================
-// 📊 ÉTAT DE L'APPLICATION
+// 📊 ÉTAT
 // ============================================
 let currentUser = null;
 let userAlbum = null;
-let userVideos = [];
+let allVideos = [];
+let allAlbums = [];
+let selectedAlbumFilter = null;
+let selectionMode = false;
+let selectedVideoIds = new Set();
+let currentPlayingVideo = null;
+let currentSelectedFile = null;
 let completedDownloads = JSON.parse(localStorage.getItem('completedDownloads') || '[]');
 let activeDownloads = JSON.parse(localStorage.getItem('activeDownloads') || '[]');
-let selectedAlbumFilter = null;
-let currentChat = { imamId: null, imamName: null };
-
-const albums = [
-    { id: 101, name: "Les Clés du Noble Comportement", speaker: "Cheikh Ousmane", theme: "from-emerald-950 to-zinc-900" },
-    { id: 102, name: "Sagesse face aux Épreuves", speaker: "Imam Mamadou", theme: "from-amber-950 to-zinc-900" },
-    { id: 103, name: "Éducation & Jeunesse active", speaker: "Ustadha Fatima", theme: "from-purple-950 to-zinc-900" }
-];
-
-const EXISTING_VIDEOS = [
-    { id: 'b2_1', fileName: 'VideoConverter_30_06_2024_12_12_26.mp4', title: 'Video douverture', speaker: 'Cheikh Ousmane', duration: '15:24', size: '14.8 MB', date: '2024-06-30', views: 127, albumId: 101, videoUrl: 'https://f005.backblazeb2.com/file/minbar-media/VideoConverter_30_06_2024_12_12_26.mp4' },
-    { id: 'b2_2', fileName: 'WhatsApp Video 2026-06-05 at 14.52.40.mp4', title: 'Message spirituel', speaker: 'Imam Mamadou', duration: '08:32', size: '2.4 MB', date: '2026-06-05', views: 89, albumId: 102, videoUrl: 'https://f005.backblazeb2.com/file/minbar-media/WhatsApp%20Video%202026-06-05%20at%2014.52.40.mp4' },
-    { id: 'b2_3', fileName: 'WhatsApp Video 2026-06-05 at 14.58.10.mp4', title: 'Rappel du jour', speaker: 'Ustadha Fatima', duration: '12:18', size: '1.9 MB', date: '2026-06-05', views: 156, albumId: 103, videoUrl: 'https://f005.backblazeb2.com/file/minbar-media/WhatsApp%20Video%202026-06-05%20at%2014.58.10.mp4' }
-];
-
-let sermonsList = [...EXISTING_VIDEOS];
-
-const imams = {
-    cheikh_ousmane: { name: "Cheikh Ousmane", avatar: "👨‍🏫" },
-    imam_mamadou: { name: "Imam Mamadou", avatar: "👳‍♂️" },
-    ustadha_fatima: { name: "Ustadha Fatima", avatar: "👩‍🏫" }
-};
 
 // ============================================
-// 🔐 AUTH FIREBASE
+// 🔐 AUTH
 // ============================================
 auth.onAuthStateChanged(async (user) => {
     currentUser = user;
@@ -261,13 +268,11 @@ auth.onAuthStateChanged(async (user) => {
     } else {
         document.getElementById('header-user-status').textContent = 'Déconnecté';
         userAlbum = null;
-        userVideos = [];
-        updateProfileUI();
     }
-    await loadAllSermons();
-    renderAlbums();
-    renderRecommendations();
-    renderSermons();
+    updateProfileUI();
+    await loadAllAlbums();
+    await loadAllVideos();
+    renderAll();
 });
 
 async function handleLogin() {
@@ -299,197 +304,249 @@ async function handleGoogleSignIn() {
 function handleLogout() { auth.signOut(); showTab('profile'); }
 
 // ============================================
-// 📚 CHARGEMENT DONNÉES
+// 📚 DONNÉES FIREBASE
 // ============================================
 async function loadUserData() {
     if (!currentUser) return;
     try {
-        const albumQuery = await db.collection('albums').where('userId', '==', currentUser.uid).get();
+        const albumQuery = await db.collection('albums').where('userId', '==', currentUser.uid).limit(1).get();
         if (!albumQuery.empty) {
             userAlbum = { id: albumQuery.docs[0].id, ...albumQuery.docs[0].data() };
-            const videosQuery = await db.collection('videos').where('userId', '==', currentUser.uid).get();
-            userVideos = [];
-            videosQuery.forEach(doc => userVideos.push({ id: doc.id, ...doc.data() }));
-        } else { userAlbum = null; }
-    } catch(e) { console.log("Erreur:", e); }
-    updateProfileUI();
+        } else {
+            // Créer automatiquement un album par défaut
+            const newAlbum = await db.collection('albums').add({
+                userId: currentUser.uid,
+                name: 'Mon Album',
+                description: '',
+                createdAt: new Date()
+            });
+            userAlbum = { id: newAlbum.id, name: 'Mon Album' };
+        }
+    } catch(e) { console.log("Erreur album:", e); }
 }
 
-async function loadAllSermons() {
+async function loadAllAlbums() {
+    try {
+        const snapshot = await db.collection('albums').get();
+        allAlbums = [];
+        snapshot.forEach(doc => {
+            allAlbums.push({ id: doc.id, ...doc.data() });
+        });
+    } catch(e) { console.error("Erreur albums:", e); }
+}
+
+async function loadAllVideos() {
     try {
         const snapshot = await db.collection('videos').get();
-        const firestoreVideos = [];
+        allVideos = [];
         snapshot.forEach(doc => {
             const v = doc.data();
-            firestoreVideos.push({
-                id: doc.id, albumId: v.albumId || 101, title: v.title,
-                speaker: v.speaker || 'Inconnu', duration: v.duration || "00:00",
+            allVideos.push({
+                id: doc.id,
+                albumId: v.albumId,
+                userId: v.userId,
+                title: v.title || 'Sans titre',
+                speaker: v.speaker || 'Inconnu',
+                duration: v.duration || "00:00",
                 date: v.date || new Date().toISOString().split('T')[0],
-                views: v.views || 0, videoUrl: v.downloadURL,
-                size: v.size ? (v.size / 1024 / 1024).toFixed(1) + ' MB' : '0 MB',
-                isRecommended: false, userId: v.userId
+                views: v.views || 0,
+                downloads: v.downloads || 0,
+                videoUrl: v.downloadURL,
+                thumbnail: v.thumbnail || '',
+                size: v.size || 0
             });
         });
-        sermonsList = [...EXISTING_VIDEOS, ...firestoreVideos];
     } catch(e) { 
-        console.error("Erreur chargement:", e);
-        sermonsList = [...EXISTING_VIDEOS];
+        console.error("Erreur vidéos:", e);
     }
 }
 
 function updateProfileUI() {
-    document.getElementById('profile-unauth').classList.add('hidden');
-    document.getElementById('profile-auth-no-album').classList.add('hidden');
-    document.getElementById('profile-auth-with-album').classList.add('hidden');
+    const unauth = document.getElementById('profile-unauth');
+    const authDiv = document.getElementById('profile-auth');
+    const myalbumUnauth = document.getElementById('myalbum-unauth');
+    const myalbumContent = document.getElementById('myalbum-content');
     
-    if (!currentUser) document.getElementById('profile-unauth').classList.remove('hidden');
-    else if (!userAlbum) {
-        document.getElementById('profile-auth-no-album').classList.remove('hidden');
-        document.getElementById('userName1').innerText = currentUser.email?.split('@')[0] || 'User';
-        document.getElementById('userEmail1').innerText = currentUser.email || '';
-        document.getElementById('userAvatar1').innerText = (currentUser.email?.charAt(0) || 'U').toUpperCase();
-    } else {
-        document.getElementById('profile-auth-with-album').classList.remove('hidden');
-        document.getElementById('userName2').innerText = currentUser.email?.split('@')[0] || 'User';
-        document.getElementById('userAvatar2').innerText = (currentUser.email?.charAt(0) || 'U').toUpperCase();
-        document.getElementById('albumNameDisplay').innerText = userAlbum.name || 'Mon Album';
-        document.getElementById('statVideos').innerText = userVideos.length + EXISTING_VIDEOS.length;
-        const totalViews = userVideos.reduce((s, v) => s + (v.views || 0), 0) + EXISTING_VIDEOS.reduce((s, v) => s + v.views, 0);
-        document.getElementById('statViews').innerText = totalViews;
-        document.getElementById('statDownloads').innerText = completedDownloads.length;
-        loadConversations();
+    if (!currentUser) {
+        unauth.classList.remove('hidden');
+        authDiv.classList.add('hidden');
+        myalbumUnauth.classList.remove('hidden');
+        myalbumContent.classList.add('hidden');
+        return;
+    }
+    
+    unauth.classList.add('hidden');
+    authDiv.classList.remove('hidden');
+    myalbumUnauth.classList.add('hidden');
+    myalbumContent.classList.remove('hidden');
+    
+    document.getElementById('userName').innerText = currentUser.email?.split('@')[0] || 'User';
+    document.getElementById('userEmail').innerText = currentUser.email || '';
+    document.getElementById('userAvatar').innerText = (currentUser.email?.charAt(0) || 'U').toUpperCase();
+    
+    const myVids = allVideos.filter(v => v.userId === currentUser.uid);
+    document.getElementById('statVideos').innerText = myVids.length;
+    document.getElementById('statViews').innerText = myVids.reduce((s, v) => s + (v.views || 0), 0);
+    document.getElementById('statDownloads').innerText = completedDownloads.length;
+    
+    if (userAlbum) {
+        document.getElementById('my-album-title').innerText = userAlbum.name || 'Mon Album';
+        document.getElementById('my-videos-count').innerText = myVids.length;
+        document.getElementById('my-album-views').innerText = myVids.reduce((s, v) => s + (v.views || 0), 0);
+        renderMyVideos();
     }
 }
 
-async function createAlbum() {
-    const name = document.getElementById('albumName').value.trim();
-    const desc = document.getElementById('albumDesc').value.trim();
-    if (!name) { alert("Nom requis"); return; }
-    try {
-        await db.collection('albums').add({ userId: currentUser.uid, name, description: desc, createdAt: new Date() });
-        await loadUserData();
-        alert("Album créé !");
-    } catch(e) { alert("Erreur: " + e.message); }
-}
-
 // ============================================
-// ☁️ UPLOAD B2 VIA PROXY VERCEL COMPLET
+// 🎬 UPLOAD (TITRE + VIDÉO)
 // ============================================
-async function uploadVideoToB2(input) {
+function handleFileSelected(input) {
     if (!input.files?.length) return;
-    const file = input.files[0];
+    currentSelectedFile = input.files[0];
     
     if (!currentUser) { alert("Connectez-vous d'abord"); input.value = ''; return; }
-    if (!userAlbum) { alert("Créez un album d'abord"); input.value = ''; return; }
-    if (file.size > 50 * 1024 * 1024) { 
-        alert("Max 50 Mo (limite Vercel)"); 
+    if (!userAlbum) { alert("Album non trouvé"); input.value = ''; return; }
+    if (currentSelectedFile.size > 50 * 1024 * 1024) { 
+        alert("Max 50 Mo"); 
         input.value = ''; 
         return; 
     }
     
+    document.getElementById('selected-file-name').innerText = currentSelectedFile.name;
+    document.getElementById('videoTitle').value = currentSelectedFile.name.replace(/\.[^/.]+$/, "");
+    document.getElementById('upload-form').classList.remove('hidden');
+}
+
+function cancelFileSelection() {
+    currentSelectedFile = null;
+    document.getElementById('videoUpload').value = '';
+    document.getElementById('upload-form').classList.add('hidden');
+}
+
+// Générer une miniature depuis la vidéo
+async function generateThumbnail(file) {
+    return new Promise((resolve) => {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        
+        video.onloadeddata = () => {
+            video.currentTime = Math.min(2, video.duration / 2);
+        };
+        
+        video.onseeked = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 320;
+            canvas.height = 180;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const thumbnail = canvas.toDataURL('image/jpeg', 0.6);
+            resolve(thumbnail);
+        };
+        
+        video.onerror = () => resolve('');
+        video.src = URL.createObjectURL(file);
+    });
+}
+
+async function uploadVideoToB2() {
+    if (!currentSelectedFile) return;
+    
+    const title = document.getElementById('videoTitle').value.trim();
+    if (!title) { alert("Titre requis"); return; }
+    
     const progressDiv = document.getElementById('uploadProgress');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
-    const progressDetail = document.getElementById('progressDetail');
     
     progressDiv.classList.remove('hidden');
     progressBar.style.width = '0%';
-    progressText.innerText = '0%';
-    progressDetail.innerText = 'Préparation...';
+    progressText.innerText = '0% - Génération miniature...';
     
     try {
-        const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        // Générer la miniature
+        const thumbnail = await generateThumbnail(currentSelectedFile);
         
-        progressText.innerText = '10%';
-        progressDetail.innerText = 'Envoi vers serveur Vercel...';
+        progressText.innerText = '10% - Envoi...';
         
-        // ✅ Upload vers notre API Vercel (qui fait tout via B2)
+        const fileName = `${Date.now()}_${currentSelectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        
         const xhr = new XMLHttpRequest();
         
         const uploadPromise = new Promise((resolve, reject) => {
             xhr.upload.addEventListener('progress', (e) => {
                 if (e.lengthComputable) {
-                    const percent = (e.loaded / e.total) * 80;
+                    const percent = 10 + (e.loaded / e.total) * 80;
                     progressBar.style.width = `${percent}%`;
-                    progressText.innerText = `${Math.round(percent)}%`;
-                    progressDetail.innerText = `Envoi: ${(e.loaded / 1024 / 1024).toFixed(1)} Mo / ${(e.total / 1024 / 1024).toFixed(1)} Mo`;
+                    progressText.innerText = `${Math.round(percent)}% - ${(e.loaded / 1024 / 1024).toFixed(1)}/${(e.total / 1024 / 1024).toFixed(1)} Mo`;
                 }
             });
             
             xhr.onload = () => {
-                if (xhr.status === 200) {
-                    resolve(JSON.parse(xhr.responseText));
-                } else {
-                    try {
-                        const err = JSON.parse(xhr.responseText);
-                        reject(new Error(err.error || `Erreur ${xhr.status}`));
-                    } catch {
-                        reject(new Error(`Erreur ${xhr.status}`));
-                    }
+                if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
+                else {
+                    try { reject(new Error(JSON.parse(xhr.responseText).error || `Erreur ${xhr.status}`)); }
+                    catch { reject(new Error(`Erreur ${xhr.status}`)); }
                 }
             };
-            
             xhr.onerror = () => reject(new Error('Erreur réseau'));
             
             xhr.open('POST', '/api/upload-b2');
             xhr.setRequestHeader('X-Bz-File-Name', fileName);
-            xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-            
-            xhr.send(file);
+            xhr.setRequestHeader('Content-Type', currentSelectedFile.type || 'application/octet-stream');
+            xhr.send(currentSelectedFile);
         });
         
         const result = await uploadPromise;
         
-        // Sauvegarde Firestore
-        progressBar.style.width = '90%';
-        progressText.innerText = '90%';
-        progressDetail.innerText = 'Sauvegarde métadonnées...';
+        progressBar.style.width = '95%';
+        progressText.innerText = '95% - Sauvegarde...';
         
         await db.collection('videos').add({
             userId: currentUser.uid,
             albumId: userAlbum.id,
-            fileName: file.name,
-            title: file.name.replace(/\.[^/.]+$/, ""),
+            fileName: currentSelectedFile.name,
+            title: title,
             speaker: currentUser.email?.split('@')[0] || 'Utilisateur',
             duration: "00:00",
             date: new Date().toISOString().split('T')[0],
             views: 0,
             downloads: 0,
             downloadURL: result.downloadUrl,
+            thumbnail: thumbnail,
             uploadedAt: new Date(),
-            size: file.size,
+            size: currentSelectedFile.size,
             storage: 'backblaze_b2'
         });
         
         progressBar.style.width = '100%';
-        progressText.innerText = '100%';
-        progressDetail.innerText = '✅ Terminé !';
+        progressText.innerText = '✅ Terminé !';
         
         setTimeout(() => {
             progressDiv.classList.add('hidden');
-            progressBar.style.width = '0%';
-        }, 2000);
+            document.getElementById('upload-form').classList.add('hidden');
+            document.getElementById('videoUpload').value = '';
+            currentSelectedFile = null;
+        }, 1500);
         
-        input.value = '';
-        await loadAllSermons();
-        await loadUserData();
-        renderSermons();
-        renderRecommendations();
+        await loadAllVideos();
+        updateProfileUI();
+        renderAll();
         
-        alert("✅ Vidéo téléversée avec succès !");
+        alert("✅ Vidéo publiée !");
         
     } catch(error) {
-        console.error("❌ Erreur upload:", error);
-        alert("Erreur upload: " + error.message);
+        console.error("❌ Erreur:", error);
+        alert("Erreur: " + error.message);
         progressDiv.classList.add('hidden');
-        input.value = '';
     }
 }
 
 // ============================================
 // 📥 TÉLÉCHARGEMENT
 // ============================================
-async function downloadVideo(url, filename) {
+async function downloadVideo(url, filename, videoId) {
     const downloadId = 'dl_' + Date.now();
     activeDownloads.push({ id: downloadId, title: filename, url: url, progress: 0 });
     localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
@@ -497,7 +554,7 @@ async function downloadVideo(url, filename) {
     
     try {
         const response = await fetch(url, { mode: 'cors' });
-        if (!response.ok) throw new Error('Erreur réseau: ' + response.status);
+        if (!response.ok) throw new Error('Erreur: ' + response.status);
         
         const contentLength = response.headers.get('content-length');
         const total = contentLength ? parseInt(contentLength) : 0;
@@ -509,7 +566,6 @@ async function downloadVideo(url, filename) {
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
-            
             chunks.push(value);
             loaded += value.length;
             
@@ -526,152 +582,271 @@ async function downloadVideo(url, filename) {
         
         const blob = new Blob(chunks);
         const blobUrl = URL.createObjectURL(blob);
-        
         const link = document.createElement('a');
         link.href = blobUrl;
         link.download = filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
         setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
         
         activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
         completedDownloads.unshift({ title: filename, date: new Date().toLocaleString(), size: (blob.size / 1024 / 1024).toFixed(2) + ' Mo' });
-        
         localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
         localStorage.setItem('completedDownloads', JSON.stringify(completedDownloads));
         
+        // Incrémenter compteur
+        if (videoId) {
+            try {
+                await db.collection('videos').doc(videoId).update({
+                    downloads: firebase.firestore.FieldValue.increment(1)
+                });
+            } catch(e) {}
+        }
+        
         renderDownloads();
-        alert("✅ Téléchargement terminé !");
+        updateProfileUI();
         
     } catch(e) {
-        console.error('Erreur téléchargement:', e);
+        console.error('Erreur:', e);
         activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
         localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
         renderDownloads();
-        alert("❌ Erreur CORS. Configurez CORS sur B2 puis réessayez.");
+        alert("❌ Erreur CORS");
+    }
+}
+
+function downloadCurrentVideo() {
+    if (currentPlayingVideo) {
+        downloadVideo(currentPlayingVideo.videoUrl, currentPlayingVideo.title + '.mp4', currentPlayingVideo.id);
     }
 }
 
 // ============================================
-// 🎨 RENDU
+// 🎨 RENDU - STYLE YOUTUBE
 // ============================================
-function renderAlbums() {
-    const container = document.getElementById('albums-list');
-    container.innerHTML = albums.map(a => `
-        <div onclick="filterByAlbum(${a.id})" class="w-32 shrink-0 p-3 rounded-2xl bg-gradient-to-br ${a.theme} border ${selectedAlbumFilter === a.id ? 'border-orange-500' : 'border-zinc-800'} cursor-pointer">
-            <i class="fa-solid fa-folder-open text-xs" style="color:#ff5722"></i>
-            <h4 class="text-[10px] font-bold mt-1 text-white">${escapeAttr(a.name)}</h4>
-            <p class="text-[8px] text-zinc-500">${escapeAttr(a.speaker)}</p>
-        </div>
+function renderAll() {
+    renderAlbumChips();
+    renderVideoGrid();
+    renderDownloads();
+}
+
+function renderAlbumChips() {
+    const container = document.getElementById('album-chips');
+    const chips = [
+        { id: null, name: '🔥 Tout' },
+        ...allAlbums.map(a => ({ id: a.id, name: a.name || 'Album' }))
+    ];
+    
+    container.innerHTML = chips.map(c => `
+        <button onclick="filterByAlbum(${c.id ? `'${c.id}'` : 'null'})" 
+            class="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap ${selectedAlbumFilter === c.id ? 'text-white' : 'bg-zinc-800 text-zinc-400'}"
+            ${selectedAlbumFilter === c.id ? 'style="background:#ff5722"' : ''}>
+            ${escapeAttr(c.name)}
+        </button>
     `).join('');
 }
 
-function renderRecommendations() {
-    const container = document.getElementById('recommended-list');
-    const recs = sermonsList.slice(0, 5);
-    if (recs.length === 0) { container.innerHTML = '<div class="text-zinc-500 text-xs">Aucune vidéo</div>'; return; }
-    container.innerHTML = recs.map(s => {
-        const safeUrl = escapeAttr(s.videoUrl);
-        const safeTitle = escapeAttr(s.title);
-        const safeSpeaker = escapeAttr(s.speaker);
-        return `
-        <div onclick="openVideoPlayer('${safeUrl}', '${safeTitle}', '${safeSpeaker}')" class="w-28 shrink-0 p-2 rounded-xl bg-zinc-900 text-center cursor-pointer">
-            <div class="h-24 rounded-lg bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-play text-xl" style="color:#ff5722"></i></div>
-            <p class="text-[9px] font-bold mt-1 truncate text-white">${escapeAttr(s.title.substring(0, 20))}</p>
-            <p class="text-[8px] text-zinc-500">${safeSpeaker}</p>
-        </div>
+function renderVideoGrid() {
+    const container = document.getElementById('video-grid');
+    let filtered = selectedAlbumFilter ? allVideos.filter(v => v.albumId === selectedAlbumFilter) : allVideos;
+    
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-12">
+                <i class="fa-solid fa-video-slash text-4xl text-zinc-700"></i>
+                <p class="text-sm text-zinc-500 mt-3">Aucune vidéo</p>
+                <p class="text-xs text-zinc-600 mt-1">Soyez le premier à publier !</p>
+            </div>
         `;
-    }).join('');
-}
-
-function renderSermons() {
-    const container = document.getElementById('sermons-list');
-    let filtered = selectedAlbumFilter ? sermonsList.filter(s => s.albumId === selectedAlbumFilter) : sermonsList;
-    if (filtered.length === 0) { container.innerHTML = '<div class="text-center text-zinc-500 py-8">Aucun prêche</div>'; return; }
-    container.innerHTML = filtered.map(s => {
-        const safeUrl = escapeAttr(s.videoUrl);
-        const safeTitle = escapeAttr(s.title);
-        const safeSpeaker = escapeAttr(s.speaker);
+        return;
+    }
+    
+    container.innerHTML = filtered.map(v => {
+        const thumb = v.thumbnail || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzI3MjcyNyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDAiIGZpbGw9IiNmZjU3MjIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7ilbU8L3RleHQ+PC9zdmc+';
+        
         return `
-        <div class="bg-zinc-900 p-3 rounded-2xl flex justify-between items-center fade-in">
-            <div class="flex gap-3 flex-1 min-w-0 cursor-pointer" onclick="openVideoPlayer('${safeUrl}', '${safeTitle}', '${safeSpeaker}')">
-                <div class="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-play" style="color:#ff5722"></i></div>
-                <div class="min-w-0">
-                    <h4 class="text-xs font-bold text-white truncate">${s.title}</h4>
-                    <p class="text-[9px]" style="color:#ff5722">${s.speaker}</p>
-                    <div class="flex gap-2 text-[8px] text-zinc-500 flex-wrap">
-                        <span><i class="fa-regular fa-clock"></i> ${s.duration}</span>
-                        <span><i class="fa-solid fa-database"></i> ${s.size}</span>
-                        <span><i class="fa-regular fa-eye"></i> ${s.views}</span>
+        <div class="video-card bg-zinc-900 rounded-xl overflow-hidden cursor-pointer fade-in" onclick="openVideoPlayer('${escapeAttr(v.videoUrl)}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
+            <div class="relative aspect-video bg-zinc-800">
+                <img src="${thumb}" alt="${escapeAttr(v.title)}" class="w-full h-full object-cover">
+                <div class="thumbnail-overlay absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center" style="background:#ff5722">
+                        <i class="fa-solid fa-play text-white text-xl pl-1"></i>
                     </div>
                 </div>
-            </div>
-            <div class="flex gap-2 shrink-0">
-                <button onclick="event.stopPropagation(); openVideoPlayer('${safeUrl}', '${safeTitle}', '${safeSpeaker}')" class="px-2 py-1 bg-zinc-800 rounded text-[10px] text-white"><i class="fa-solid fa-eye"></i></button>
-                <button onclick="event.stopPropagation(); downloadVideo('${safeUrl}', '${safeTitle}.mp4')" class="px-2 py-1 rounded text-[10px] text-white" style="background:#ff5722"><i class="fa-solid fa-download"></i></button>
-            </div>
-        </div>
-        `;
-    }).join('');
-}
-
-function filterByAlbum(albumId) {
-    selectedAlbumFilter = selectedAlbumFilter === albumId ? null : albumId;
-    renderAlbums();
-    renderSermons();
-}
-
-function resetFilters() { 
-    selectedAlbumFilter = null; 
-    renderAlbums(); 
-    renderSermons(); 
-    document.getElementById('searchInput').value = ''; 
-}
-
-function filterMedia(val) { 
-    const container = document.getElementById('sermons-list');
-    let filtered = selectedAlbumFilter ? sermonsList.filter(s => s.albumId === selectedAlbumFilter) : sermonsList;
-    filtered = filtered.filter(s => s.title.toLowerCase().includes(val.toLowerCase()) || s.speaker.toLowerCase().includes(val.toLowerCase()));
-    if (filtered.length === 0) { container.innerHTML = '<div class="text-center text-zinc-500 py-8">Aucun résultat</div>'; return; }
-    container.innerHTML = filtered.map(s => {
-        const safeUrl = escapeAttr(s.videoUrl);
-        const safeTitle = escapeAttr(s.title);
-        const safeSpeaker = escapeAttr(s.speaker);
-        return `
-        <div class="bg-zinc-900 p-3 rounded-2xl flex justify-between items-center">
-            <div class="flex gap-3 flex-1 min-w-0 cursor-pointer" onclick="openVideoPlayer('${safeUrl}', '${safeTitle}', '${safeSpeaker}')">
-                <div class="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-play" style="color:#ff5722"></i></div>
-                <div class="min-w-0">
-                    <h4 class="text-xs font-bold text-white truncate">${s.title}</h4>
-                    <p class="text-[9px]" style="color:#ff5722">${s.speaker}</p>
+                <div class="absolute bottom-2 right-2 bg-black/80 px-1.5 py-0.5 rounded text-[10px] text-white font-bold">
+                    ${v.duration}
                 </div>
             </div>
-            <button onclick="event.stopPropagation(); downloadVideo('${safeUrl}', '${safeTitle}.mp4')" class="px-2 py-1 rounded" style="background:#ff5722"><i class="fa-solid fa-download"></i></button>
+            <div class="p-3">
+                <h4 class="text-sm font-bold text-white line-clamp-2">${escapeAttr(v.title)}</h4>
+                <p class="text-[11px] mt-1" style="color:#ff5722">${escapeAttr(v.speaker)}</p>
+                <div class="flex gap-3 text-[10px] text-zinc-500 mt-1">
+                    <span><i class="fa-regular fa-eye"></i> ${v.views || 0}</span>
+                    <span><i class="fa-solid fa-database"></i> ${v.size ? (v.size / 1024 / 1024).toFixed(1) + ' Mo' : '-'}</span>
+                    <span><i class="fa-regular fa-calendar"></i> ${v.date}</span>
+                </div>
+            </div>
         </div>
         `;
     }).join('');
 }
 
-function openVideoPlayer(url, title, speaker) {
-    const modal = document.getElementById('video-overlay-player');
+function renderMyVideos() {
+    const container = document.getElementById('my-videos-list');
+    if (!currentUser) return;
+    
+    const myVids = allVideos.filter(v => v.userId === currentUser.uid);
+    
+    if (myVids.length === 0) {
+        container.innerHTML = '<p class="text-center text-zinc-500 text-xs py-6">Aucune vidéo. Ajoutez-en une !</p>';
+        return;
+    }
+    
+    container.innerHTML = myVids.map(v => {
+        const isSelected = selectedVideoIds.has(v.id);
+        const thumb = v.thumbnail || '';
+        
+        return `
+        <div class="bg-zinc-900 rounded-xl p-2 flex gap-3 items-center ${isSelected ? 'checkbox-selected' : ''} border border-zinc-800">
+            ${selectionMode ? `
+                <button onclick="event.stopPropagation(); toggleVideoSelection('${v.id}')" class="w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-zinc-600'}">
+                    ${isSelected ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
+                </button>
+            ` : ''}
+            ${thumb ? `<img src="${thumb}" class="w-20 h-12 rounded object-cover shrink-0">` : `<div class="w-20 h-12 rounded bg-zinc-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-film text-orange-500"></i></div>`}
+            <div class="flex-1 min-w-0" onclick="openVideoPlayer('${escapeAttr(v.videoUrl)}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
+                <p class="text-xs font-bold text-white truncate">${escapeAttr(v.title)}</p>
+                <p class="text-[9px] text-zinc-500">${v.views || 0} vues · ${v.size ? (v.size / 1024 / 1024).toFixed(1) + ' Mo' : ''}</p>
+            </div>
+            ${!selectionMode ? `
+                <button onclick="event.stopPropagation(); deleteMyVideo('${v.id}')" class="w-7 h-7 rounded bg-red-900/30 text-red-400 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+            ` : ''}
+        </div>
+        `;
+    }).join('');
+}
+
+// ============================================
+// ✅ SÉLECTION MULTIPLE
+// ============================================
+function toggleSelectionMode() {
+    selectionMode = !selectionMode;
+    selectedVideoIds.clear();
+    
+    const btn = document.getElementById('btn-select-mode');
+    const bar = document.getElementById('selection-bar');
+    
+    if (selectionMode) {
+        btn.innerHTML = '<i class="fa-solid fa-xmark mr-1"></i>Annuler';
+        btn.style.background = '#ff5722';
+        bar.classList.remove('hidden');
+    } else {
+        btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner';
+        btn.style.background = '';
+        bar.classList.add('hidden');
+    }
+    
+    updateSelectedCount();
+    renderMyVideos();
+}
+
+function toggleVideoSelection(videoId) {
+    if (selectedVideoIds.has(videoId)) {
+        selectedVideoIds.delete(videoId);
+    } else {
+        selectedVideoIds.add(videoId);
+    }
+    updateSelectedCount();
+    renderMyVideos();
+}
+
+function updateSelectedCount() {
+    document.getElementById('selected-count').innerText = selectedVideoIds.size;
+}
+
+async function downloadSelected() {
+    if (selectedVideoIds.size === 0) { alert("Aucune vidéo sélectionnée"); return; }
+    
+    const videos = allVideos.filter(v => selectedVideoIds.has(v.id));
+    alert(`Téléchargement de ${videos.length} vidéo(s)...`);
+    
+    for (const v of videos) {
+        await downloadVideo(v.videoUrl, v.title + '.mp4', v.id);
+        await new Promise(r => setTimeout(r, 500));
+    }
+    
+    toggleSelectionMode();
+}
+
+async function deleteSelected() {
+    if (selectedVideoIds.size === 0) { alert("Aucune vidéo sélectionnée"); return; }
+    if (!confirm(`Supprimer ${selectedVideoIds.size} vidéo(s) ?`)) return;
+    
+    for (const id of selectedVideoIds) {
+        try { await db.collection('videos').doc(id).delete(); } catch(e) {}
+    }
+    
+    selectedVideoIds.clear();
+    await loadAllVideos();
+    updateProfileUI();
+    renderMyVideos();
+    renderVideoGrid();
+    toggleSelectionMode();
+}
+
+async function deleteMyVideo(videoId) {
+    if (!confirm("Supprimer cette vidéo ?")) return;
+    try {
+        await db.collection('videos').doc(videoId).delete();
+        await loadAllVideos();
+        updateProfileUI();
+        renderMyVideos();
+        renderVideoGrid();
+    } catch(e) { alert("Erreur: " + e.message); }
+}
+
+// ============================================
+// 🎬 LECTEUR
+// ============================================
+function openVideoPlayer(url, title, speaker, videoId) {
+    currentPlayingVideo = allVideos.find(v => v.id === videoId) || { videoUrl: url, title, speaker, id: videoId };
+    
     document.getElementById('video-player-title').innerText = title;
     document.getElementById('video-player-speaker').innerText = speaker;
     const video = document.getElementById('native-video');
     const source = document.getElementById('video-source');
     source.src = url;
     video.load();
-    modal.classList.remove('hidden');
+    document.getElementById('video-overlay-player').classList.remove('hidden');
     video.play().catch(e => console.log(e));
+    
+    // Incrémenter vues
+    if (videoId) {
+        db.collection('videos').doc(videoId).update({
+            views: firebase.firestore.FieldValue.increment(1)
+        }).catch(e => {});
+    }
 }
 
+function closeVideoPlayer() { 
+    document.getElementById('video-overlay-player').classList.add('hidden'); 
+    document.getElementById('native-video').pause();
+    document.getElementById('native-video').src = '';
+    currentPlayingVideo = null;
+}
+
+// ============================================
+// 📥 DOWNLOADS UI
+// ============================================
 function renderDownloads() {
     const activeList = document.getElementById('active-downloads-list');
     const completedList = document.getElementById('completed-downloads-list');
     const badge = document.getElementById('download-count-badge');
     
-    badge.innerText = `${activeDownloads.length} actif(s)`;
+    if (badge) badge.innerText = `${activeDownloads.length}`;
     
     if (activeDownloads.length === 0) {
         activeList.innerHTML = '<div class="text-center text-zinc-500 py-8 text-xs">Aucun téléchargement</div>';
@@ -714,111 +889,58 @@ function toggleDlSubTab(sub) {
 }
 
 // ============================================
-// 💬 CHAT
+// 🔍 FILTRES
 // ============================================
-async function loadConversations() {
-    if (!currentUser) return;
-    try {
-        const snapshot = await db.collection('chats').where('userId', '==', currentUser.uid).get();
-        const container = document.getElementById('conversationsList');
-        if (snapshot.empty) { container.innerHTML = '<div class="text-center text-zinc-500 text-xs py-4">Aucune conversation</div>'; return; }
-        let html = '';
-        snapshot.forEach(doc => { 
-            const c = doc.data(); 
-            html += `<div onclick="openChat('${escapeAttr(c.imamId)}', '${escapeAttr(c.imamName)}')" class="bg-zinc-900 p-3 rounded-xl flex gap-3 cursor-pointer hover:bg-zinc-800">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg" style="background:rgba(255,87,34,0.2)">${imams[c.imamId]?.avatar || '👳'}</div>
-                <div>
-                    <h4 class="text-sm font-bold text-white">${escapeAttr(c.imamName)}</h4>
-                    <p class="text-[10px] text-zinc-400 truncate">${escapeAttr(c.lastMessage || 'Nouveau')}</p>
-                </div>
-            </div>`; 
-        });
-        container.innerHTML = html;
-    } catch(e) { console.log(e); }
+function filterByAlbum(albumId) {
+    selectedAlbumFilter = albumId;
+    renderAlbumChips();
+    renderVideoGrid();
 }
 
-async function sendTextQuestion() {
-    const imamId = document.getElementById('targetImam').value;
-    const question = document.getElementById('questionText').value.trim();
-    if (!question) { alert("Écrivez votre question"); return; }
-    await sendMessage(imamId, imams[imamId].name, question, 'text');
-    document.getElementById('questionText').value = '';
-    alert("Question envoyée !");
+function filterMedia(val) {
+    const container = document.getElementById('video-grid');
+    let filtered = selectedAlbumFilter ? allVideos.filter(v => v.albumId === selectedAlbumFilter) : allVideos;
+    
+    if (val) {
+        filtered = filtered.filter(v => 
+            v.title.toLowerCase().includes(val.toLowerCase()) || 
+            v.speaker.toLowerCase().includes(val.toLowerCase())
+        );
+    }
+    
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="text-center text-zinc-500 py-8 text-xs">Aucun résultat</div>';
+        return;
+    }
+    
+    // Réutiliser renderVideoGrid avec filtre
+    const originalVideos = allVideos;
+    allVideos = filtered;
+    renderVideoGrid();
+    allVideos = originalVideos;
 }
 
-async function sendMessage(imamId, imamName, content, type) {
-    if (!currentUser) return;
-    const chatId = `${currentUser.uid}_${imamId}`;
-    try {
-        await db.collection('chats').doc(chatId).set({
-            userId: currentUser.uid, imamId, imamName, 
-            userName: currentUser.email?.split('@')[0],
-            updatedAt: new Date(), lastMessage: content.substring(0, 50)
-        }, { merge: true });
-        await db.collection('messages').add({
-            chatId, senderId: currentUser.uid, 
-            senderName: currentUser.email?.split('@')[0],
-            receiverId: imamId, content, type, 
-            timestamp: new Date(), read: false
-        });
-        loadConversations();
-    } catch(e) { console.log(e); }
-}
-
-async function openChat(imamId, imamName) {
-    currentChat = { imamId, imamName };
-    document.getElementById('chatImamName').innerText = imamName;
-    document.getElementById('chatModal').classList.remove('hidden');
-    await loadChatMessages();
-}
-
-async function loadChatMessages() {
-    const chatId = `${currentUser.uid}_${currentChat.imamId}`;
-    try {
-        const snapshot = await db.collection('messages').where('chatId', '==', chatId).orderBy('timestamp').get();
-        const container = document.getElementById('chatMessages');
-        container.innerHTML = '';
-        snapshot.forEach(doc => {
-            const msg = doc.data();
-            const isMe = msg.senderId === currentUser.uid;
-            container.innerHTML += `<div class="flex ${isMe ? 'justify-end' : 'justify-start'} fade-in">
-                <div class="max-w-[75%] ${isMe ? '' : 'bg-zinc-800'} rounded-2xl p-2 px-3" ${isMe ? 'style="background:#ff5722"' : ''}>
-                    <p class="text-sm text-white">${escapeAttr(msg.content)}</p>
-                    <p class="text-[9px] text-zinc-400 mt-1">${msg.timestamp?.toDate ? new Date(msg.timestamp.toDate()).toLocaleTimeString() : ''}</p>
-                </div>
-            </div>`;
-        });
-        container.scrollTop = container.scrollHeight;
-    } catch(e) { console.log(e); }
-}
-
-async function sendChatMessage() {
-    const content = document.getElementById('chatInput').value.trim();
-    if (!content) return;
-    await sendMessage(currentChat.imamId, currentChat.imamName, content, 'text');
-    document.getElementById('chatInput').value = '';
-    await loadChatMessages();
-}
-
-function closeChatModal() { document.getElementById('chatModal').classList.add('hidden'); }
-function closeVideoPlayer() { document.getElementById('video-overlay-player').classList.add('hidden'); document.getElementById('native-video').pause(); }
-
+// ============================================
+// 🧭 NAVIGATION
+// ============================================
 function showTab(tab) {
-    document.getElementById('tab-home').classList.add('hidden');
-    document.getElementById('tab-downloads').classList.add('hidden');
-    document.getElementById('tab-profile').classList.add('hidden');
-    document.getElementById(`tab-${tab}`).classList.remove('hidden');
-    ['home','downloads','profile'].forEach(t => {
+    ['home','downloads','myalbum','profile'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
         const btn = document.getElementById(`nav-${t}`);
-        if (t === tab) { btn.style.color = '#ff5722'; }
-        else { btn.style.color = '#71717a'; }
+        if (btn) btn.style.color = '#71717a';
     });
+    document.getElementById(`tab-${tab}`).classList.remove('hidden');
+    const activeBtn = document.getElementById(`nav-${tab}`);
+    if (activeBtn) activeBtn.style.color = '#ff5722';
+    
     if (tab === 'downloads') renderDownloads();
-    if (tab === 'profile' && currentUser) loadConversations();
+    if (tab === 'myalbum' && currentUser) {
+        updateProfileUI();
+        renderMyVideos();
+    }
 }
 
 showTab('home');
-renderDownloads();
 </script>
 </body>
 </html>
