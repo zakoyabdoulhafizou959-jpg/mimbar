@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -16,6 +17,7 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .video-card { touch-action: manipulation; }
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .arabic-title { font-family: 'Amiri', serif; font-size: 1.1rem; font-weight: 700; }
     </style>
 </head>
 <body class="h-full bg-slate-900 flex justify-center items-center overflow-hidden font-sans">
@@ -25,10 +27,10 @@
     <header class="bg-zinc-900 px-4 pt-6 pb-3 border-b border-zinc-800/80 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-400 to-emerald-500 p-1 flex items-center justify-center shadow-lg">
-                <i class="fa-solid fa-play text-white text-xs pl-0.5"></i>
+                <i class="fa-solid fa-mosque text-white text-xs"></i>
             </div>
             <div>
-                <h1 class="text-sm font-black tracking-tight text-white">Minbar<span style="color:#ff5722">Stream</span></h1>
+                <h1 class="arabic-title text-white" style="color:#ff5722">أهل السنة والجماعة</h1>
                 <p class="text-[8px] text-zinc-400 uppercase">Vidéos & Prêches</p>
             </div>
         </div>
@@ -254,6 +256,7 @@
         <button onclick="showTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-user text-lg"></i><span class="text-[9px]">Profil</span></button>
     </nav>
 
+    <!-- LECTEUR VIDÉO - SANS crossorigin -->
     <div id="video-overlay-player" class="hidden fixed inset-0 bg-black z-50 flex flex-col">
         <div class="bg-zinc-900 p-3 flex items-center justify-between">
             <button onclick="closeVideoPlayer()" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-white"></i></button>
@@ -261,7 +264,9 @@
             <div class="w-8"></div>
         </div>
         <div class="flex-1 flex items-center justify-center bg-black">
-            <video id="native-video" class="w-full max-h-full" controls autoplay playsinline><source id="video-source" src="" type="video/mp4"></video>
+            <video id="native-video" class="w-full max-h-full" controls autoplay playsinline>
+                <source id="video-source" src="" type="video/mp4">
+            </video>
         </div>
         <div class="bg-zinc-900 p-3 flex items-center justify-between">
             <p id="video-player-speaker" class="text-xs text-zinc-400"></p>
@@ -304,9 +309,6 @@
 </div>
 
 <script>
-// ============================================
-// 🔥 FIREBASE
-// ============================================
 const firebaseConfig = {
     apiKey: "AIzaSyC3ybM8gMQZ-IjVLLXqs0MZLPEzqGmyREA",
     authDomain: "mimbar-e1bee.firebaseapp.com",
@@ -346,9 +348,6 @@ const TYPE_LABELS = {
     'coran': '🕌 Lecture du Coran'
 };
 
-// ============================================
-// 🔐 AUTH
-// ============================================
 auth.onAuthStateChanged(async (user) => {
     currentUser = user;
     if (user) {
@@ -381,7 +380,7 @@ async function handleLogin() {
             case 'auth/invalid-credential': errorMsg = "❌ Email ou mot de passe incorrect."; break;
             case 'auth/user-not-found': errorMsg = "❌ Compte introuvable."; break;
             case 'auth/wrong-password': errorMsg = "❌ Mot de passe incorrect."; break;
-            case 'auth/operation-not-allowed': errorMsg = "❌ Connexion email non activée dans Firebase."; break;
+            case 'auth/operation-not-allowed': errorMsg = "❌ Connexion email non activée."; break;
             default: errorMsg = `❌ ${e.message}`;
         }
         showAuthError(errorMsg);
@@ -457,9 +456,6 @@ function showAuthLoading(loading) {
     if (signupBtn) signupBtn.disabled = loading;
 }
 
-// ============================================
-// 📚 DONNÉES
-// ============================================
 async function loadUserData() {
     if (!currentUser) return;
     try {
@@ -581,9 +577,6 @@ async function submitAlbumRequest() {
     } catch(e) { alert("Erreur: " + e.message); }
 }
 
-// ============================================
-// 🎬 UPLOAD - APPELLE /api/upload-b2 PUIS UPLOAD DIRECT VERS B2
-// ============================================
 function handleFileSelected(input) {
     if (!input.files?.length) return;
     currentSelectedFile = input.files[0];
@@ -633,7 +626,6 @@ async function uploadVideoToB2() {
     progressText.innerText = '0% - Préparation...';
     
     try {
-        // ÉTAPE 1: Obtenir URL d'upload depuis Vercel (/api/upload-b2)
         progressText.innerText = '5% - Connexion à B2...';
         console.log('📡 Appel /api/upload-b2...');
         
@@ -644,7 +636,6 @@ async function uploadVideoToB2() {
         
         if (!urlResponse.ok) {
             const errText = await urlResponse.text();
-            console.error('❌ Réponse API:', errText);
             throw new Error(`API erreur ${urlResponse.status}: ${errText}`);
         }
         
@@ -654,7 +645,6 @@ async function uploadVideoToB2() {
         progressText.innerText = '10% - Miniature...';
         const thumbnail = await generateThumbnail(currentSelectedFile);
         
-        // ÉTAPE 2: Upload DIRECT vers B2 (gros fichier, pas de limite Vercel)
         progressText.innerText = '15% - Envoi vers B2...';
         const fileName = `${Date.now()}_${currentSelectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         
@@ -670,32 +660,23 @@ async function uploadVideoToB2() {
             });
             
             xhr.onload = () => {
-                if (xhr.status === 200) {
-                    resolve(JSON.parse(xhr.responseText));
-                } else {
-                    reject(new Error('Upload B2: ' + xhr.status + ' - ' + xhr.responseText));
-                }
+                if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
+                else reject(new Error('Upload B2: ' + xhr.status));
             };
-            
             xhr.onerror = () => reject(new Error('Erreur réseau - Vérifiez CORS sur B2'));
             xhr.ontimeout = () => reject(new Error('Timeout'));
             
-            // ✅ Upload DIRECT vers URL B2 (pas Vercel)
             xhr.open('POST', uploadUrl);
             xhr.setRequestHeader('Authorization', authorizationToken);
             xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
             xhr.setRequestHeader('Content-Type', currentSelectedFile.type || 'application/octet-stream');
             xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
             xhr.timeout = 600000;
-            
             xhr.send(currentSelectedFile);
         });
         
-        // ÉTAPE 3: Sauvegarder dans Firestore
         progressBar.style.width = '95%';
         progressText.innerText = '95% - Sauvegarde...';
-        
-        const publicUrl = downloadUrl + encodeURIComponent(fileName);
         
         await db.collection('videos').add({
             userId: currentUser.uid,
@@ -705,9 +686,8 @@ async function uploadVideoToB2() {
             speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
             duration: "00:00",
             date: new Date().toISOString().split('T')[0],
-            views: 0,
-            downloads: 0,
-            downloadURL: publicUrl,
+            views: 0, downloads: 0,
+            downloadURL: downloadUrl + encodeURIComponent(fileName),
             thumbnail: thumbnail,
             uploadedAt: new Date(),
             size: currentSelectedFile.size,
@@ -732,16 +712,13 @@ async function uploadVideoToB2() {
     } catch(error) {
         console.error("❌ Erreur upload:", error);
         let errorMsg = error.message;
-        if (errorMsg.includes('404')) errorMsg = "❌ API introuvable. Vérifiez api/upload-b2.js sur GitHub.";
-        else if (errorMsg.includes('CORS')) errorMsg = "❌ CORS bloqué. Configurez CORS sur B2.";
+        if (errorMsg.includes('404')) errorMsg = "❌ API introuvable.";
+        else if (errorMsg.includes('CORS')) errorMsg = "❌ CORS bloqué.";
         alert("Erreur: " + errorMsg);
         progressDiv.classList.add('hidden');
     }
 }
 
-// ============================================
-// 📥 TÉLÉCHARGEMENT
-// ============================================
 function showDownloadOptions() {
     if (!currentPlayingVideo) return;
     document.getElementById('download-modal-title').innerText = currentPlayingVideo.title;
@@ -766,7 +743,6 @@ async function downloadWithQuality(quality) {
     try {
         await downloadVideo(v.videoUrl, v.title + '.mp4', v.id);
     } catch(e) {
-        console.log('Fallback: ouverture dans nouvel onglet');
         window.open(v.videoUrl, '_blank');
     }
 }
@@ -820,16 +796,13 @@ async function downloadVideo(url, filename, videoId) {
         activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
         localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
         renderDownloads();
-        if (confirm("Téléchargement bloqué par CORS.\n\nOuvrir la vidéo dans un nouvel onglet ?\n(Vous pourrez ensuite faire clic droit → Enregistrer sous)")) {
+        if (confirm("Téléchargement bloqué. Ouvrir dans un nouvel onglet ?")) {
             window.open(url, '_blank');
         }
         throw e;
     }
 }
 
-// ============================================
-// 🎨 RENDU
-// ============================================
 function renderAll() {
     renderTypeChips();
     renderAlbumChips();
@@ -1010,11 +983,8 @@ async function downloadSelected() {
     const videos = allVideos.filter(v => selectedVideoIds.has(v.id));
     alert(`Téléchargement de ${videos.length} vidéo(s)...`);
     for (const v of videos) {
-        try {
-            await downloadVideo(v.videoUrl, v.title + '.mp4', v.id);
-        } catch(e) {
-            window.open(v.videoUrl, '_blank');
-        }
+        try { await downloadVideo(v.videoUrl, v.title + '.mp4', v.id); }
+        catch(e) { window.open(v.videoUrl, '_blank'); }
         await new Promise(r => setTimeout(r, 500));
     }
     toggleSelectionMode();
@@ -1045,18 +1015,30 @@ async function deleteMyVideo(videoId) {
     } catch(e) { alert("Erreur: " + e.message); }
 }
 
+// ✅ LECTEUR VIDÉO - SANS crossorigin
 function openVideoPlayer(url, title, speaker, videoId) {
     currentPlayingVideo = allVideos.find(v => v.id === videoId) || { videoUrl: url, title, speaker, id: videoId };
     document.getElementById('video-player-title').innerText = title;
     document.getElementById('video-player-speaker').innerText = speaker;
     const video = document.getElementById('native-video');
     const source = document.getElementById('video-source');
-    source.src = url;
+    
+    // Ajouter timestamp pour éviter le cache
+    const videoUrl = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+    source.src = videoUrl;
+    source.type = 'video/mp4';
+    
     video.load();
     document.getElementById('video-overlay-player').classList.remove('hidden');
-    video.play().catch(e => console.log('Autoplay bloqué'));
+    
+    video.play().catch(e => {
+        console.log('Autoplay bloqué, tentative manuelle');
+    });
+    
     if (videoId) {
-        db.collection('videos').doc(videoId).update({ views: firebase.firestore.FieldValue.increment(1) }).catch(e => {});
+        db.collection('videos').doc(videoId).update({ 
+            views: firebase.firestore.FieldValue.increment(1) 
+        }).catch(e => {});
     }
 }
 
