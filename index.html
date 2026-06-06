@@ -49,6 +49,25 @@
             </div>
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="type-chips"></div>
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="album-chips"></div>
+            
+            <!-- Barre de sélection pour la page d'accueil -->
+            <div id="home-selection-bar" class="hidden bg-zinc-900 rounded-xl p-3 border border-orange-500/30 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleSelectAllHome()" class="text-[10px] px-2 py-1 bg-zinc-800 rounded text-white">
+                        <i class="fa-regular fa-square-check mr-1"></i>Tout
+                    </button>
+                    <span class="text-xs text-white"><span id="home-selected-count">0</span> sélectionnée(s)</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="downloadSelectedHome()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold text-white" style="background:#ff5722">
+                        <i class="fa-solid fa-download mr-1"></i>Télécharger
+                    </button>
+                    <button onclick="cancelSelectionHome()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-zinc-800 text-white">
+                        <i class="fa-solid fa-xmark mr-1"></i>Annuler
+                    </button>
+                </div>
+            </div>
+            
             <div id="video-grid" class="space-y-4"></div>
         </div>
 
@@ -339,6 +358,10 @@ let currentSelectedFile = null;
 let completedDownloads = JSON.parse(localStorage.getItem('completedDownloads') || '[]');
 let activeDownloads = JSON.parse(localStorage.getItem('activeDownloads') || '[]');
 let longPressTimer = null;
+
+// Variables pour la sélection sur la page d'accueil
+let homeSelectionMode = false;
+let homeSelectedVideoIds = new Set();
 
 const TYPE_LABELS = {
     'preche': '📢 Prêche quotidien',
@@ -862,20 +885,31 @@ function renderVideoGrid() {
         return;
     }
     
+    // Miniature SVG par défaut améliorée
+    const defaultThumb = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzI3MjcyNyIvPjxjaXJjbGUgY3g9IjE2MCIgY3k9IjkwIiByPSI0MCIgZmlsbD0iI2ZmNTcyMiIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDc1IDE1MCwxMDUgMTgwLDkwIiBmaWxsPSIjZmZmIi8+PC9zdmc+';
+    
     container.innerHTML = filtered.map(v => {
         const album = allAlbums.find(a => a.id === v.albumId);
-        const thumb = v.thumbnail || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzI3MjcyNyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDAiIGZpbGw9IiNmZjU3MjIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7ilbU8L3RleHQ+PC9zdmc+';
+        const thumb = v.thumbnail && v.thumbnail.trim() !== '' ? v.thumbnail : defaultThumb;
+        const isSelected = homeSelectedVideoIds.has(v.id);
         
         return `
-        <div class="video-card bg-zinc-900 rounded-xl overflow-hidden cursor-pointer fade-in" 
+        <div class="video-card bg-zinc-900 rounded-xl overflow-hidden cursor-pointer fade-in ${isSelected ? 'ring-2 ring-orange-500' : ''}" 
              onmousedown="startLongPress('${v.id}')" 
              onmouseup="cancelLongPress()" 
              onmouseleave="cancelLongPress()"
              ontouchstart="startLongPress('${v.id}')" 
              ontouchend="cancelLongPress()"
-             onclick="handleVideoClick('${v.id}')">
+             onclick="handleVideoClick('${v.id}', event)">
             <div class="relative aspect-video bg-zinc-800">
-                <img src="${thumb}" alt="${escapeAttr(v.title)}" class="w-full h-full object-cover">
+                <img src="${thumb}" alt="${escapeAttr(v.title)}" class="w-full h-full object-cover" onerror="this.src='${defaultThumb}'">
+                ${homeSelectionMode ? `
+                    <div class="absolute top-2 left-2 z-10" onclick="event.stopPropagation(); toggleHomeVideoSelection('${v.id}')">
+                        <div class="w-6 h-6 rounded border-2 flex items-center justify-center ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-white bg-black/50'}">
+                            ${isSelected ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
+                        </div>
+                    </div>
+                ` : ''}
                 <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                     <div class="w-14 h-14 rounded-full flex items-center justify-center" style="background:#ff5722">
                         <i class="fa-solid fa-play text-white text-xl pl-1"></i>
@@ -893,6 +927,77 @@ function renderVideoGrid() {
         </div>
         `;
     }).join('');
+}
+
+// Fonctions pour la sélection sur la page d'accueil
+function toggleHomeVideoSelection(videoId) {
+    if (homeSelectedVideoIds.has(videoId)) {
+        homeSelectedVideoIds.delete(videoId);
+    } else {
+        homeSelectedVideoIds.add(videoId);
+    }
+    updateHomeSelectionUI();
+    renderVideoGrid();
+}
+
+function toggleSelectAllHome() {
+    const container = document.getElementById('video-grid');
+    const videoCards = container.querySelectorAll('.video-card');
+    const visibleVideos = allVideos.filter(v => {
+        let show = true;
+        if (selectedTypeFilter) {
+            const albumIds = allAlbums.filter(a => a.type === selectedTypeFilter).map(a => a.id);
+            show = albumIds.includes(v.albumId);
+        }
+        if (selectedAlbumFilter && show) show = v.albumId === selectedAlbumFilter;
+        if (searchQuery && show) {
+            const q = searchQuery.toLowerCase();
+            const album = allAlbums.find(a => a.id === v.albumId);
+            show = v.title.toLowerCase().includes(q) || 
+                   v.speaker.toLowerCase().includes(q) ||
+                   (album && (album.imamName || '').toLowerCase().includes(q));
+        }
+        return show;
+    });
+    
+    const allSelected = visibleVideos.every(v => homeSelectedVideoIds.has(v.id));
+    
+    if (allSelected) {
+        visibleVideos.forEach(v => homeSelectedVideoIds.delete(v.id));
+    } else {
+        visibleVideos.forEach(v => homeSelectedVideoIds.add(v.id));
+    }
+    updateHomeSelectionUI();
+    renderVideoGrid();
+}
+
+function updateHomeSelectionUI() {
+    const count = homeSelectedVideoIds.size;
+    document.getElementById('home-selected-count').innerText = count;
+    const bar = document.getElementById('home-selection-bar');
+    if (count > 0) {
+        bar.classList.remove('hidden');
+    } else {
+        bar.classList.add('hidden');
+    }
+}
+
+function cancelSelectionHome() {
+    homeSelectedVideoIds.clear();
+    updateHomeSelectionUI();
+    renderVideoGrid();
+}
+
+async function downloadSelectedHome() {
+    if (homeSelectedVideoIds.size === 0) { alert("Aucune vidéo sélectionnée"); return; }
+    const videos = allVideos.filter(v => homeSelectedVideoIds.has(v.id));
+    alert(`Téléchargement de ${videos.length} vidéo(s)...`);
+    for (const v of videos) {
+        try { await downloadVideo(v.videoUrl, v.title + '.mp4', v.id); }
+        catch(e) { window.open(v.videoUrl, '_blank'); }
+        await new Promise(r => setTimeout(r, 500));
+    }
+    cancelSelectionHome();
 }
 
 function startLongPress(videoId) {
@@ -913,7 +1018,15 @@ function cancelLongPress() {
     }
 }
 
-function handleVideoClick(videoId) {
+function handleVideoClick(videoId, event) {
+    // Si on est en mode sélection, ne pas ouvrir la vidéo
+    if (homeSelectionMode) {
+        if (event && event.target.closest('.video-card')) {
+            toggleHomeVideoSelection(videoId);
+        }
+        return;
+    }
+    
     if (longPressTimer) {
         clearTimeout(longPressTimer);
         longPressTimer = null;
@@ -1010,7 +1123,7 @@ function renderMyVideos() {
     }
     container.innerHTML = myVids.map(v => {
         const isSelected = selectedVideoIds.has(v.id);
-        const thumb = v.thumbnail || '';
+        const thumb = v.thumbnail && v.thumbnail.trim() !== '' ? v.thumbnail : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzI3MjcyNyIvPjxjaXJjbGUgY3g9IjE2MCIgY3k9IjkwIiByPSI0MCIgZmlsbD0iI2ZmNTcyMiIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDc1IDE1MCwxMDUgMTgwLDkwIiBmaWxsPSIjZmZmIi8+PC9zdmc+';
         return `
         <div class="bg-zinc-900 rounded-xl p-2 flex gap-3 items-center ${isSelected ? 'border-2 border-orange-500' : 'border border-zinc-800'}">
             ${selectionMode ? `
@@ -1018,7 +1131,7 @@ function renderMyVideos() {
                     ${isSelected ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
                 </button>
             ` : ''}
-            ${thumb ? `<img src="${thumb}" class="w-20 h-12 rounded object-cover shrink-0">` : `<div class="w-20 h-12 rounded bg-zinc-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-film text-orange-500"></i></div>`}
+            ${thumb ? `<img src="${thumb}" class="w-20 h-12 rounded object-cover shrink-0" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzI3MjcyNyIvPjxjaXJjbGUgY3g9IjE2MCIgY3k9IjkwIiByPSI0MCIgZmlsbD0iI2ZmNTcyMiIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDc1IDE1MCwxMDUgMTgwLDkwIiBmaWxsPSIjZmZmIi8+PC9zdmc+'">` : `<div class="w-20 h-12 rounded bg-zinc-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-film text-orange-500"></i></div>`}
             <div class="flex-1 min-w-0" onclick="openVideoPlayer('${escapeAttr(v.videoUrl)}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
                 <p class="text-xs font-bold text-white truncate">${escapeAttr(v.title)}</p>
                 <p class="text-[9px] text-zinc-500">${v.views || 0} vues</p>
@@ -1162,6 +1275,10 @@ function showTab(tab) {
     if (tab === 'downloads') renderDownloads();
     if (tab === 'myalbum' && currentUser) { updateProfileUI(); renderMyVideos(); }
     if (tab === 'create' && currentUser) updateProfileUI();
+    if (tab === 'home') {
+        // Réinitialiser la sélection quand on quitte l'accueil
+        cancelSelectionHome();
+    }
 }
 
 showTab('home');
