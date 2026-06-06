@@ -30,7 +30,7 @@
                 <i class="fa-solid fa-mosque text-white text-xs"></i>
             </div>
             <div>
-                <h1 class="arabic-title text-white" style="color:#ff5722">أهل السنة والجماعة</h1>
+                <h1 class="arabic-title text-white">أهل السنة والجماعة</h1>
                 <p class="text-[8px] text-zinc-400 uppercase">Vidéos & Prêches</p>
             </div>
         </div>
@@ -264,8 +264,9 @@
             <div class="w-8"></div>
         </div>
         <div class="flex-1 flex items-center justify-center bg-black">
-            <video id="native-video" class="w-full max-h-full" controls autoplay playsinline>
+            <video id="native-video" class="w-full max-h-full" controls playsinline preload="metadata">
                 <source id="video-source" src="" type="video/mp4">
+                Votre navigateur ne supporte pas la lecture vidéo.
             </video>
         </div>
         <div class="bg-zinc-900 p-3 flex items-center justify-between">
@@ -902,22 +903,112 @@ function renderVideoGrid() {
     }).join('');
 }
 
+// ✅ CORRIGÉ - Le timer se réinitialise après exécution
 function startLongPress(videoId) {
     longPressTimer = setTimeout(() => {
         const v = allVideos.find(x => x.id === videoId);
-        if (v) { currentPlayingVideo = v; showDownloadOptions(); }
+        if (v) { 
+            currentPlayingVideo = v; 
+            showDownloadOptions();
+            longPressTimer = null;
+        }
     }, 600);
 }
 
 function cancelLongPress() {
-    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+    if (longPressTimer) { 
+        clearTimeout(longPressTimer); 
+        longPressTimer = null; 
+    }
 }
 
+// ✅ CORRIGÉ - Ouvre TOUJOURS la vidéo (sans condition)
 function handleVideoClick(videoId) {
+    // Annuler le timer si encore actif (clic court)
     if (longPressTimer) {
-        const v = allVideos.find(x => x.id === videoId);
-        if (v) openVideoPlayer(v.videoUrl, v.title, v.speaker, v.id);
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
     }
+    
+    console.log('🎬 handleVideoClick appelé avec ID:', videoId);
+    
+    const video = allVideos.find(x => x.id === videoId);
+    
+    if (!video) {
+        console.error('❌ Vidéo introuvable pour ID:', videoId);
+        return;
+    }
+    
+    console.log('✅ Vidéo trouvée:', video.title);
+    console.log('📹 URL:', video.videoUrl);
+    
+    // ✅ TOUJOURS ouvrir le lecteur
+    openVideoPlayer(video.videoUrl, video.title, video.speaker, video.id);
+}
+
+// ✅ LECTEUR VIDÉO - SANS crossorigin
+function openVideoPlayer(url, title, speaker, videoId) {
+    console.log('▶️ openVideoPlayer appelé');
+    console.log('   URL:', url);
+    console.log('   Titre:', title);
+    console.log('   Speaker:', speaker);
+    
+    if (!url) {
+        console.error('❌ URL vide !');
+        alert('URL de la vidéo manquante');
+        return;
+    }
+    
+    currentPlayingVideo = allVideos.find(v => v.id === videoId) || { 
+        videoUrl: url, title, speaker, id: videoId 
+    };
+    
+    document.getElementById('video-player-title').innerText = title;
+    document.getElementById('video-player-speaker').innerText = speaker;
+    
+    const video = document.getElementById('native-video');
+    const source = document.getElementById('video-source');
+    
+    if (!video || !source) {
+        console.error('❌ Éléments vidéo introuvables !');
+        return;
+    }
+    
+    // ✅ INJECTER L'URL
+    source.src = url;
+    source.type = 'video/mp4';
+    
+    console.log('✅ src injecté:', source.src);
+    
+    // Recharger la vidéo
+    video.load();
+    
+    // Afficher le lecteur
+    document.getElementById('video-overlay-player').classList.remove('hidden');
+    
+    // Tenter de lancer la lecture
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+        playPromise.then(() => {
+            console.log('✅ Lecture démarrée');
+        }).catch(error => {
+            console.log('⚠️ Autoplay bloqué (normal sur mobile):', error.message);
+        });
+    }
+    
+    // Incrémenter les vues
+    if (videoId) {
+        db.collection('videos').doc(videoId).update({ 
+            views: firebase.firestore.FieldValue.increment(1) 
+        }).catch(e => console.log('Erreur update views:', e));
+    }
+}
+
+function closeVideoPlayer() { 
+    document.getElementById('video-overlay-player').classList.add('hidden'); 
+    document.getElementById('native-video').pause();
+    document.getElementById('native-video').src = '';
+    currentPlayingVideo = null;
 }
 
 function renderMyVideos() {
@@ -1013,40 +1104,6 @@ async function deleteMyVideo(videoId) {
         renderMyVideos();
         renderVideoGrid();
     } catch(e) { alert("Erreur: " + e.message); }
-}
-
-// ✅ LECTEUR VIDÉO - SANS crossorigin
-function openVideoPlayer(url, title, speaker, videoId) {
-    currentPlayingVideo = allVideos.find(v => v.id === videoId) || { videoUrl: url, title, speaker, id: videoId };
-    document.getElementById('video-player-title').innerText = title;
-    document.getElementById('video-player-speaker').innerText = speaker;
-    const video = document.getElementById('native-video');
-    const source = document.getElementById('video-source');
-    
-    // Ajouter timestamp pour éviter le cache
-    const videoUrl = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
-    source.src = videoUrl;
-    source.type = 'video/mp4';
-    
-    video.load();
-    document.getElementById('video-overlay-player').classList.remove('hidden');
-    
-    video.play().catch(e => {
-        console.log('Autoplay bloqué, tentative manuelle');
-    });
-    
-    if (videoId) {
-        db.collection('videos').doc(videoId).update({ 
-            views: firebase.firestore.FieldValue.increment(1) 
-        }).catch(e => {});
-    }
-}
-
-function closeVideoPlayer() { 
-    document.getElementById('video-overlay-player').classList.add('hidden'); 
-    document.getElementById('native-video').pause();
-    document.getElementById('native-video').src = '';
-    currentPlayingVideo = null;
 }
 
 function renderDownloads() {
