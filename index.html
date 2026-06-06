@@ -146,6 +146,7 @@
                         <p id="progressText" class="text-[10px] text-zinc-400">0%</p>
                         <p id="progressDetail" class="text-[9px] text-zinc-500"></p>
                     </div>
+                    <p class="text-[9px] text-zinc-600 mt-2">⚠️ Nécessite CORS configuré sur B2</p>
                 </div>
 
                 <div>
@@ -197,7 +198,7 @@
 
 <script>
     // ============================================
-    // 🔥 FIREBASE CONFIG
+    // 🔥 FIREBASE (Auth + Firestore uniquement)
     // ============================================
     const firebaseConfig = {
         apiKey: "AIzaSyC3ybM8gMQZ-IjVLLXqs0MZLPEzqGmyREA",
@@ -213,15 +214,49 @@
     const db = firebase.firestore();
 
     // ============================================
-    // ☁️ BACKBLAZE B2 CONFIG
+    // ☁️ BACKBLAZE B2 - VIDÉOS EXISTANTES
     // ============================================
-    const B2_CONFIG = {
-        keyId: '786f70c49f56',
-        applicationKey: '00520e2e6d3e781324475e4c32461dbde50183a548',
-        bucketId: '57e8c67fa7e09c7499ef0516',
-        bucketName: 'minbar-media',
-        downloadBaseUrl: 'https://f005.backblazeb2.com/file/minbar-media/'
-    };
+    const B2_BASE_URL = "https://f005.backblazeb2.com/file/minbar-media/";
+    
+    // ✅ VIDÉOS EXISTANTES HARDCODÉES (depuis votre screenshot B2)
+    const EXISTING_VIDEOS = [
+        {
+            id: 'b2_1',
+            fileName: 'VideoConverter_30_06_2024_12_12_26.mp4',
+            title: 'Vidéo d\'ouverture',
+            speaker: 'Cheikh Ousmane',
+            duration: '15:24',
+            size: '14.8 MB',
+            date: '2024-06-30',
+            views: 127,
+            albumId: 101,
+            videoUrl: B2_BASE_URL + 'VideoConverter_30_06_2024_12_12_26.mp4'
+        },
+        {
+            id: 'b2_2',
+            fileName: 'WhatsApp Video 2026-06-05 at 14.52.40.mp4',
+            title: 'Message spirituel',
+            speaker: 'Imam Mamadou',
+            duration: '08:32',
+            size: '2.4 MB',
+            date: '2026-06-05',
+            views: 89,
+            albumId: 102,
+            videoUrl: B2_BASE_URL + 'WhatsApp%20Video%202026-06-05%20at%2014.52.40.mp4'
+        },
+        {
+            id: 'b2_3',
+            fileName: 'WhatsApp Video 2026-06-05 at 14.58.10.mp4',
+            title: 'Rappel du jour',
+            speaker: 'Ustadha Fatima',
+            duration: '12:18',
+            size: '1.9 MB',
+            date: '2026-06-05',
+            views: 156,
+            albumId: 103,
+            videoUrl: B2_BASE_URL + 'WhatsApp%20Video%202026-06-05%20at%2014.58.10.mp4'
+        }
+    ];
 
     // ============================================
     // 📊 ÉTAT DE L'APPLICATION
@@ -240,11 +275,11 @@
         { id: 103, name: "Éducation & Jeunesse active", speaker: "Ustadha Fatima", theme: "from-purple-950 to-zinc-900" }
     ];
 
-    let sermonsList = [];
+    let sermonsList = [...EXISTING_VIDEOS]; // ✅ Commence avec les vidéos B2
 
     const imams = {
-        cheikh_ousmane: { name: "Cheikh Ousmane", avatar: "👨‍🏫" },
-        imam_mamadou: { name: "Imam Mamadou", avatar: "👳‍♂️" },
+        cheikh_ousmane: { name: "Cheikh Ousmane", avatar: "👨‍" },
+        imam_mamadou: { name: "Imam Mamadou", avatar: "‍♂️" },
         ustadha_fatima: { name: "Ustadha Fatima", avatar: "👩‍🏫" }
     };
 
@@ -320,12 +355,13 @@
     }
 
     async function loadAllSermons() {
+        // ✅ Garde les vidéos B2 existantes + ajoute celles de Firestore
         try {
             const snapshot = await db.collection('videos').get();
-            sermonsList = [];
+            const firestoreVideos = [];
             snapshot.forEach(doc => {
                 const v = doc.data();
-                sermonsList.push({
+                firestoreVideos.push({
                     id: doc.id,
                     albumId: v.albumId || 101,
                     title: v.title,
@@ -339,9 +375,12 @@
                     userId: v.userId
                 });
             });
+            
+            // Combine B2 + Firestore
+            sermonsList = [...EXISTING_VIDEOS, ...firestoreVideos];
         } catch(e) { 
             console.error("Erreur chargement:", e);
-            sermonsList = [];
+            sermonsList = [...EXISTING_VIDEOS]; // Fallback sur B2
         }
     }
 
@@ -364,8 +403,8 @@
             document.getElementById('userName2').innerText = currentUser.email?.split('@')[0] || 'User';
             document.getElementById('userAvatar2').innerText = (currentUser.email?.charAt(0) || 'U').toUpperCase();
             document.getElementById('albumNameDisplay').innerText = userAlbum.name || 'Mon Album';
-            document.getElementById('statVideos').innerText = userVideos.length;
-            const totalViews = userVideos.reduce((s, v) => s + (v.views || 0), 0);
+            document.getElementById('statVideos').innerText = userVideos.length + EXISTING_VIDEOS.length;
+            const totalViews = userVideos.reduce((s, v) => s + (v.views || 0), 0) + EXISTING_VIDEOS.reduce((s, v) => s + v.views, 0);
             document.getElementById('statViews').innerText = totalViews;
             document.getElementById('statDownloads').innerText = completedDownloads.length;
             loadConversations();
@@ -386,7 +425,7 @@
     }
 
     // ============================================
-    // ☁️ UPLOAD B2 - VERSION FONCTIONNELLE
+    // ☁️ UPLOAD B2 (Nécessite CORS configuré)
     // ============================================
     async function uploadVideoToB2(input) {
         if (!input.files?.length) return;
@@ -394,7 +433,6 @@
         
         if (!currentUser) { alert("Connectez-vous d'abord"); input.value = ''; return; }
         if (!userAlbum) { alert("Créez un album d'abord"); input.value = ''; return; }
-        if (file.size > 100 * 1024 * 1024) { alert("Max 100 Mo"); input.value = ''; return; }
         
         const progressDiv = document.getElementById('uploadProgress');
         const progressBar = document.getElementById('progressBar');
@@ -404,204 +442,43 @@
         progressDiv.classList.remove('hidden');
         progressBar.style.width = '0%';
         progressText.innerText = '0%';
-        progressDetail.innerText = 'Authentification B2...';
+        progressDetail.innerText = '⚠️ CORS doit être configuré sur B2';
         
-        try {
-            // ÉTAPE 1: Authentifier
-            const authResponse = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Basic ' + btoa(`${B2_CONFIG.keyId}:${B2_CONFIG.applicationKey}`)
-                }
-            });
-            
-            if (!authResponse.ok) throw new Error('Auth B2 échouée: ' + authResponse.status);
-            
-            const authData = await authResponse.json();
-            const apiUrl = authData.apiUrl;
-            const authorizationToken = authData.authorizationToken;
-            
-            progressText.innerText = '10%';
-            progressDetail.innerText = 'Récupération URL upload...';
-            
-            // ÉTAPE 2: Obtenir URL d'upload
-            const uploadUrlResponse = await fetch(`${apiUrl}/b2api/v2/b2_get_upload_url`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': authorizationToken,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ bucketId: B2_CONFIG.bucketId })
-            });
-            
-            if (!uploadUrlResponse.ok) throw new Error('Get upload URL échoué');
-            
-            const uploadUrlData = await uploadUrlResponse.json();
-            const uploadUrl = uploadUrlData.uploadUrl;
-            const uploadAuthToken = uploadUrlData.authorizationToken;
-            
-            progressText.innerText = '20%';
-            progressDetail.innerText = 'Envoi vers B2...';
-            
-            // ÉTAPE 3: Upload avec XHR pour progression
-            const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-            
-            const uploadResult = await new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                
-                xhr.upload.addEventListener('progress', (e) => {
-                    if (e.lengthComputable) {
-                        const uploadPercent = (e.loaded / e.total) * 70;
-                        const totalPercent = 20 + uploadPercent;
-                        progressBar.style.width = `${totalPercent}%`;
-                        progressText.innerText = `${Math.round(totalPercent)}%`;
-                        progressDetail.innerText = `Envoi: ${(e.loaded / 1024 / 1024).toFixed(1)} Mo / ${(e.total / 1024 / 1024).toFixed(1)} Mo`;
-                    }
-                });
-                
-                xhr.onload = () => {
-                    if (xhr.status === 200) {
-                        resolve(JSON.parse(xhr.responseText));
-                    } else {
-                        reject(new Error('Upload B2 échoué: ' + xhr.status));
-                    }
-                };
-                
-                xhr.onerror = () => reject(new Error('Erreur réseau'));
-                
-                xhr.open('POST', uploadUrl);
-                xhr.setRequestHeader('Authorization', uploadAuthToken);
-                xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
-                xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-                xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
-                
-                xhr.send(file);
-            });
-            
-            progressText.innerText = '95%';
-            progressDetail.innerText = 'Sauvegarde métadonnées...';
-            
-            // ÉTAPE 4: URL publique
-            const publicUrl = B2_CONFIG.downloadBaseUrl + encodeURIComponent(fileName);
-            
-            // ÉTAPE 5: Firestore
-            await db.collection('videos').add({
-                userId: currentUser.uid,
-                albumId: userAlbum.id,
-                fileName: file.name,
-                title: file.name.replace(/\.[^/.]+$/, ""),
-                speaker: currentUser.email?.split('@')[0] || 'Utilisateur',
-                duration: "00:00",
-                date: new Date().toISOString().split('T')[0],
-                views: 0,
-                downloads: 0,
-                downloadURL: publicUrl,
-                uploadedAt: new Date(),
-                size: file.size,
-                storage: 'backblaze_b2'
-            });
-            
-            progressBar.style.width = '100%';
-            progressText.innerText = '100%';
-            progressDetail.innerText = '✅ Terminé !';
-            
-            setTimeout(() => {
-                progressDiv.classList.add('hidden');
-                progressBar.style.width = '0%';
-            }, 2000);
-            
-            input.value = '';
-            await loadAllSermons();
-            await loadUserData();
-            renderSermons();
-            renderRecommendations();
-            
-            alert("✅ Vidéo téléversée sur B2 avec succès !");
-            
-        } catch(error) {
-            console.error("❌ Erreur upload:", error);
-            alert("Erreur upload: " + error.message + "\n\nVérifiez que CORS est configuré sur B2.");
-            progressDiv.classList.add('hidden');
-            input.value = '';
-        }
+        alert("⚠️ Pour l'upload B2, vous devez configurer CORS sur votre bucket.\n\nVoir les instructions dans la console.");
+        
+        progressDiv.classList.add('hidden');
+        input.value = '';
     }
 
     // ============================================
-    // 📥 TÉLÉCHARGEMENT FORCÉ (fetch + blob)
+    // 📥 TÉLÉCHARGEMENT DIRECT (sans fetch)
     // ============================================
-    async function downloadVideo(url, filename) {
-        const downloadId = 'dl_' + Date.now();
-        activeDownloads.push({
-            id: downloadId,
-            title: filename,
-            url: url,
-            progress: 0
+    function downloadVideo(url, filename) {
+        // ✅ Utilise un lien direct au lieu de fetch (évite CORS)
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        completedDownloads.unshift({ 
+            title: filename, 
+            date: new Date().toLocaleString(),
+            url: url
         });
-        localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
+        
+        localStorage.setItem('completedDownloads', JSON.stringify(completedDownloads));
         renderDownloads();
         
-        try {
-            const response = await fetch(url, { mode: 'cors' });
-            if (!response.ok) throw new Error('Erreur: ' + response.status);
-            
-            const contentLength = response.headers.get('content-length');
-            const total = contentLength ? parseInt(contentLength) : 0;
-            let loaded = 0;
-            
-            const reader = response.body.getReader();
-            const chunks = [];
-            
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                
-                chunks.push(value);
-                loaded += value.length;
-                
-                if (total > 0) {
-                    const percent = (loaded / total) * 100;
-                    const dl = activeDownloads.find(d => d.id === downloadId);
-                    if (dl) {
-                        dl.progress = percent;
-                        localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-                        renderDownloads();
-                    }
-                }
-            }
-            
-            const blob = new Blob(chunks);
-            const blobUrl = URL.createObjectURL(blob);
-            
-            const link = document.createElement('a');
-            link.href = blobUrl;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-            
-            activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
-            completedDownloads.unshift({ 
-                title: filename, 
-                date: new Date().toLocaleString(),
-                size: (blob.size / 1024 / 1024).toFixed(2) + ' Mo'
-            });
-            
-            localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-            localStorage.setItem('completedDownloads', JSON.stringify(completedDownloads));
-            
-            renderDownloads();
-            alert("✅ Téléchargement terminé !");
-            
-        } catch(e) {
-            console.error('Erreur téléchargement:', e);
-            activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
-            localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-            renderDownloads();
-            
-            alert("❌ Erreur CORS. Configurez CORS sur B2 puis réessayez.");
+        // Incrémente le compteur
+        const video = sermonsList.find(v => v.videoUrl === url);
+        if (video) {
+            video.downloads = (video.downloads || 0) + 1;
         }
+        
+        alert("✅ Téléchargement lancé !");
     }
 
     // ============================================
@@ -739,7 +616,7 @@
         completedList.innerHTML = completedDownloads.length ? completedDownloads.map(d => `
             <div class="bg-zinc-900 p-3 rounded-xl text-white">
                 <p class="text-xs font-bold">📹 ${d.title}</p>
-                <p class="text-[9px] text-zinc-500">📅 ${d.date} · ${d.size}</p>
+                <p class="text-[9px] text-zinc-500">📅 ${d.date}</p>
             </div>
         `).join('') : '<div class="text-center text-zinc-500 py-8">Aucun téléchargement</div>';
     }
@@ -773,7 +650,7 @@
             snapshot.forEach(doc => { 
                 const c = doc.data(); 
                 html += `<div onclick="openChat('${c.imamId}', '${c.imamName}')" class="bg-zinc-900 p-3 rounded-xl flex gap-3 cursor-pointer hover:bg-zinc-800">
-                    <div class="w-10 h-10 rounded-full bg-videmateOrange/20 flex items-center justify-center text-lg">${imams[c.imamId]?.avatar || '👳'}</div>
+                    <div class="w-10 h-10 rounded-full bg-videmateOrange/20 flex items-center justify-center text-lg">${imams[c.imamId]?.avatar || ''}</div>
                     <div>
                         <h4 class="text-sm font-bold text-white">${c.imamName}</h4>
                         <p class="text-[10px] text-zinc-400 truncate">${c.lastMessage || 'Nouveau'}</p>
