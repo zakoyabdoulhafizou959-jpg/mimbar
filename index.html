@@ -763,7 +763,7 @@ function handleFileSelected(input) {
     currentSelectedFile = input.files[0];
     
     if (!currentUser || !userAlbum) { alert("Album non trouvé"); input.value = ''; return; }
-    if (currentSelectedFile.size > 50 * 1024 * 1024) { alert("Max 50 Mo"); input.value = ''; return; }
+    if (currentSelectedFile.size > 400 * 1024 * 1024) { alert("Max 400 Mo"); input.value = ''; return; }
     
     document.getElementById('selected-file-name').innerText = currentSelectedFile.name;
     document.getElementById('videoTitle').value = currentSelectedFile.name.replace(/\.[^/.]+$/, "");
