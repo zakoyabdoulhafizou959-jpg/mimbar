@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     if (!auth.ok) throw new Error('Auth failed: ' + auth.status);
     const authData = await auth.json();
     
-    // 2. Configurer CORS
+    // 2. Configurer CORS (sans b2_hide_file)
     const corsRules = [
       {
         corsRuleName: 'allow-all-operations',
@@ -28,8 +28,7 @@ export default async function handler(req, res) {
           'b2_download_file_by_id',
           'b2_download_file_by_name',
           'b2_upload_file',
-          'b2_upload_part',
-          'b2_hide_file'
+          'b2_upload_part'
         ],
         exposeHeaders: ['x-bz-content-sha1', 'x-bz-file-id', 'x-bz-file-name'],
         maxAgeSeconds: 3600
