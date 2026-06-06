@@ -79,7 +79,7 @@
                         <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Type *</label>
                         <select id="imamType" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
                             <option value="">-- Choisir --</option>
-                            <option value="preche"> Prêche quotidien</option>
+                            <option value="preche">📢 Prêche quotidien</option>
                             <option value="tafsir">📖 Tafsir</option>
                             <option value="hadith"> Hadith</option>
                             <option value="coran">🕌 Lecture du Coran</option>
@@ -254,7 +254,7 @@
         <button onclick="showTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-user text-lg"></i><span class="text-[9px]">Profil</span></button>
     </nav>
 
-    <!-- LECTEUR VIDÉO -->
+    <!-- LECTEUR VIDÉO - SANS preload pour éviter les conflits -->
     <div id="video-overlay-player" class="hidden fixed inset-0 bg-black z-50 flex flex-col">
         <div class="bg-zinc-900 p-3 flex items-center justify-between">
             <button onclick="closeVideoPlayer()" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-white"></i></button>
@@ -262,7 +262,7 @@
             <div class="w-8"></div>
         </div>
         <div class="flex-1 flex items-center justify-center bg-black">
-            <video id="native-video" class="w-full max-h-full" controls playsinline preload="metadata">
+            <video id="native-video" class="w-full max-h-full" controls playsinline>
                 <source id="video-source" src="" type="video/mp4">
                 Votre navigateur ne supporte pas la lecture vidéo.
             </video>
@@ -807,8 +807,8 @@ function renderTypeChips() {
     const container = document.getElementById('type-chips');
     const types = [
         { id: null, name: '🔥 Tout' },
-        { id: 'preche', name: '📢 Prêche' },
-        { id: 'tafsir', name: ' Tafsir' },
+        { id: 'preche', name: ' Prêche' },
+        { id: 'tafsir', name: '📖 Tafsir' },
         { id: 'hadith', name: '📜 Hadith' },
         { id: 'coran', name: '🕌 Coran' }
     ];
@@ -925,7 +925,7 @@ function handleVideoClick(videoId) {
     openVideoPlayer(video.videoUrl, video.title, video.speaker, video.id);
 }
 
-// ✅ CORRECTION : Permet la lecture de plusieurs vidéos
+// ✅ CORRECTION : Attendre que la vidéo soit prête avant de lancer play()
 function openVideoPlayer(url, title, speaker, videoId) {
     console.log('▶️ openVideoPlayer - URL:', url);
     
@@ -944,27 +944,40 @@ function openVideoPlayer(url, title, speaker, videoId) {
     const video = document.getElementById('native-video');
     const source = document.getElementById('video-source');
     
-    // ✅ Réinitialiser avant chargement
+    // 1. Arrêter la lecture précédente
     video.pause();
-    video.removeAttribute('src');
-    source.removeAttribute('src');
-    video.load();
     
-    // ✅ Charger nouvelle vidéo
-    source.src = url;
-    source.type = 'video/mp4';
-    video.load();
-    
-    console.log('✅ Vidéo chargée:', source.src);
-    
+    // 2. Afficher le lecteur AVANT de charger
     document.getElementById('video-overlay-player').classList.remove('hidden');
     
-    const playPromise = video.play();
-    if (playPromise !== undefined) {
-        playPromise.then(() => console.log('✅ Lecture démarrée'))
-                   .catch(error => console.log('⚠️ Autoplay bloqué:', error.message));
-    }
+    // 3. Changer la source
+    source.src = url;
+    source.type = 'video/mp4';
     
+    // 4. Recharger
+    video.load();
+    
+    console.log('✅ Source chargée:', source.src);
+    
+    // 5. ✅ IMPORTANT : Attendre que la vidéo soit prête avant de lancer play()
+    const onCanPlay = () => {
+        video.removeEventListener('canplay', onCanPlay);
+        video.removeEventListener('error', onError);
+        console.log('✅ Vidéo prête, démarrage lecture');
+        video.play().catch(e => console.log('️ Autoplay bloqué:', e.message));
+    };
+    
+    const onError = (e) => {
+        video.removeEventListener('canplay', onCanPlay);
+        video.removeEventListener('error', onError);
+        console.error('❌ Erreur chargement vidéo');
+        alert('Impossible de lire cette vidéo. Essayez le bouton "Ouvrir".');
+    };
+    
+    video.addEventListener('canplay', onCanPlay);
+    video.addEventListener('error', onError);
+    
+    // Incrémenter les vues
     if (videoId) {
         db.collection('videos').doc(videoId).update({ 
             views: firebase.firestore.FieldValue.increment(1) 
@@ -972,7 +985,7 @@ function openVideoPlayer(url, title, speaker, videoId) {
     }
 }
 
-// ✅ CORRECTION : Ferme correctement le lecteur pour permettre une nouvelle lecture
+// ✅ CORRECTION : Ferme correctement le lecteur
 function closeVideoPlayer() { 
     const video = document.getElementById('native-video');
     const source = document.getElementById('video-source');
@@ -984,7 +997,7 @@ function closeVideoPlayer() {
     document.getElementById('video-overlay-player').classList.add('hidden');
     currentPlayingVideo = null;
     
-    console.log('🔒 Lecteur fermé et réinitialisé');
+    console.log('🔒 Lecteur fermé');
 }
 
 function renderMyVideos() {
