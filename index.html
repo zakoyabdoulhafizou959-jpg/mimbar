@@ -212,7 +212,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 // ============================================
-// 🔧 FONCTION D'ÉCHAPPEMENT (CORRECTION CRITIQUE)
+// 🔧 FONCTION D'ÉCHAPPEMENT
 // ============================================
 function escapeAttr(str) {
     if (!str) return '';
@@ -223,17 +223,6 @@ function escapeAttr(str) {
         .replace(/\n/g, ' ')
         .replace(/\r/g, '');
 }
-
-// ============================================
-// ☁️ BACKBLAZE B2 CONFIG
-// ============================================
-const B2_CONFIG = {
-    keyId: '786f70c49f56',
-    applicationKey: '005c94ef9745859295d88e9f04641a1f84e49c13e2',
-    bucketId: '57e8c67fa7e09c7499ef0516',
-    bucketName: 'minbar-media',
-    downloadBaseUrl: 'https://f005.backblazeb2.com/file/minbar-media/'
-};
 
 // ============================================
 // 📊 ÉTAT DE L'APPLICATION
@@ -252,7 +241,6 @@ const albums = [
     { id: 103, name: "Éducation & Jeunesse active", speaker: "Ustadha Fatima", theme: "from-purple-950 to-zinc-900" }
 ];
 
-// ✅ TITRES SANS APOSTROPHES PROBLÉMATIQUES
 const EXISTING_VIDEOS = [
     {
         id: 'b2_1',
@@ -439,7 +427,7 @@ async function createAlbum() {
 }
 
 // ============================================
-// ☁️ UPLOAD B2 - VERSION FONCTIONNELLE
+// ☁️ UPLOAD B2 VIA VERCEL PROXY (CORRIGÉ)
 // ============================================
 async function uploadVideoToB2(input) {
     if (!input.files?.length) return;
@@ -457,46 +445,32 @@ async function uploadVideoToB2(input) {
     progressDiv.classList.remove('hidden');
     progressBar.style.width = '0%';
     progressText.innerText = '0%';
-    progressDetail.innerText = 'Authentification B2...';
+    progressDetail.innerText = 'Préparation...';
     
     try {
-        const authResponse = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
-            method: 'GET',
-            headers: {
-                'Authorization': 'Basic ' + btoa(`${B2_CONFIG.keyId}:${B2_CONFIG.applicationKey}`)
-            }
-        });
-        
-        if (!authResponse.ok) throw new Error('Auth B2 échouée: ' + authResponse.status);
-        
-        const authData = await authResponse.json();
-        const apiUrl = authData.apiUrl;
-        const authorizationToken = authData.authorizationToken;
-        
+        // ✅ ÉTAPE 1: Appeler notre API Vercel (proxy)
         progressText.innerText = '10%';
-        progressDetail.innerText = 'Récupération URL upload...';
+        progressDetail.innerText = 'Connexion à B2...';
         
-        const uploadUrlResponse = await fetch(`${apiUrl}/b2api/v2/b2_get_upload_url`, {
+        const proxyResponse = await fetch('/api/upload-b2', {
             method: 'POST',
-            headers: {
-                'Authorization': authorizationToken,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ bucketId: B2_CONFIG.bucketId })
+            headers: { 'Content-Type': 'application/json' }
         });
         
-        if (!uploadUrlResponse.ok) throw new Error('Get upload URL échoué');
+        if (!proxyResponse.ok) {
+            const errorData = await proxyResponse.json();
+            throw new Error('Erreur proxy: ' + (errorData.error || proxyResponse.status));
+        }
         
-        const uploadUrlData = await uploadUrlResponse.json();
-        const uploadUrl = uploadUrlData.uploadUrl;
-        const uploadAuthToken = uploadUrlData.authorizationToken;
+        const { uploadUrl, authorizationToken, downloadUrl } = await proxyResponse.json();
         
+        // ✅ ÉTAPE 2: Upload direct vers B2 (URL temporaire)
         progressText.innerText = '20%';
         progressDetail.innerText = 'Envoi vers B2...';
         
         const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         
-        const uploadResult = await new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             
             xhr.upload.addEventListener('progress', (e) => {
@@ -513,14 +487,14 @@ async function uploadVideoToB2(input) {
                 if (xhr.status === 200) {
                     resolve(JSON.parse(xhr.responseText));
                 } else {
-                    reject(new Error('Upload B2 échoué: ' + xhr.status));
+                    reject(new Error('Upload B2 échoué: ' + xhr.status + ' - ' + xhr.responseText));
                 }
             };
             
-            xhr.onerror = () => reject(new Error('Erreur réseau - Vérifiez CORS sur B2'));
+            xhr.onerror = () => reject(new Error('Erreur réseau pendant upload'));
             
             xhr.open('POST', uploadUrl);
-            xhr.setRequestHeader('Authorization', uploadAuthToken);
+            xhr.setRequestHeader('Authorization', authorizationToken);
             xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
             xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
             xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
@@ -528,10 +502,11 @@ async function uploadVideoToB2(input) {
             xhr.send(file);
         });
         
+        // ✅ ÉTAPE 3: Sauvegarder dans Firestore
         progressText.innerText = '95%';
         progressDetail.innerText = 'Sauvegarde métadonnées...';
         
-        const publicUrl = B2_CONFIG.downloadBaseUrl + encodeURIComponent(fileName);
+        const publicUrl = downloadUrl + encodeURIComponent(fileName);
         
         await db.collection('videos').add({
             userId: currentUser.uid,
@@ -653,7 +628,7 @@ async function downloadVideo(url, filename) {
 }
 
 // ============================================
-// 🎨 RENDU (AVEC ESCAPEATTR PARTOUT)
+// 🎨 RENDU
 // ============================================
 function renderAlbums() {
     const container = document.getElementById('albums-list');
