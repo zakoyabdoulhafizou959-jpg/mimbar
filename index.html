@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MinbarStream</title>
+    <title>أهل السنة والجماعة</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -42,19 +42,18 @@
     <!-- CONTENU -->
     <div class="flex-1 overflow-y-auto no-scrollbar pb-20" id="main-content">
         
-        <!-- ====== ACCUEIL ====== -->
+        <!-- ACCUEIL -->
         <div id="tab-home" class="p-4 space-y-4">
             <div class="relative">
                 <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher Imam, titre, ville..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
             </div>
-
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="type-chips"></div>
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="album-chips"></div>
             <div id="video-grid" class="space-y-4"></div>
         </div>
 
-        <!-- ====== CRÉER ALBUM ====== -->
+        <!-- CRÉER ALBUM -->
         <div id="tab-create" class="hidden p-4 space-y-4">
             <div class="bg-zinc-900 rounded-2xl p-5 space-y-4">
                 <h2 class="text-base font-bold text-white flex items-center gap-2">
@@ -134,7 +133,7 @@
             </div>
         </div>
 
-        <!-- ====== MON ALBUM ====== -->
+        <!-- MON ALBUM -->
         <div id="tab-myalbum" class="hidden p-4 space-y-4">
             <div id="myalbum-empty" class="text-center py-12">
                 <i class="fa-solid fa-lock text-4xl text-zinc-600"></i>
@@ -205,7 +204,7 @@
             </div>
         </div>
 
-        <!-- ====== TÉLÉCHARGEMENTS ====== -->
+        <!-- TÉLÉCHARGEMENTS -->
         <div id="tab-downloads" class="hidden">
             <div class="p-4 border-b border-zinc-800 flex justify-between">
                 <h2 class="text-base font-bold text-white"><i class="fa-solid fa-circle-down mr-2" style="color:#ff5722"></i>Téléchargements</h2>
@@ -223,7 +222,7 @@
             </div>
         </div>
 
-        <!-- ====== PROFIL ====== -->
+        <!-- PROFIL -->
         <div id="tab-profile" class="hidden p-4 space-y-4">
             <div id="profile-unauth" class="space-y-4">
                 <div class="text-center py-6 px-4 bg-zinc-900 rounded-2xl">
@@ -788,6 +787,7 @@ async function generateThumbnail(file) {
     });
 }
 
+// ✅ NOUVELLE FONCTION UPLOAD - CONTOURNE LA LIMITE VERCEL
 async function uploadVideoToB2() {
     if (!currentSelectedFile) return;
     const title = document.getElementById('videoTitle').value.trim();
@@ -802,7 +802,7 @@ async function uploadVideoToB2() {
     progressText.innerText = '0% - Préparation...';
     
     try {
-        // ÉTAPE 1: Obtenir URL d'upload depuis Vercel (petit payload)
+        // ÉTAPE 1: Obtenir URL d'upload depuis Vercel (petit payload ~1KB)
         progressText.innerText = '5% - Connexion à B2...';
         
         const urlResponse = await fetch('/api/get-upload-url', {
@@ -816,11 +816,12 @@ async function uploadVideoToB2() {
         }
         
         const { uploadUrl, authorizationToken, downloadUrl } = await urlResponse.json();
+        console.log('✅ URL B2 obtenue:', uploadUrl);
         
         progressText.innerText = '10% - Génération miniature...';
         const thumbnail = await generateThumbnail(currentSelectedFile);
         
-        // ÉTAPE 2: Upload DIRECT vers B2 (gros fichier)
+        // ÉTAPE 2: Upload DIRECT vers B2 (gros fichier, pas de limite Vercel)
         progressText.innerText = '15% - Envoi vers B2...';
         
         const fileName = `${Date.now()}_${currentSelectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
@@ -847,6 +848,7 @@ async function uploadVideoToB2() {
             xhr.onerror = () => reject(new Error('Erreur réseau - Vérifiez CORS sur B2'));
             xhr.ontimeout = () => reject(new Error('Timeout - Fichier trop volumineux'));
             
+            // ✅ Upload DIRECT vers B2 (pas Vercel)
             xhr.open('POST', uploadUrl);
             xhr.setRequestHeader('Authorization', authorizationToken);
             xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
@@ -856,6 +858,8 @@ async function uploadVideoToB2() {
             
             xhr.send(currentSelectedFile);
         });
+        
+        console.log('✅ Upload B2 réussi:', uploadResult);
         
         // ÉTAPE 3: Sauvegarder dans Firestore
         progressBar.style.width = '95%';
@@ -905,6 +909,8 @@ async function uploadVideoToB2() {
             errorMsg = "❌ Fichier trop volumineux.";
         } else if (errorMsg.includes('Timeout')) {
             errorMsg = "❌ Délai dépassé. Vérifiez votre connexion.";
+        } else if (errorMsg.includes('404')) {
+            errorMsg = "❌ API introuvable. Vérifiez que api/get-upload-url.js existe sur GitHub.";
         }
         
         alert("Erreur: " + errorMsg);
