@@ -1,3 +1,5 @@
+// api/upload-b2.js
+// Ce fichier retourne juste l'URL d'upload B2 (ne transfère PAS le fichier)
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -18,7 +20,7 @@ export default async function handler(req, res) {
             }
         });
         
-        if (!authResponse.ok) throw new Error('Auth B2 échouée: ' + authResponse.status);
+        if (!authResponse.ok) throw new Error('Auth B2 échouée');
         const authData = await authResponse.json();
         
         const uploadUrlResponse = await fetch(`${authData.apiUrl}/b2api/v2/b2_get_upload_url`, {
@@ -40,7 +42,6 @@ export default async function handler(req, res) {
         });
         
     } catch (error) {
-        console.error('Erreur:', error);
         return res.status(500).json({ error: error.message });
     }
 }
