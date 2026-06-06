@@ -195,6 +195,9 @@
 </div>
 
 <script>
+// ============================================
+// 🔥 FIREBASE CONFIG
+// ============================================
 const firebaseConfig = {
     apiKey: "AIzaSyC3ybM8gMQZ-IjVLLXqs0MZLPEzqGmyREA",
     authDomain: "mimbar-e1bee.firebaseapp.com",
@@ -208,11 +211,17 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// ============================================
+// 🔧 FONCTION D'ÉCHAPPEMENT
+// ============================================
 function escapeAttr(str) {
     if (!str) return '';
     return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ').replace(/\r/g, '');
 }
 
+// ============================================
+// 📊 ÉTAT DE L'APPLICATION
+// ============================================
 let currentUser = null;
 let userAlbum = null;
 let userVideos = [];
@@ -241,6 +250,9 @@ const imams = {
     ustadha_fatima: { name: "Ustadha Fatima", avatar: "👩‍🏫" }
 };
 
+// ============================================
+// 🔐 AUTH FIREBASE
+// ============================================
 auth.onAuthStateChanged(async (user) => {
     currentUser = user;
     if (user) {
@@ -286,6 +298,9 @@ async function handleGoogleSignIn() {
 
 function handleLogout() { auth.signOut(); showTab('profile'); }
 
+// ============================================
+// 📚 CHARGEMENT DONNÉES
+// ============================================
 async function loadUserData() {
     if (!currentUser) return;
     try {
@@ -357,14 +372,20 @@ async function createAlbum() {
     } catch(e) { alert("Erreur: " + e.message); }
 }
 
-// ☁️ UPLOAD B2 VIA VERCEL PROXY
+// ============================================
+// ☁️ UPLOAD B2 VIA PROXY VERCEL COMPLET
+// ============================================
 async function uploadVideoToB2(input) {
     if (!input.files?.length) return;
     const file = input.files[0];
     
     if (!currentUser) { alert("Connectez-vous d'abord"); input.value = ''; return; }
     if (!userAlbum) { alert("Créez un album d'abord"); input.value = ''; return; }
-    if (file.size > 100 * 1024 * 1024) { alert("Max 100 Mo"); input.value = ''; return; }
+    if (file.size > 50 * 1024 * 1024) { 
+        alert("Max 50 Mo (limite Vercel)"); 
+        input.value = ''; 
+        return; 
+    }
     
     const progressDiv = document.getElementById('uploadProgress');
     const progressBar = document.getElementById('progressBar');
@@ -377,62 +398,52 @@ async function uploadVideoToB2(input) {
     progressDetail.innerText = 'Préparation...';
     
     try {
-        // 1. Appel au proxy Vercel
-        progressText.innerText = '10%';
-        progressDetail.innerText = 'Connexion à B2...';
-        
-        const proxyResponse = await fetch('/api/upload-b2', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        if (!proxyResponse.ok) {
-            const errorData = await proxyResponse.json().catch(() => ({ error: proxyResponse.status }));
-            throw new Error('Erreur proxy: ' + (errorData.error || proxyResponse.status));
-        }
-        
-        const { uploadUrl, authorizationToken, downloadUrl } = await proxyResponse.json();
-        
-        // 2. Upload direct vers B2
-        progressText.innerText = '20%';
-        progressDetail.innerText = 'Envoi vers B2...';
-        
         const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         
-        await new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            
+        progressText.innerText = '10%';
+        progressDetail.innerText = 'Envoi vers serveur Vercel...';
+        
+        // ✅ Upload vers notre API Vercel (qui fait tout via B2)
+        const xhr = new XMLHttpRequest();
+        
+        const uploadPromise = new Promise((resolve, reject) => {
             xhr.upload.addEventListener('progress', (e) => {
                 if (e.lengthComputable) {
-                    const uploadPercent = (e.loaded / e.total) * 70;
-                    const totalPercent = 20 + uploadPercent;
-                    progressBar.style.width = `${totalPercent}%`;
-                    progressText.innerText = `${Math.round(totalPercent)}%`;
+                    const percent = (e.loaded / e.total) * 80;
+                    progressBar.style.width = `${percent}%`;
+                    progressText.innerText = `${Math.round(percent)}%`;
                     progressDetail.innerText = `Envoi: ${(e.loaded / 1024 / 1024).toFixed(1)} Mo / ${(e.total / 1024 / 1024).toFixed(1)} Mo`;
                 }
             });
             
             xhr.onload = () => {
-                if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
-                else reject(new Error('Upload B2 échoué: ' + xhr.status + ' - ' + xhr.responseText));
+                if (xhr.status === 200) {
+                    resolve(JSON.parse(xhr.responseText));
+                } else {
+                    try {
+                        const err = JSON.parse(xhr.responseText);
+                        reject(new Error(err.error || `Erreur ${xhr.status}`));
+                    } catch {
+                        reject(new Error(`Erreur ${xhr.status}`));
+                    }
+                }
             };
             
-            xhr.onerror = () => reject(new Error('Erreur réseau pendant upload'));
+            xhr.onerror = () => reject(new Error('Erreur réseau'));
             
-            xhr.open('POST', uploadUrl);
-            xhr.setRequestHeader('Authorization', authorizationToken);
-            xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
+            xhr.open('POST', '/api/upload-b2');
+            xhr.setRequestHeader('X-Bz-File-Name', fileName);
             xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-            xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
             
             xhr.send(file);
         });
         
-        // 3. Sauvegarde Firestore
-        progressText.innerText = '95%';
-        progressDetail.innerText = 'Sauvegarde métadonnées...';
+        const result = await uploadPromise;
         
-        const publicUrl = downloadUrl + encodeURIComponent(fileName);
+        // Sauvegarde Firestore
+        progressBar.style.width = '90%';
+        progressText.innerText = '90%';
+        progressDetail.innerText = 'Sauvegarde métadonnées...';
         
         await db.collection('videos').add({
             userId: currentUser.uid,
@@ -444,7 +455,7 @@ async function uploadVideoToB2(input) {
             date: new Date().toISOString().split('T')[0],
             views: 0,
             downloads: 0,
-            downloadURL: publicUrl,
+            downloadURL: result.downloadUrl,
             uploadedAt: new Date(),
             size: file.size,
             storage: 'backblaze_b2'
@@ -465,7 +476,7 @@ async function uploadVideoToB2(input) {
         renderSermons();
         renderRecommendations();
         
-        alert("✅ Vidéo téléversée sur B2 avec succès !");
+        alert("✅ Vidéo téléversée avec succès !");
         
     } catch(error) {
         console.error("❌ Erreur upload:", error);
@@ -475,7 +486,9 @@ async function uploadVideoToB2(input) {
     }
 }
 
+// ============================================
 // 📥 TÉLÉCHARGEMENT
+// ============================================
 async function downloadVideo(url, filename) {
     const downloadId = 'dl_' + Date.now();
     activeDownloads.push({ id: downloadId, title: filename, url: url, progress: 0 });
@@ -541,6 +554,9 @@ async function downloadVideo(url, filename) {
     }
 }
 
+// ============================================
+// 🎨 RENDU
+// ============================================
 function renderAlbums() {
     const container = document.getElementById('albums-list');
     container.innerHTML = albums.map(a => `
@@ -697,6 +713,9 @@ function toggleDlSubTab(sub) {
     document.getElementById('btn-sub-completed').className = sub === 'completed' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
 }
 
+// ============================================
+// 💬 CHAT
+// ============================================
 async function loadConversations() {
     if (!currentUser) return;
     try {
