@@ -79,9 +79,9 @@
                         <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Type *</label>
                         <select id="imamType" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
                             <option value="">-- Choisir --</option>
-                            <option value="preche">📢 Prêche quotidien</option>
+                            <option value="preche"> Prêche quotidien</option>
                             <option value="tafsir">📖 Tafsir</option>
-                            <option value="hadith">📜 Hadith</option>
+                            <option value="hadith"> Hadith</option>
                             <option value="coran">🕌 Lecture du Coran</option>
                         </select>
                     </div>
@@ -98,7 +98,6 @@
                         <i class="fa-solid fa-hourglass-half text-2xl text-yellow-500"></i>
                     </div>
                     <h3 class="text-sm font-bold text-white">Album en examen</h3>
-                    <p class="text-xs text-zinc-400 mt-1">Validation en attente par l'admin.</p>
                 </div>
                 <div id="album-approved" class="hidden text-center py-8">
                     <div class="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center mb-3">
@@ -113,8 +112,7 @@
                     <div class="w-16 h-16 mx-auto rounded-full bg-red-500/20 flex items-center justify-center mb-3">
                         <i class="fa-solid fa-ban text-2xl text-red-500"></i>
                     </div>
-                    <h3 class="text-sm font-bold text-white">Limite atteinte</h3>
-                    <p class="text-xs text-zinc-400 mt-1">Maximum 20 albums.</p>
+                    <h3 class="text-sm font-bold text-white">Limite atteinte (20 max)</h3>
                 </div>
             </div>
         </div>
@@ -256,7 +254,7 @@
         <button onclick="showTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-user text-lg"></i><span class="text-[9px]">Profil</span></button>
     </nav>
 
-    <!-- LECTEUR VIDÉO - SANS crossorigin -->
+    <!-- LECTEUR VIDÉO -->
     <div id="video-overlay-player" class="hidden fixed inset-0 bg-black z-50 flex flex-col">
         <div class="bg-zinc-900 p-3 flex items-center justify-between">
             <button onclick="closeVideoPlayer()" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-white"></i></button>
@@ -628,7 +626,6 @@ async function uploadVideoToB2() {
     
     try {
         progressText.innerText = '5% - Connexion à B2...';
-        console.log('📡 Appel /api/upload-b2...');
         
         const urlResponse = await fetch('/api/upload-b2', {
             method: 'POST',
@@ -641,7 +638,6 @@ async function uploadVideoToB2() {
         }
         
         const { uploadUrl, authorizationToken, downloadUrl } = await urlResponse.json();
-        console.log('✅ URL B2 obtenue:', uploadUrl);
         
         progressText.innerText = '10% - Miniature...';
         const thumbnail = await generateThumbnail(currentSelectedFile);
@@ -664,7 +660,7 @@ async function uploadVideoToB2() {
                 if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
                 else reject(new Error('Upload B2: ' + xhr.status));
             };
-            xhr.onerror = () => reject(new Error('Erreur réseau - Vérifiez CORS sur B2'));
+            xhr.onerror = () => reject(new Error('Erreur réseau'));
             xhr.ontimeout = () => reject(new Error('Timeout'));
             
             xhr.open('POST', uploadUrl);
@@ -711,11 +707,8 @@ async function uploadVideoToB2() {
         alert("✅ Vidéo publiée !");
         
     } catch(error) {
-        console.error("❌ Erreur upload:", error);
-        let errorMsg = error.message;
-        if (errorMsg.includes('404')) errorMsg = "❌ API introuvable.";
-        else if (errorMsg.includes('CORS')) errorMsg = "❌ CORS bloqué.";
-        alert("Erreur: " + errorMsg);
+        console.error(" Erreur upload:", error);
+        alert("Erreur: " + error.message);
         progressDiv.classList.add('hidden');
     }
 }
@@ -740,7 +733,6 @@ async function downloadWithQuality(quality) {
     if (!currentPlayingVideo) return;
     closeDownloadModal();
     const v = currentPlayingVideo;
-    
     try {
         await downloadVideo(v.videoUrl, v.title + '.mp4', v.id);
     } catch(e) {
@@ -816,7 +808,7 @@ function renderTypeChips() {
     const types = [
         { id: null, name: '🔥 Tout' },
         { id: 'preche', name: '📢 Prêche' },
-        { id: 'tafsir', name: '📖 Tafsir' },
+        { id: 'tafsir', name: ' Tafsir' },
         { id: 'hadith', name: '📜 Hadith' },
         { id: 'coran', name: '🕌 Coran' }
     ];
@@ -903,7 +895,6 @@ function renderVideoGrid() {
     }).join('');
 }
 
-// ✅ CORRIGÉ - Le timer se réinitialise après exécution
 function startLongPress(videoId) {
     longPressTimer = setTimeout(() => {
         const v = allVideos.find(x => x.id === videoId);
@@ -922,40 +913,24 @@ function cancelLongPress() {
     }
 }
 
-// ✅ CORRIGÉ - Ouvre TOUJOURS la vidéo (sans condition)
 function handleVideoClick(videoId) {
-    // Annuler le timer si encore actif (clic court)
     if (longPressTimer) {
         clearTimeout(longPressTimer);
         longPressTimer = null;
     }
     
-    console.log('🎬 handleVideoClick appelé avec ID:', videoId);
-    
     const video = allVideos.find(x => x.id === videoId);
+    if (!video) return;
     
-    if (!video) {
-        console.error('❌ Vidéo introuvable pour ID:', videoId);
-        return;
-    }
-    
-    console.log('✅ Vidéo trouvée:', video.title);
-    console.log('📹 URL:', video.videoUrl);
-    
-    // ✅ TOUJOURS ouvrir le lecteur
     openVideoPlayer(video.videoUrl, video.title, video.speaker, video.id);
 }
 
-// ✅ LECTEUR VIDÉO - SANS crossorigin
+// ✅ CORRECTION : Permet la lecture de plusieurs vidéos
 function openVideoPlayer(url, title, speaker, videoId) {
-    console.log('▶️ openVideoPlayer appelé');
-    console.log('   URL:', url);
-    console.log('   Titre:', title);
-    console.log('   Speaker:', speaker);
+    console.log('▶️ openVideoPlayer - URL:', url);
     
     if (!url) {
         console.error('❌ URL vide !');
-        alert('URL de la vidéo manquante');
         return;
     }
     
@@ -969,46 +944,47 @@ function openVideoPlayer(url, title, speaker, videoId) {
     const video = document.getElementById('native-video');
     const source = document.getElementById('video-source');
     
-    if (!video || !source) {
-        console.error('❌ Éléments vidéo introuvables !');
-        return;
-    }
-    
-    // ✅ INJECTER L'URL
-    source.src = url;
-    source.type = 'video/mp4';
-    
-    console.log('✅ src injecté:', source.src);
-    
-    // Recharger la vidéo
+    // ✅ Réinitialiser avant chargement
+    video.pause();
+    video.removeAttribute('src');
+    source.removeAttribute('src');
     video.load();
     
-    // Afficher le lecteur
+    // ✅ Charger nouvelle vidéo
+    source.src = url;
+    source.type = 'video/mp4';
+    video.load();
+    
+    console.log('✅ Vidéo chargée:', source.src);
+    
     document.getElementById('video-overlay-player').classList.remove('hidden');
     
-    // Tenter de lancer la lecture
     const playPromise = video.play();
     if (playPromise !== undefined) {
-        playPromise.then(() => {
-            console.log('✅ Lecture démarrée');
-        }).catch(error => {
-            console.log('⚠️ Autoplay bloqué (normal sur mobile):', error.message);
-        });
+        playPromise.then(() => console.log('✅ Lecture démarrée'))
+                   .catch(error => console.log('⚠️ Autoplay bloqué:', error.message));
     }
     
-    // Incrémenter les vues
     if (videoId) {
         db.collection('videos').doc(videoId).update({ 
             views: firebase.firestore.FieldValue.increment(1) 
-        }).catch(e => console.log('Erreur update views:', e));
+        }).catch(e => {});
     }
 }
 
+// ✅ CORRECTION : Ferme correctement le lecteur pour permettre une nouvelle lecture
 function closeVideoPlayer() { 
-    document.getElementById('video-overlay-player').classList.add('hidden'); 
-    document.getElementById('native-video').pause();
-    document.getElementById('native-video').src = '';
+    const video = document.getElementById('native-video');
+    const source = document.getElementById('video-source');
+    
+    video.pause();
+    source.src = '';
+    video.load();
+    
+    document.getElementById('video-overlay-player').classList.add('hidden');
     currentPlayingVideo = null;
+    
+    console.log('🔒 Lecteur fermé et réinitialisé');
 }
 
 function renderMyVideos() {
