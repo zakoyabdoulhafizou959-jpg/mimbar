@@ -40,10 +40,9 @@
 
     <div class="flex-1 overflow-y-auto no-scrollbar pb-20" id="main-content">
         
-        <!-- ACCUEIL -->
         <div id="tab-home" class="p-4 space-y-4">
             <div class="relative">
-                <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
+                <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher Imam, titre, ville..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
             </div>
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="type-chips"></div>
@@ -51,23 +50,19 @@
             <div id="video-grid" class="space-y-4"></div>
         </div>
 
-        <!-- CRÉER ALBUM -->
         <div id="tab-create" class="hidden p-4 space-y-4">
             <div class="bg-zinc-900 rounded-2xl p-5 space-y-4">
                 <h2 class="text-base font-bold text-white flex items-center gap-2">
                     <i class="fa-solid fa-plus-circle" style="color:#ff5722"></i>Créer un album
                 </h2>
-                
                 <div id="create-album-form" class="space-y-3">
                     <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 text-xs text-blue-300">
                         <i class="fa-solid fa-circle-info mr-1"></i>Votre album sera examiné par l'administrateur.
                     </div>
-
                     <div>
                         <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Nom et prénom *</label>
                         <input type="text" id="imamName" placeholder="Ex: Cheikh Ousmane Diallo" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
                     </div>
-
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Ville *</label>
@@ -78,7 +73,6 @@
                             <input type="text" id="imamCountry" placeholder="Ex: Niger" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
                         </div>
                     </div>
-
                     <div>
                         <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Type *</label>
                         <select id="imamType" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
@@ -89,17 +83,14 @@
                             <option value="coran">🕌 Lecture du Coran</option>
                         </select>
                     </div>
-
                     <div>
                         <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Description</label>
                         <textarea id="imamDesc" placeholder="Brève description..." rows="2" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none"></textarea>
                     </div>
-
                     <button onclick="submitAlbumRequest()" class="w-full py-3 rounded-xl text-sm font-bold text-white" style="background:#ff5722">
                         <i class="fa-solid fa-paper-plane mr-2"></i>Soumettre
                     </button>
                 </div>
-
                 <div id="album-pending" class="hidden text-center py-8">
                     <div class="w-16 h-16 mx-auto rounded-full bg-yellow-500/20 flex items-center justify-center mb-3">
                         <i class="fa-solid fa-hourglass-half text-2xl text-yellow-500"></i>
@@ -107,7 +98,6 @@
                     <h3 class="text-sm font-bold text-white">Album en examen</h3>
                     <p class="text-xs text-zinc-400 mt-1">Validation en attente par l'admin.</p>
                 </div>
-
                 <div id="album-approved" class="hidden text-center py-8">
                     <div class="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center mb-3">
                         <i class="fa-solid fa-check text-2xl text-emerald-500"></i>
@@ -117,7 +107,6 @@
                         <i class="fa-solid fa-photo-film mr-1"></i>Voir mon album
                     </button>
                 </div>
-
                 <div id="album-limit" class="hidden text-center py-8">
                     <div class="w-16 h-16 mx-auto rounded-full bg-red-500/20 flex items-center justify-center mb-3">
                         <i class="fa-solid fa-ban text-2xl text-red-500"></i>
@@ -128,14 +117,12 @@
             </div>
         </div>
 
-        <!-- MON ALBUM -->
         <div id="tab-myalbum" class="hidden p-4 space-y-4">
             <div id="myalbum-empty" class="text-center py-12">
                 <i class="fa-solid fa-lock text-4xl text-zinc-600"></i>
                 <h3 class="text-sm font-bold text-white mt-3">Aucun album</h3>
                 <button onclick="showTab('create')" class="mt-4 px-4 py-2 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Créer un album</button>
             </div>
-
             <div id="myalbum-content" class="hidden space-y-4">
                 <div class="bg-gradient-to-br from-orange-950 to-zinc-900 rounded-2xl p-4 border border-orange-500/30">
                     <div class="flex items-center justify-between mb-2">
@@ -153,7 +140,6 @@
                         <span><i class="fa-regular fa-eye"></i> <span id="my-album-views">0</span> vues</span>
                     </div>
                 </div>
-
                 <div id="selection-bar" class="hidden bg-zinc-900 rounded-xl p-3 border border-orange-500/30 flex items-center justify-between">
                     <span class="text-xs text-white"><span id="selected-count">0</span> sélectionnée(s)</span>
                     <div class="flex gap-2">
@@ -165,13 +151,11 @@
                         </button>
                     </div>
                 </div>
-
                 <div id="upload-section" class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed" style="border-color:rgba(255,87,34,0.5)">
                     <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="handleFileSelected(this)">
                     <button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 rounded-xl text-sm font-bold" style="background:rgba(255,87,34,0.2);color:#ff5722">
                         <i class="fa-solid fa-cloud-arrow-up mr-2"></i>Ajouter une vidéo
                     </button>
-                    
                     <div id="upload-form" class="hidden mt-3 space-y-2">
                         <div class="flex items-center gap-2 bg-zinc-800 rounded-lg p-2">
                             <i class="fa-solid fa-film text-orange-500"></i>
@@ -190,7 +174,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div>
                     <h3 class="text-xs font-black text-zinc-400 uppercase mb-2">Mes vidéos</h3>
                     <div id="my-videos-list" class="space-y-2"></div>
@@ -198,7 +181,6 @@
             </div>
         </div>
 
-        <!-- TÉLÉCHARGEMENTS -->
         <div id="tab-downloads" class="hidden">
             <div class="p-4 border-b border-zinc-800 flex justify-between">
                 <h2 class="text-base font-bold text-white"><i class="fa-solid fa-circle-down mr-2" style="color:#ff5722"></i>Téléchargements</h2>
@@ -216,7 +198,6 @@
             </div>
         </div>
 
-        <!-- PROFIL -->
         <div id="tab-profile" class="hidden p-4 space-y-4">
             <div id="profile-unauth" class="space-y-4">
                 <div class="text-center py-6 px-4 bg-zinc-900 rounded-2xl">
@@ -240,7 +221,6 @@
                     <button onclick="resetPassword()" class="w-full py-2 text-xs text-zinc-400 underline">Mot de passe oublié ?</button>
                 </div>
             </div>
-
             <div id="profile-auth" class="hidden space-y-4">
                 <div class="bg-zinc-900 p-4 rounded-2xl flex items-center justify-between">
                     <div class="flex gap-3">
@@ -274,7 +254,6 @@
         <button onclick="showTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-user text-lg"></i><span class="text-[9px]">Profil</span></button>
     </nav>
 
-    <!-- ✅ LECTEUR VIDÉO SANS crossorigin (pour lecture sans CORS) -->
     <div id="video-overlay-player" class="hidden fixed inset-0 bg-black z-50 flex flex-col">
         <div class="bg-zinc-900 p-3 flex items-center justify-between">
             <button onclick="closeVideoPlayer()" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-white"></i></button>
@@ -282,7 +261,7 @@
             <div class="w-8"></div>
         </div>
         <div class="flex-1 flex items-center justify-center bg-black">
-            <video id="native-video" class="w-full max-h-full" controls autoplay playsinline><source id="video-source" src=""></video>
+            <video id="native-video" class="w-full max-h-full" controls autoplay playsinline><source id="video-source" src="" type="video/mp4"></video>
         </div>
         <div class="bg-zinc-900 p-3 flex items-center justify-between">
             <p id="video-player-speaker" class="text-xs text-zinc-400"></p>
@@ -297,7 +276,6 @@
         </div>
     </div>
 
-    <!-- MODAL DOWNLOAD -->
     <div id="download-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-zinc-900 rounded-2xl p-5 w-full max-w-sm space-y-3 border border-zinc-800">
             <h3 class="text-sm font-bold text-white flex items-center gap-2">
@@ -403,7 +381,7 @@ async function handleLogin() {
             case 'auth/invalid-credential': errorMsg = "❌ Email ou mot de passe incorrect."; break;
             case 'auth/user-not-found': errorMsg = "❌ Compte introuvable."; break;
             case 'auth/wrong-password': errorMsg = "❌ Mot de passe incorrect."; break;
-            case 'auth/operation-not-allowed': errorMsg = "❌ Connexion email non activée."; break;
+            case 'auth/operation-not-allowed': errorMsg = "❌ Connexion email non activée dans Firebase."; break;
             default: errorMsg = `❌ ${e.message}`;
         }
         showAuthError(errorMsg);
@@ -455,9 +433,7 @@ async function resetPassword() {
     try {
         await auth.sendPasswordResetEmail(email);
         alert(`✅ Email envoyé à ${email} !`);
-    } catch(e) {
-        showAuthError(`❌ ${e.message}`);
-    }
+    } catch(e) { showAuthError(`❌ ${e.message}`); }
 }
 
 function showAuthError(msg) {
@@ -606,7 +582,7 @@ async function submitAlbumRequest() {
 }
 
 // ============================================
-// 🎬 UPLOAD DIRECT VERS B2 (CONTOURNE VERCEL)
+// 🎬 UPLOAD - APPELLE /api/upload-b2 PUIS UPLOAD DIRECT VERS B2
 // ============================================
 function handleFileSelected(input) {
     if (!input.files?.length) return;
@@ -643,7 +619,6 @@ async function generateThumbnail(file) {
     });
 }
 
-// ✅ FONCTION UPLOAD CORRIGÉE - APPELLE /api/get-upload-url
 async function uploadVideoToB2() {
     if (!currentSelectedFile) return;
     const title = document.getElementById('videoTitle').value.trim();
@@ -658,18 +633,19 @@ async function uploadVideoToB2() {
     progressText.innerText = '0% - Préparation...';
     
     try {
-        // ÉTAPE 1: Obtenir URL d'upload depuis Vercel (petit payload)
+        // ÉTAPE 1: Obtenir URL d'upload depuis Vercel (/api/upload-b2)
         progressText.innerText = '5% - Connexion à B2...';
+        console.log('📡 Appel /api/upload-b2...');
         
-        console.log('📡 Appel /api/get-upload-url');
-        const urlResponse = await fetch('/api/get-upload-url', {
+        const urlResponse = await fetch('/api/upload-b2', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
         
         if (!urlResponse.ok) {
             const errText = await urlResponse.text();
-            throw new Error(`Erreur API (${urlResponse.status}): ${errText}`);
+            console.error('❌ Réponse API:', errText);
+            throw new Error(`API erreur ${urlResponse.status}: ${errText}`);
         }
         
         const { uploadUrl, authorizationToken, downloadUrl } = await urlResponse.json();
@@ -678,12 +654,11 @@ async function uploadVideoToB2() {
         progressText.innerText = '10% - Miniature...';
         const thumbnail = await generateThumbnail(currentSelectedFile);
         
-        // ÉTAPE 2: Upload DIRECT vers B2 (gros fichier)
+        // ÉTAPE 2: Upload DIRECT vers B2 (gros fichier, pas de limite Vercel)
         progressText.innerText = '15% - Envoi vers B2...';
-        
         const fileName = `${Date.now()}_${currentSelectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         
-        const uploadResult = await new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             
             xhr.upload.addEventListener('progress', (e) => {
@@ -698,12 +673,12 @@ async function uploadVideoToB2() {
                 if (xhr.status === 200) {
                     resolve(JSON.parse(xhr.responseText));
                 } else {
-                    reject(new Error('Upload B2 échoué: ' + xhr.status + ' - ' + xhr.responseText));
+                    reject(new Error('Upload B2: ' + xhr.status + ' - ' + xhr.responseText));
                 }
             };
             
             xhr.onerror = () => reject(new Error('Erreur réseau - Vérifiez CORS sur B2'));
-            xhr.ontimeout = () => reject(new Error('Timeout - Fichier trop volumineux'));
+            xhr.ontimeout = () => reject(new Error('Timeout'));
             
             // ✅ Upload DIRECT vers URL B2 (pas Vercel)
             xhr.open('POST', uploadUrl);
@@ -716,9 +691,7 @@ async function uploadVideoToB2() {
             xhr.send(currentSelectedFile);
         });
         
-        console.log('✅ Upload B2 réussi:', uploadResult);
-        
-        // ÉTAPE 3: Firestore
+        // ÉTAPE 3: Sauvegarder dans Firestore
         progressBar.style.width = '95%';
         progressText.innerText = '95% - Sauvegarde...';
         
@@ -759,15 +732,15 @@ async function uploadVideoToB2() {
     } catch(error) {
         console.error("❌ Erreur upload:", error);
         let errorMsg = error.message;
-        if (errorMsg.includes('CORS')) errorMsg = "❌ CORS bloqué sur B2.";
-        else if (errorMsg.includes('404')) errorMsg = "❌ API introuvable. Vérifiez api/get-upload-url.js";
+        if (errorMsg.includes('404')) errorMsg = "❌ API introuvable. Vérifiez api/upload-b2.js sur GitHub.";
+        else if (errorMsg.includes('CORS')) errorMsg = "❌ CORS bloqué. Configurez CORS sur B2.";
         alert("Erreur: " + errorMsg);
         progressDiv.classList.add('hidden');
     }
 }
 
 // ============================================
-// 📥 TÉLÉCHARGEMENT (avec fallback)
+// 📥 TÉLÉCHARGEMENT
 // ============================================
 function showDownloadOptions() {
     if (!currentPlayingVideo) return;
@@ -779,7 +752,6 @@ function closeDownloadModal() {
     document.getElementById('download-modal').classList.add('hidden');
 }
 
-// ✅ Nouveau : Ouvre dans un nouvel onglet (fonctionne toujours)
 function openVideoInNewTab() {
     if (currentPlayingVideo) {
         window.open(currentPlayingVideo.videoUrl, '_blank');
@@ -791,11 +763,10 @@ async function downloadWithQuality(quality) {
     closeDownloadModal();
     const v = currentPlayingVideo;
     
-    // Essayer fetch+blob d'abord, sinon fallback
     try {
         await downloadVideo(v.videoUrl, v.title + '.mp4', v.id);
     } catch(e) {
-        console.log('Fallback : ouverture dans nouvel onglet');
+        console.log('Fallback: ouverture dans nouvel onglet');
         window.open(v.videoUrl, '_blank');
     }
 }
@@ -849,8 +820,7 @@ async function downloadVideo(url, filename, videoId) {
         activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
         localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
         renderDownloads();
-        // Fallback : ouvrir dans un nouvel onglet
-        if (confirm("Téléchargement bloqué par CORS. Ouvrir la vidéo dans un nouvel onglet ?\n\nVous pourrez ensuite faire clic droit → Enregistrer sous.")) {
+        if (confirm("Téléchargement bloqué par CORS.\n\nOuvrir la vidéo dans un nouvel onglet ?\n(Vous pourrez ensuite faire clic droit → Enregistrer sous)")) {
             window.open(url, '_blank');
         }
         throw e;
@@ -1075,7 +1045,6 @@ async function deleteMyVideo(videoId) {
     } catch(e) { alert("Erreur: " + e.message); }
 }
 
-// ✅ LECTEUR VIDÉO SANS crossorigin (fonctionne toujours)
 function openVideoPlayer(url, title, speaker, videoId) {
     currentPlayingVideo = allVideos.find(v => v.id === videoId) || { videoUrl: url, title, speaker, id: videoId };
     document.getElementById('video-player-title').innerText = title;
@@ -1085,9 +1054,7 @@ function openVideoPlayer(url, title, speaker, videoId) {
     source.src = url;
     video.load();
     document.getElementById('video-overlay-player').classList.remove('hidden');
-    video.play().catch(e => {
-        console.log('Autoplay bloqué, tentative manuelle');
-    });
+    video.play().catch(e => console.log('Autoplay bloqué'));
     if (videoId) {
         db.collection('videos').doc(videoId).update({ views: firebase.firestore.FieldValue.increment(1) }).catch(e => {});
     }
