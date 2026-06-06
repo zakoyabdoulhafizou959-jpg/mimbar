@@ -40,9 +40,10 @@
 
     <div class="flex-1 overflow-y-auto no-scrollbar pb-20" id="main-content">
         
+        <!-- ACCUEIL -->
         <div id="tab-home" class="p-4 space-y-4">
             <div class="relative">
-                <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher Imam, titre, ville..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
+                <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
             </div>
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="type-chips"></div>
@@ -50,21 +51,23 @@
             <div id="video-grid" class="space-y-4"></div>
         </div>
 
+        <!-- CRÉER ALBUM -->
         <div id="tab-create" class="hidden p-4 space-y-4">
             <div class="bg-zinc-900 rounded-2xl p-5 space-y-4">
                 <h2 class="text-base font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-plus-circle" style="color:#ff5722"></i>
-                    Créer un album
+                    <i class="fa-solid fa-plus-circle" style="color:#ff5722"></i>Créer un album
                 </h2>
+                
                 <div id="create-album-form" class="space-y-3">
                     <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 text-xs text-blue-300">
-                        <i class="fa-solid fa-circle-info mr-1"></i>
-                        Votre album sera examiné par l'administrateur.
+                        <i class="fa-solid fa-circle-info mr-1"></i>Votre album sera examiné par l'administrateur.
                     </div>
+
                     <div>
-                        <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Nom et prénom de l'Imam *</label>
+                        <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Nom et prénom *</label>
                         <input type="text" id="imamName" placeholder="Ex: Cheikh Ousmane Diallo" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
                     </div>
+
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Ville *</label>
@@ -75,8 +78,9 @@
                             <input type="text" id="imamCountry" placeholder="Ex: Niger" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
                         </div>
                     </div>
+
                     <div>
-                        <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Type de contenu *</label>
+                        <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Type *</label>
                         <select id="imamType" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
                             <option value="">-- Choisir --</option>
                             <option value="preche">📢 Prêche quotidien</option>
@@ -85,21 +89,25 @@
                             <option value="coran">🕌 Lecture du Coran</option>
                         </select>
                     </div>
+
                     <div>
-                        <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Description (optionnel)</label>
+                        <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Description</label>
                         <textarea id="imamDesc" placeholder="Brève description..." rows="2" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none"></textarea>
                     </div>
+
                     <button onclick="submitAlbumRequest()" class="w-full py-3 rounded-xl text-sm font-bold text-white" style="background:#ff5722">
-                        <i class="fa-solid fa-paper-plane mr-2"></i>Soumettre pour examen
+                        <i class="fa-solid fa-paper-plane mr-2"></i>Soumettre
                     </button>
                 </div>
+
                 <div id="album-pending" class="hidden text-center py-8">
                     <div class="w-16 h-16 mx-auto rounded-full bg-yellow-500/20 flex items-center justify-center mb-3">
                         <i class="fa-solid fa-hourglass-half text-2xl text-yellow-500"></i>
                     </div>
                     <h3 class="text-sm font-bold text-white">Album en examen</h3>
-                    <p class="text-xs text-zinc-400 mt-1">Votre demande est en cours de validation.</p>
+                    <p class="text-xs text-zinc-400 mt-1">Validation en attente par l'admin.</p>
                 </div>
+
                 <div id="album-approved" class="hidden text-center py-8">
                     <div class="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center mb-3">
                         <i class="fa-solid fa-check text-2xl text-emerald-500"></i>
@@ -109,21 +117,25 @@
                         <i class="fa-solid fa-photo-film mr-1"></i>Voir mon album
                     </button>
                 </div>
+
                 <div id="album-limit" class="hidden text-center py-8">
                     <div class="w-16 h-16 mx-auto rounded-full bg-red-500/20 flex items-center justify-center mb-3">
                         <i class="fa-solid fa-ban text-2xl text-red-500"></i>
                     </div>
-                    <h3 class="text-sm font-bold text-white">Limite atteinte (20 albums max)</h3>
+                    <h3 class="text-sm font-bold text-white">Limite atteinte</h3>
+                    <p class="text-xs text-zinc-400 mt-1">Maximum 20 albums.</p>
                 </div>
             </div>
         </div>
 
+        <!-- MON ALBUM -->
         <div id="tab-myalbum" class="hidden p-4 space-y-4">
             <div id="myalbum-empty" class="text-center py-12">
                 <i class="fa-solid fa-lock text-4xl text-zinc-600"></i>
                 <h3 class="text-sm font-bold text-white mt-3">Aucun album</h3>
                 <button onclick="showTab('create')" class="mt-4 px-4 py-2 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Créer un album</button>
             </div>
+
             <div id="myalbum-content" class="hidden space-y-4">
                 <div class="bg-gradient-to-br from-orange-950 to-zinc-900 rounded-2xl p-4 border border-orange-500/30">
                     <div class="flex items-center justify-between mb-2">
@@ -141,6 +153,7 @@
                         <span><i class="fa-regular fa-eye"></i> <span id="my-album-views">0</span> vues</span>
                     </div>
                 </div>
+
                 <div id="selection-bar" class="hidden bg-zinc-900 rounded-xl p-3 border border-orange-500/30 flex items-center justify-between">
                     <span class="text-xs text-white"><span id="selected-count">0</span> sélectionnée(s)</span>
                     <div class="flex gap-2">
@@ -152,16 +165,18 @@
                         </button>
                     </div>
                 </div>
+
                 <div id="upload-section" class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed" style="border-color:rgba(255,87,34,0.5)">
                     <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="handleFileSelected(this)">
                     <button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 rounded-xl text-sm font-bold" style="background:rgba(255,87,34,0.2);color:#ff5722">
                         <i class="fa-solid fa-cloud-arrow-up mr-2"></i>Ajouter une vidéo
                     </button>
+                    
                     <div id="upload-form" class="hidden mt-3 space-y-2">
                         <div class="flex items-center gap-2 bg-zinc-800 rounded-lg p-2">
                             <i class="fa-solid fa-film text-orange-500"></i>
                             <span id="selected-file-name" class="text-xs text-white truncate flex-1"></span>
-                            <button onclick="cancelFileSelection()" class="text-zinc-400 hover:text-red-400"><i class="fa-solid fa-xmark"></i></button>
+                            <button onclick="cancelFileSelection()" class="text-zinc-400"><i class="fa-solid fa-xmark"></i></button>
                         </div>
                         <input type="text" id="videoTitle" placeholder="Titre de la vidéo" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
                         <button onclick="uploadVideoToB2()" class="w-full py-2 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
@@ -175,6 +190,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div>
                     <h3 class="text-xs font-black text-zinc-400 uppercase mb-2">Mes vidéos</h3>
                     <div id="my-videos-list" class="space-y-2"></div>
@@ -182,6 +198,7 @@
             </div>
         </div>
 
+        <!-- TÉLÉCHARGEMENTS -->
         <div id="tab-downloads" class="hidden">
             <div class="p-4 border-b border-zinc-800 flex justify-between">
                 <h2 class="text-base font-bold text-white"><i class="fa-solid fa-circle-down mr-2" style="color:#ff5722"></i>Téléchargements</h2>
@@ -199,6 +216,7 @@
             </div>
         </div>
 
+        <!-- PROFIL -->
         <div id="tab-profile" class="hidden p-4 space-y-4">
             <div id="profile-unauth" class="space-y-4">
                 <div class="text-center py-6 px-4 bg-zinc-900 rounded-2xl">
@@ -208,7 +226,7 @@
                 <div id="auth-error" class="hidden text-xs text-center px-3 py-2 rounded-lg"></div>
                 <div class="bg-zinc-900 rounded-2xl p-5 space-y-3">
                     <button onclick="handleGoogleSignIn()" class="w-full py-2.5 bg-white text-zinc-950 rounded-xl text-sm font-bold flex items-center justify-center gap-2">
-                        <i class="fa-brands fa-google text-red-500"></i> Continuer avec Google
+                        <i class="fa-brands fa-google text-red-500"></i> Google
                     </button>
                     <div class="relative flex py-2 items-center">
                         <div class="flex-grow border-t border-zinc-800"></div>
@@ -217,17 +235,12 @@
                     </div>
                     <input type="email" id="loginEmail" placeholder="📧 Email" class="w-full bg-zinc-800 rounded-xl px-3 py-2.5 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
                     <input type="password" id="loginPassword" placeholder="🔒 Mot de passe" class="w-full bg-zinc-800 rounded-xl px-3 py-2.5 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
-                    <button onclick="handleLogin()" id="btn-login" class="w-full py-2.5 rounded-xl text-sm font-bold text-white" style="background:#ff5722">
-                        <i class="fa-solid fa-right-to-bracket mr-1"></i>Se connecter
-                    </button>
-                    <button onclick="handleSignup()" id="btn-signup" class="w-full py-2 bg-zinc-800 rounded-xl text-sm text-white">
-                        <i class="fa-solid fa-user-plus mr-1"></i>Créer un compte
-                    </button>
-                    <button onclick="resetPassword()" class="w-full py-2 text-xs text-zinc-400 hover:text-orange-500 underline">
-                        Mot de passe oublié ?
-                    </button>
+                    <button onclick="handleLogin()" id="btn-login" class="w-full py-2.5 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Se connecter</button>
+                    <button onclick="handleSignup()" id="btn-signup" class="w-full py-2 bg-zinc-800 rounded-xl text-sm text-white">Créer un compte</button>
+                    <button onclick="resetPassword()" class="w-full py-2 text-xs text-zinc-400 underline">Mot de passe oublié ?</button>
                 </div>
             </div>
+
             <div id="profile-auth" class="hidden space-y-4">
                 <div class="bg-zinc-900 p-4 rounded-2xl flex items-center justify-between">
                     <div class="flex gap-3">
@@ -261,6 +274,7 @@
         <button onclick="showTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-user text-lg"></i><span class="text-[9px]">Profil</span></button>
     </nav>
 
+    <!-- ✅ LECTEUR VIDÉO SANS crossorigin (pour lecture sans CORS) -->
     <div id="video-overlay-player" class="hidden fixed inset-0 bg-black z-50 flex flex-col">
         <div class="bg-zinc-900 p-3 flex items-center justify-between">
             <button onclick="closeVideoPlayer()" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-white"></i></button>
@@ -268,16 +282,22 @@
             <div class="w-8"></div>
         </div>
         <div class="flex-1 flex items-center justify-center bg-black">
-            <video id="native-video" class="w-full max-h-full" controls crossorigin="anonymous" playsinline><source id="video-source" src="" type="video/mp4"></video>
+            <video id="native-video" class="w-full max-h-full" controls autoplay playsinline><source id="video-source" src=""></video>
         </div>
         <div class="bg-zinc-900 p-3 flex items-center justify-between">
             <p id="video-player-speaker" class="text-xs text-zinc-400"></p>
-            <button onclick="showDownloadOptions()" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
-                <i class="fa-solid fa-download mr-1"></i>Télécharger
-            </button>
+            <div class="flex gap-2">
+                <button onclick="showDownloadOptions()" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
+                    <i class="fa-solid fa-download mr-1"></i>Télécharger
+                </button>
+                <button onclick="openVideoInNewTab()" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-zinc-700">
+                    <i class="fa-solid fa-external-link mr-1"></i>Ouvrir
+                </button>
+            </div>
         </div>
     </div>
 
+    <!-- MODAL DOWNLOAD -->
     <div id="download-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-zinc-900 rounded-2xl p-5 w-full max-w-sm space-y-3 border border-zinc-800">
             <h3 class="text-sm font-bold text-white flex items-center gap-2">
@@ -292,18 +312,11 @@
                         <p class="text-[10px] text-zinc-400">Vidéo originale</p>
                     </div>
                 </button>
-                <button onclick="downloadWithQuality('medium')" class="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-sm font-bold text-white flex items-center gap-3">
-                    <i class="fa-solid fa-video text-yellow-400"></i>
-                    <div class="text-left flex-1">
-                        <p class="text-xs font-bold">Qualité moyenne</p>
-                        <p class="text-[10px] text-zinc-400">Taille réduite</p>
-                    </div>
-                </button>
                 <button onclick="downloadWithQuality('audio')" class="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-sm font-bold text-white flex items-center gap-3">
                     <i class="fa-solid fa-music text-purple-400"></i>
                     <div class="text-left flex-1">
-                        <p class="text-xs font-bold">Audio seulement (WAV)</p>
-                        <p class="text-[10px] text-zinc-400">Extraction audio</p>
+                        <p class="text-xs font-bold">Audio seulement</p>
+                        <p class="text-[10px] text-zinc-400">Ouvre dans un nouvel onglet</p>
                     </div>
                 </button>
             </div>
@@ -333,9 +346,6 @@ function escapeAttr(str) {
     return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ').replace(/\r/g, '');
 }
 
-// ============================================
-// 📊 ÉTAT
-// ============================================
 let currentUser = null;
 let userAlbum = null;
 let allVideos = [];
@@ -379,11 +389,8 @@ auth.onAuthStateChanged(async (user) => {
 async function handleLogin() {
     const email = document.getElementById('loginEmail').value.trim();
     const pwd = document.getElementById('loginPassword').value;
-    if (!email) { showAuthError("Email requis"); return; }
-    if (!email.includes('@')) { showAuthError("Email invalide"); return; }
-    if (!pwd) { showAuthError("Mot de passe requis"); return; }
-    if (pwd.length < 6) { showAuthError("Mot de passe : 6 caractères min"); return; }
-    
+    if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
+    if (pwd.length < 6) { showAuthError("Mot de passe min 6 caractères"); return; }
     try {
         showAuthLoading(true);
         await auth.signInWithEmailAndPassword(email, pwd);
@@ -394,13 +401,9 @@ async function handleLogin() {
         let errorMsg = "Erreur";
         switch(e.code) {
             case 'auth/invalid-credential': errorMsg = "❌ Email ou mot de passe incorrect."; break;
-            case 'auth/user-not-found': errorMsg = "❌ Aucun compte avec cet email."; break;
+            case 'auth/user-not-found': errorMsg = "❌ Compte introuvable."; break;
             case 'auth/wrong-password': errorMsg = "❌ Mot de passe incorrect."; break;
-            case 'auth/invalid-email': errorMsg = "❌ Email invalide."; break;
-            case 'auth/user-disabled': errorMsg = "❌ Compte désactivé."; break;
-            case 'auth/too-many-requests': errorMsg = "❌ Trop de tentatives."; break;
-            case 'auth/network-request-failed': errorMsg = "❌ Problème internet."; break;
-            case 'auth/operation-not-allowed': errorMsg = "❌ Email/password non activé par l'admin."; break;
+            case 'auth/operation-not-allowed': errorMsg = "❌ Connexion email non activée."; break;
             default: errorMsg = `❌ ${e.message}`;
         }
         showAuthError(errorMsg);
@@ -411,8 +414,7 @@ async function handleSignup() {
     const email = document.getElementById('loginEmail').value.trim();
     const pwd = document.getElementById('loginPassword').value;
     if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
-    if (pwd.length < 6) { showAuthError("Mot de passe : 6 caractères min"); return; }
-    
+    if (pwd.length < 6) { showAuthError("Mot de passe min 6 caractères"); return; }
     try {
         showAuthLoading(true);
         await auth.createUserWithEmailAndPassword(email, pwd);
@@ -424,7 +426,6 @@ async function handleSignup() {
         switch(e.code) {
             case 'auth/email-already-in-use': errorMsg = "❌ Email déjà utilisé."; break;
             case 'auth/weak-password': errorMsg = "❌ Mot de passe trop faible."; break;
-            case 'auth/invalid-email': errorMsg = "❌ Email invalide."; break;
             case 'auth/operation-not-allowed': errorMsg = "❌ Inscription non activée."; break;
             default: errorMsg = `❌ ${e.message}`;
         }
@@ -449,46 +450,47 @@ function handleLogout() { auth.signOut(); showTab('profile'); }
 
 async function resetPassword() {
     const email = document.getElementById('loginEmail').value.trim();
-    if (!email || !email.includes('@')) { showAuthError("Saisissez votre email d'abord"); return; }
-    if (!confirm(`Envoyer email de réinitialisation à ${email} ?`)) return;
+    if (!email || !email.includes('@')) { showAuthError("Saisissez votre email"); return; }
+    if (!confirm(`Envoyer un email à ${email} ?`)) return;
     try {
-        showAuthLoading(true);
         await auth.sendPasswordResetEmail(email);
-        showAuthError('');
-        showAuthLoading(false);
         alert(`✅ Email envoyé à ${email} !`);
     } catch(e) {
-        showAuthLoading(false);
         showAuthError(`❌ ${e.message}`);
     }
 }
 
 function showAuthError(msg) {
-    const errorDiv = document.getElementById('auth-error');
+    let errorDiv = document.getElementById('auth-error');
     if (!errorDiv) return;
     if (!msg) { errorDiv.classList.add('hidden'); return; }
     errorDiv.classList.remove('hidden');
     errorDiv.innerText = msg;
-    errorDiv.style.background = msg.includes('✅') ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)';
-    errorDiv.style.color = msg.includes('✅') ? '#10b981' : '#ef4444';
+    errorDiv.style.background = 'rgba(239,68,68,0.2)';
+    errorDiv.style.color = '#ef4444';
+    errorDiv.style.border = '1px solid rgba(239,68,68,0.3)';
 }
 
 function showAuthLoading(loading) {
     const loginBtn = document.getElementById('btn-login');
     const signupBtn = document.getElementById('btn-signup');
-    if (loginBtn) loginBtn.disabled = loading;
+    if (loginBtn) {
+        loginBtn.disabled = loading;
+        loginBtn.innerHTML = loading ? 'Connexion...' : 'Se connecter';
+    }
     if (signupBtn) signupBtn.disabled = loading;
-    if (loginBtn) loginBtn.innerHTML = loading ? '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Connexion...' : '<i class="fa-solid fa-right-to-bracket mr-1"></i>Se connecter';
 }
 
 // ============================================
-// 📚 DONNÉES FIREBASE
+// 📚 DONNÉES
 // ============================================
 async function loadUserData() {
     if (!currentUser) return;
     try {
         const albumQuery = await db.collection('albums').where('userId', '==', currentUser.uid).limit(1).get();
-        if (!albumQuery.empty) userAlbum = { id: albumQuery.docs[0].id, ...albumQuery.docs[0].data() };
+        if (!albumQuery.empty) {
+            userAlbum = { id: albumQuery.docs[0].id, ...albumQuery.docs[0].data() };
+        }
     } catch(e) { console.log("Erreur album:", e); }
 }
 
@@ -507,12 +509,17 @@ async function loadAllVideos() {
         snapshot.forEach(doc => {
             const v = doc.data();
             allVideos.push({
-                id: doc.id, albumId: v.albumId, userId: v.userId,
-                title: v.title || 'Sans titre', speaker: v.speaker || 'Inconnu',
+                id: doc.id,
+                albumId: v.albumId,
+                userId: v.userId,
+                title: v.title || 'Sans titre',
+                speaker: v.speaker || 'Inconnu',
                 duration: v.duration || "00:00",
                 date: v.date || new Date().toISOString().split('T')[0],
-                views: v.views || 0, downloads: v.downloads || 0,
-                videoUrl: v.downloadURL, thumbnail: v.thumbnail || '',
+                views: v.views || 0,
+                downloads: v.downloads || 0,
+                videoUrl: v.downloadURL,
+                thumbnail: v.thumbnail || '',
                 size: v.size || 0
             });
         });
@@ -529,12 +536,16 @@ function updateProfileUI() {
     const albumApproved = document.getElementById('album-approved');
     
     if (!currentUser) {
-        unauth.classList.remove('hidden'); authDiv.classList.add('hidden');
-        myalbumEmpty.classList.remove('hidden'); myalbumContent.classList.add('hidden');
+        unauth.classList.remove('hidden');
+        authDiv.classList.add('hidden');
+        myalbumEmpty.classList.remove('hidden');
+        myalbumContent.classList.add('hidden');
         return;
     }
     
-    unauth.classList.add('hidden'); authDiv.classList.remove('hidden');
+    unauth.classList.add('hidden');
+    authDiv.classList.remove('hidden');
+    
     document.getElementById('userName').innerText = currentUser.email?.split('@')[0] || 'User';
     document.getElementById('userEmail').innerText = currentUser.email || '';
     document.getElementById('userAvatar').innerText = (currentUser.email?.charAt(0) || 'U').toUpperCase();
@@ -545,22 +556,13 @@ function updateProfileUI() {
     document.getElementById('statDownloads').innerText = completedDownloads.length;
     
     if (userAlbum) {
-        myalbumEmpty.classList.add('hidden'); myalbumContent.classList.remove('hidden');
+        myalbumEmpty.classList.add('hidden');
+        myalbumContent.classList.remove('hidden');
         document.getElementById('my-album-title').innerText = userAlbum.imamName || 'Mon Album';
         document.getElementById('my-album-imam').innerText = userAlbum.imamName || '';
         document.getElementById('my-album-location').innerText = `${userAlbum.city || ''}, ${userAlbum.country || ''}`;
         document.getElementById('my-videos-count').innerText = myVids.length;
         document.getElementById('my-album-views').innerText = myVids.reduce((s, v) => s + (v.views || 0), 0);
-        
-        const statusBadge = document.getElementById('album-status-badge');
-        if (userAlbum.status === 'pending') {
-            statusBadge.innerText = 'EN EXAMEN';
-            statusBadge.className = 'px-2 py-0.5 rounded bg-yellow-500 text-zinc-950 text-[9px] font-black uppercase';
-        } else {
-            statusBadge.innerText = 'APPROUVÉ';
-            statusBadge.className = 'px-2 py-0.5 rounded bg-orange-500 text-zinc-950 text-[9px] font-black uppercase';
-        }
-        
         renderMyVideos();
         createForm.classList.add('hidden');
         albumPending.classList.add('hidden');
@@ -568,25 +570,22 @@ function updateProfileUI() {
         if (userAlbum.status === 'pending') albumPending.classList.remove('hidden');
         else if (userAlbum.status === 'approved') albumApproved.classList.remove('hidden');
     } else {
-        myalbumEmpty.classList.remove('hidden'); myalbumContent.classList.add('hidden');
+        myalbumEmpty.classList.remove('hidden');
+        myalbumContent.classList.add('hidden');
         createForm.classList.remove('hidden');
         albumPending.classList.add('hidden');
         albumApproved.classList.add('hidden');
     }
 }
 
-// ============================================
-// 📝 CRÉATION ALBUM
-// ============================================
 async function submitAlbumRequest() {
-    if (!currentUser) { alert("Connectez-vous d'abord"); return; }
+    if (!currentUser) { alert("Connectez-vous"); return; }
     const imamName = document.getElementById('imamName').value.trim();
     const city = document.getElementById('imamCity').value.trim();
     const country = document.getElementById('imamCountry').value.trim();
     const type = document.getElementById('imamType').value;
     const desc = document.getElementById('imamDesc').value.trim();
-    
-    if (!imamName || !city || !country || !type) { alert("Tous les champs obligatoires"); return; }
+    if (!imamName || !city || !country || !type) { alert("Champs obligatoires manquants"); return; }
     
     const totalAlbums = await db.collection('albums').get();
     if (totalAlbums.size >= 20) {
@@ -601,24 +600,18 @@ async function submitAlbumRequest() {
             description: desc, status: 'pending', createdAt: new Date()
         });
         alert("✅ Demande soumise !");
-        document.getElementById('imamName').value = '';
-        document.getElementById('imamCity').value = '';
-        document.getElementById('imamCountry').value = '';
-        document.getElementById('imamType').value = '';
-        document.getElementById('imamDesc').value = '';
         await loadUserData();
         updateProfileUI();
     } catch(e) { alert("Erreur: " + e.message); }
 }
 
 // ============================================
-// 🎬 UPLOAD (CORRIGÉ - APPELLE /api/get-upload-url)
+// 🎬 UPLOAD DIRECT VERS B2 (CONTOURNE VERCEL)
 // ============================================
 function handleFileSelected(input) {
     if (!input.files?.length) return;
     currentSelectedFile = input.files[0];
     if (!currentUser || !userAlbum) { alert("Album non trouvé"); input.value = ''; return; }
-    if (currentSelectedFile.size > 500 * 1024 * 1024) { alert("Max 500 Mo"); input.value = ''; return; }
     document.getElementById('selected-file-name').innerText = currentSelectedFile.name;
     document.getElementById('videoTitle').value = currentSelectedFile.name.replace(/\.[^/.]+$/, "");
     document.getElementById('upload-form').classList.remove('hidden');
@@ -633,11 +626,14 @@ function cancelFileSelection() {
 async function generateThumbnail(file) {
     return new Promise((resolve) => {
         const video = document.createElement('video');
-        video.preload = 'metadata'; video.muted = true; video.playsInline = true;
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
         video.onloadeddata = () => { video.currentTime = Math.min(2, video.duration / 2); };
         video.onseeked = () => {
             const canvas = document.createElement('canvas');
-            canvas.width = 320; canvas.height = 180;
+            canvas.width = 320;
+            canvas.height = 180;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             resolve(canvas.toDataURL('image/jpeg', 0.6));
@@ -647,6 +643,7 @@ async function generateThumbnail(file) {
     });
 }
 
+// ✅ FONCTION UPLOAD CORRIGÉE - APPELLE /api/get-upload-url
 async function uploadVideoToB2() {
     if (!currentSelectedFile) return;
     const title = document.getElementById('videoTitle').value.trim();
@@ -661,32 +658,34 @@ async function uploadVideoToB2() {
     progressText.innerText = '0% - Préparation...';
     
     try {
-        // ✅ ÉTAPE 1: Appeler /api/get-upload-url (PAS /api/upload-b2)
+        // ÉTAPE 1: Obtenir URL d'upload depuis Vercel (petit payload)
         progressText.innerText = '5% - Connexion à B2...';
-        console.log('📡 Appel à /api/get-upload-url...');
         
+        console.log('📡 Appel /api/get-upload-url');
         const urlResponse = await fetch('/api/get-upload-url', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
         
         if (!urlResponse.ok) {
-            const err = await urlResponse.json().catch(() => ({ error: urlResponse.status }));
-            throw new Error('Erreur proxy: ' + (err.error || urlResponse.status));
+            const errText = await urlResponse.text();
+            throw new Error(`Erreur API (${urlResponse.status}): ${errText}`);
         }
         
         const { uploadUrl, authorizationToken, downloadUrl } = await urlResponse.json();
         console.log('✅ URL B2 obtenue:', uploadUrl);
         
-        progressText.innerText = '10% - Génération miniature...';
+        progressText.innerText = '10% - Miniature...';
         const thumbnail = await generateThumbnail(currentSelectedFile);
         
-        // ✅ ÉTAPE 2: Upload DIRECT vers B2 (uploadUrl vient de B2, pas de Vercel)
+        // ÉTAPE 2: Upload DIRECT vers B2 (gros fichier)
         progressText.innerText = '15% - Envoi vers B2...';
+        
         const fileName = `${Date.now()}_${currentSelectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         
-        await new Promise((resolve, reject) => {
+        const uploadResult = await new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
+            
             xhr.upload.addEventListener('progress', (e) => {
                 if (e.lengthComputable) {
                     const percent = 15 + (e.loaded / e.total) * 75;
@@ -694,36 +693,52 @@ async function uploadVideoToB2() {
                     progressText.innerText = `${Math.round(percent)}% - ${(e.loaded / 1024 / 1024).toFixed(1)}/${(e.total / 1024 / 1024).toFixed(1)} Mo`;
                 }
             });
-            xhr.onload = () => {
-                if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
-                else reject(new Error('Upload B2 échoué: ' + xhr.status));
-            };
-            xhr.onerror = () => reject(new Error('Erreur réseau - CORS ?'));
-            xhr.ontimeout = () => reject(new Error('Timeout'));
             
-            // ✅ IMPORTANT: uploadUrl vient de B2, pas de Vercel
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    resolve(JSON.parse(xhr.responseText));
+                } else {
+                    reject(new Error('Upload B2 échoué: ' + xhr.status + ' - ' + xhr.responseText));
+                }
+            };
+            
+            xhr.onerror = () => reject(new Error('Erreur réseau - Vérifiez CORS sur B2'));
+            xhr.ontimeout = () => reject(new Error('Timeout - Fichier trop volumineux'));
+            
+            // ✅ Upload DIRECT vers URL B2 (pas Vercel)
             xhr.open('POST', uploadUrl);
             xhr.setRequestHeader('Authorization', authorizationToken);
             xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
             xhr.setRequestHeader('Content-Type', currentSelectedFile.type || 'application/octet-stream');
             xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
             xhr.timeout = 600000;
+            
             xhr.send(currentSelectedFile);
         });
         
-        // ✅ ÉTAPE 3: Sauvegarder dans Firestore
+        console.log('✅ Upload B2 réussi:', uploadResult);
+        
+        // ÉTAPE 3: Firestore
         progressBar.style.width = '95%';
         progressText.innerText = '95% - Sauvegarde...';
+        
         const publicUrl = downloadUrl + encodeURIComponent(fileName);
         
         await db.collection('videos').add({
-            userId: currentUser.uid, albumId: userAlbum.id,
-            fileName: currentSelectedFile.name, title: title,
+            userId: currentUser.uid,
+            albumId: userAlbum.id,
+            fileName: currentSelectedFile.name,
+            title: title,
             speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
-            duration: "00:00", date: new Date().toISOString().split('T')[0],
-            views: 0, downloads: 0, downloadURL: publicUrl,
-            thumbnail: thumbnail, uploadedAt: new Date(),
-            size: currentSelectedFile.size, storage: 'backblaze_b2'
+            duration: "00:00",
+            date: new Date().toISOString().split('T')[0],
+            views: 0,
+            downloads: 0,
+            downloadURL: publicUrl,
+            thumbnail: thumbnail,
+            uploadedAt: new Date(),
+            size: currentSelectedFile.size,
+            storage: 'backblaze_b2'
         });
         
         progressBar.style.width = '100%';
@@ -742,18 +757,17 @@ async function uploadVideoToB2() {
         alert("✅ Vidéo publiée !");
         
     } catch(error) {
-        console.error("❌ Erreur:", error);
+        console.error("❌ Erreur upload:", error);
         let errorMsg = error.message;
-        if (errorMsg.includes('404')) errorMsg = "❌ API introuvable. Vérifiez api/get-upload-url.js sur GitHub.";
-        else if (errorMsg.includes('CORS')) errorMsg = "❌ CORS bloqué. Configurez CORS sur B2.";
-        else if (errorMsg.includes('413')) errorMsg = "❌ Fichier trop volumineux.";
+        if (errorMsg.includes('CORS')) errorMsg = "❌ CORS bloqué sur B2.";
+        else if (errorMsg.includes('404')) errorMsg = "❌ API introuvable. Vérifiez api/get-upload-url.js";
         alert("Erreur: " + errorMsg);
         progressDiv.classList.add('hidden');
     }
 }
 
 // ============================================
-// 📥 TÉLÉCHARGEMENT
+// 📥 TÉLÉCHARGEMENT (avec fallback)
 // ============================================
 function showDownloadOptions() {
     if (!currentPlayingVideo) return;
@@ -765,83 +779,25 @@ function closeDownloadModal() {
     document.getElementById('download-modal').classList.add('hidden');
 }
 
+// ✅ Nouveau : Ouvre dans un nouvel onglet (fonctionne toujours)
+function openVideoInNewTab() {
+    if (currentPlayingVideo) {
+        window.open(currentPlayingVideo.videoUrl, '_blank');
+    }
+}
+
 async function downloadWithQuality(quality) {
     if (!currentPlayingVideo) return;
     closeDownloadModal();
     const v = currentPlayingVideo;
     
-    if (quality === 'audio') {
-        alert("🎵 Extraction audio...");
-        try { await extractAudio(v.videoUrl, v.title); }
-        catch(e) { alert("Erreur: " + e.message); }
-        return;
-    }
-    
-    let filename = v.title + (quality === 'medium' ? '_medium' : '') + '.mp4';
-    await downloadVideo(v.videoUrl, filename, v.id);
-}
-
-async function extractAudio(videoUrl, title) {
-    const downloadId = 'dl_' + Date.now();
-    activeDownloads.push({ id: downloadId, title: title + ' (audio)', url: videoUrl, progress: 0 });
-    localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-    renderDownloads();
-    
+    // Essayer fetch+blob d'abord, sinon fallback
     try {
-        const response = await fetch(videoUrl, { mode: 'cors' });
-        if (!response.ok) throw new Error('Erreur réseau');
-        const blob = await response.blob();
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const arrayBuffer = await blob.arrayBuffer();
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        const wavBlob = audioBufferToWav(audioBuffer);
-        const wavUrl = URL.createObjectURL(wavBlob);
-        const link = document.createElement('a');
-        link.href = wavUrl; link.download = title + '.wav';
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
-        completedDownloads.unshift({ title: title + ' (audio)', date: new Date().toLocaleString(), size: (wavBlob.size / 1024 / 1024).toFixed(2) + ' Mo' });
-        localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-        localStorage.setItem('completedDownloads', JSON.stringify(completedDownloads));
-        renderDownloads();
-        alert("✅ Audio extrait !");
+        await downloadVideo(v.videoUrl, v.title + '.mp4', v.id);
     } catch(e) {
-        console.error(e);
-        activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
-        localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-        renderDownloads();
-        alert("❌ Erreur: " + e.message);
+        console.log('Fallback : ouverture dans nouvel onglet');
+        window.open(v.videoUrl, '_blank');
     }
-}
-
-function audioBufferToWav(buffer) {
-    const numChannels = buffer.numberOfChannels;
-    const sampleRate = buffer.sampleRate;
-    const format = 1, bitDepth = 16;
-    const bytesPerSample = bitDepth / 8;
-    const blockAlign = numChannels * bytesPerSample;
-    const dataSize = buffer.length * blockAlign;
-    const totalSize = 44 + dataSize;
-    const arrayBuffer = new ArrayBuffer(totalSize);
-    const view = new DataView(arrayBuffer);
-    function writeString(offset, string) { for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i)); }
-    writeString(0, 'RIFF'); view.setUint32(4, totalSize - 8, true);
-    writeString(8, 'WAVE'); writeString(12, 'fmt ');
-    view.setUint32(16, 16, true); view.setUint16(20, format, true);
-    view.setUint16(22, numChannels, true); view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * blockAlign, true); view.setUint16(32, blockAlign, true);
-    view.setUint16(34, bitDepth, true); writeString(36, 'data'); view.setUint32(40, dataSize, true);
-    const channels = [];
-    for (let i = 0; i < numChannels; i++) channels.push(buffer.getChannelData(i));
-    let offset = 44;
-    for (let i = 0; i < buffer.length; i++) {
-        for (let ch = 0; ch < numChannels; ch++) {
-            const sample = Math.max(-1, Math.min(1, channels[ch][i]));
-            view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
-            offset += 2;
-        }
-    }
-    return new Blob([arrayBuffer], { type: 'audio/wav' });
 }
 
 async function downloadVideo(url, filename, videoId) {
@@ -853,41 +809,51 @@ async function downloadVideo(url, filename, videoId) {
     try {
         const response = await fetch(url, { mode: 'cors' });
         if (!response.ok) throw new Error('Erreur: ' + response.status);
+        
         const contentLength = response.headers.get('content-length');
         const total = contentLength ? parseInt(contentLength) : 0;
         let loaded = 0;
         const reader = response.body.getReader();
         const chunks = [];
+        
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
-            chunks.push(value); loaded += value.length;
+            chunks.push(value);
+            loaded += value.length;
             if (total > 0) {
                 const percent = (loaded / total) * 100;
                 const dl = activeDownloads.find(d => d.id === downloadId);
-                if (dl) { dl.progress = percent; localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads)); renderDownloads(); }
+                if (dl) { dl.progress = percent; renderDownloads(); }
             }
         }
+        
         const blob = new Blob(chunks);
         const blobUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = blobUrl; link.download = filename;
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+        
         activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
         completedDownloads.unshift({ title: filename, date: new Date().toLocaleString(), size: (blob.size / 1024 / 1024).toFixed(2) + ' Mo' });
         localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
         localStorage.setItem('completedDownloads', JSON.stringify(completedDownloads));
-        if (videoId) {
-            try { await db.collection('videos').doc(videoId).update({ downloads: firebase.firestore.FieldValue.increment(1) }); } catch(e) {}
-        }
         renderDownloads();
+        
     } catch(e) {
-        console.error(e);
+        console.error('Download error:', e);
         activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
         localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
         renderDownloads();
-        alert("❌ Erreur CORS. Configurez CORS sur B2.");
+        // Fallback : ouvrir dans un nouvel onglet
+        if (confirm("Téléchargement bloqué par CORS. Ouvrir la vidéo dans un nouvel onglet ?\n\nVous pourrez ensuite faire clic droit → Enregistrer sous.")) {
+            window.open(url, '_blank');
+        }
+        throw e;
     }
 }
 
@@ -895,14 +861,19 @@ async function downloadVideo(url, filename, videoId) {
 // 🎨 RENDU
 // ============================================
 function renderAll() {
-    renderTypeChips(); renderAlbumChips(); renderVideoGrid(); renderDownloads();
+    renderTypeChips();
+    renderAlbumChips();
+    renderVideoGrid();
+    renderDownloads();
 }
 
 function renderTypeChips() {
     const container = document.getElementById('type-chips');
     const types = [
-        { id: null, name: '🔥 Tout' }, { id: 'preche', name: '📢 Prêche' },
-        { id: 'tafsir', name: '📖 Tafsir' }, { id: 'hadith', name: '📜 Hadith' },
+        { id: null, name: '🔥 Tout' },
+        { id: 'preche', name: '📢 Prêche' },
+        { id: 'tafsir', name: '📖 Tafsir' },
+        { id: 'hadith', name: '📜 Hadith' },
         { id: 'coran', name: '🕌 Coran' }
     ];
     container.innerHTML = types.map(t => `
@@ -932,6 +903,7 @@ function renderAlbumChips() {
 function renderVideoGrid() {
     const container = document.getElementById('video-grid');
     let filtered = [...allVideos];
+    
     if (selectedTypeFilter) {
         const albumIds = allAlbums.filter(a => a.type === selectedTypeFilter).map(a => a.id);
         filtered = filtered.filter(v => albumIds.includes(v.albumId));
@@ -941,23 +913,31 @@ function renderVideoGrid() {
         const q = searchQuery.toLowerCase();
         filtered = filtered.filter(v => {
             const album = allAlbums.find(a => a.id === v.albumId);
-            return v.title.toLowerCase().includes(q) || v.speaker.toLowerCase().includes(q) ||
+            return v.title.toLowerCase().includes(q) || 
+                   v.speaker.toLowerCase().includes(q) ||
                    (album && (album.imamName || '').toLowerCase().includes(q)) ||
                    (album && (album.city || '').toLowerCase().includes(q)) ||
                    (album && (album.country || '').toLowerCase().includes(q));
         });
     }
+    
     if (filtered.length === 0) {
-        container.innerHTML = '<div class="text-center py-12"><i class="fa-solid fa-video-slash text-4xl text-zinc-700"></i><p class="text-sm text-zinc-500 mt-3">Aucune vidéo</p></div>';
+        container.innerHTML = `<div class="text-center py-12"><i class="fa-solid fa-video-slash text-4xl text-zinc-700"></i><p class="text-sm text-zinc-500 mt-3">Aucune vidéo</p></div>`;
         return;
     }
+    
     container.innerHTML = filtered.map(v => {
         const album = allAlbums.find(a => a.id === v.albumId);
         const thumb = v.thumbnail || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzI3MjcyNyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDAiIGZpbGw9IiNmZjU3MjIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7ilbU8L3RleHQ+PC9zdmc+';
+        
         return `
         <div class="video-card bg-zinc-900 rounded-xl overflow-hidden cursor-pointer fade-in" 
-             onmousedown="startLongPress('${v.id}')" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()"
-             ontouchstart="startLongPress('${v.id}')" ontouchend="cancelLongPress()" onclick="handleVideoClick('${v.id}')">
+             onmousedown="startLongPress('${v.id}')" 
+             onmouseup="cancelLongPress()" 
+             onmouseleave="cancelLongPress()"
+             ontouchstart="startLongPress('${v.id}')" 
+             ontouchend="cancelLongPress()"
+             onclick="handleVideoClick('${v.id}')">
             <div class="relative aspect-video bg-zinc-800">
                 <img src="${thumb}" alt="${escapeAttr(v.title)}" class="w-full h-full object-cover">
                 <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
@@ -965,7 +945,6 @@ function renderVideoGrid() {
                         <i class="fa-solid fa-play text-white text-xl pl-1"></i>
                     </div>
                 </div>
-                <div class="absolute bottom-2 right-2 bg-black/80 px-1.5 py-0.5 rounded text-[10px] text-white font-bold">${v.duration}</div>
             </div>
             <div class="p-3">
                 <h4 class="text-sm font-bold text-white line-clamp-2">${escapeAttr(v.title)}</h4>
@@ -1003,7 +982,7 @@ function renderMyVideos() {
     if (!currentUser) return;
     const myVids = allVideos.filter(v => v.userId === currentUser.uid);
     if (myVids.length === 0) {
-        container.innerHTML = '<p class="text-center text-zinc-500 text-xs py-6">Aucune vidéo. Ajoutez-en une !</p>';
+        container.innerHTML = '<p class="text-center text-zinc-500 text-xs py-6">Aucune vidéo</p>';
         return;
     }
     container.innerHTML = myVids.map(v => {
@@ -1019,7 +998,7 @@ function renderMyVideos() {
             ${thumb ? `<img src="${thumb}" class="w-20 h-12 rounded object-cover shrink-0">` : `<div class="w-20 h-12 rounded bg-zinc-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-film text-orange-500"></i></div>`}
             <div class="flex-1 min-w-0" onclick="openVideoPlayer('${escapeAttr(v.videoUrl)}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
                 <p class="text-xs font-bold text-white truncate">${escapeAttr(v.title)}</p>
-                <p class="text-[9px] text-zinc-500">${v.views || 0} vues · ${v.size ? (v.size / 1024 / 1024).toFixed(1) + ' Mo' : ''}</p>
+                <p class="text-[9px] text-zinc-500">${v.views || 0} vues</p>
             </div>
             ${!selectionMode ? `
                 <button onclick="event.stopPropagation(); deleteMyVideo('${v.id}')" class="w-7 h-7 rounded bg-red-900/30 text-red-400 flex items-center justify-center shrink-0">
@@ -1045,51 +1024,58 @@ function toggleSelectionMode() {
         btn.style.background = '';
         bar.classList.add('hidden');
     }
-    updateSelectedCount();
+    document.getElementById('selected-count').innerText = selectedVideoIds.size;
     renderMyVideos();
 }
 
 function toggleVideoSelection(videoId) {
     if (selectedVideoIds.has(videoId)) selectedVideoIds.delete(videoId);
     else selectedVideoIds.add(videoId);
-    updateSelectedCount();
+    document.getElementById('selected-count').innerText = selectedVideoIds.size;
     renderMyVideos();
 }
 
-function updateSelectedCount() {
-    document.getElementById('selected-count').innerText = selectedVideoIds.size;
-}
-
 async function downloadSelected() {
-    if (selectedVideoIds.size === 0) { alert("Aucune vidéo sélectionnée"); return; }
+    if (selectedVideoIds.size === 0) { alert("Aucune vidéo"); return; }
     const videos = allVideos.filter(v => selectedVideoIds.has(v.id));
+    alert(`Téléchargement de ${videos.length} vidéo(s)...`);
     for (const v of videos) {
-        await downloadVideo(v.videoUrl, v.title + '.mp4', v.id);
+        try {
+            await downloadVideo(v.videoUrl, v.title + '.mp4', v.id);
+        } catch(e) {
+            window.open(v.videoUrl, '_blank');
+        }
         await new Promise(r => setTimeout(r, 500));
     }
     toggleSelectionMode();
 }
 
 async function deleteSelected() {
-    if (selectedVideoIds.size === 0) return;
+    if (selectedVideoIds.size === 0) { alert("Aucune vidéo"); return; }
     if (!confirm(`Supprimer ${selectedVideoIds.size} vidéo(s) ?`)) return;
     for (const id of selectedVideoIds) {
         try { await db.collection('videos').doc(id).delete(); } catch(e) {}
     }
     selectedVideoIds.clear();
-    await loadAllVideos(); updateProfileUI(); renderMyVideos(); renderVideoGrid();
+    await loadAllVideos();
+    updateProfileUI();
+    renderMyVideos();
+    renderVideoGrid();
     toggleSelectionMode();
 }
 
 async function deleteMyVideo(videoId) {
-    if (!confirm("Supprimer cette vidéo ?")) return;
+    if (!confirm("Supprimer ?")) return;
     try {
         await db.collection('videos').doc(videoId).delete();
-        await loadAllVideos(); updateProfileUI(); renderMyVideos(); renderVideoGrid();
+        await loadAllVideos();
+        updateProfileUI();
+        renderMyVideos();
+        renderVideoGrid();
     } catch(e) { alert("Erreur: " + e.message); }
 }
 
-// ✅ LECTEUR VIDÉO CORRIGÉ (crossorigin + playsinline)
+// ✅ LECTEUR VIDÉO SANS crossorigin (fonctionne toujours)
 function openVideoPlayer(url, title, speaker, videoId) {
     currentPlayingVideo = allVideos.find(v => v.id === videoId) || { videoUrl: url, title, speaker, id: videoId };
     document.getElementById('video-player-title').innerText = title;
@@ -1100,8 +1086,7 @@ function openVideoPlayer(url, title, speaker, videoId) {
     video.load();
     document.getElementById('video-overlay-player').classList.remove('hidden');
     video.play().catch(e => {
-        console.error('Erreur lecture:', e);
-        alert('❌ Impossible de lire la vidéo. Vérifiez CORS sur B2.');
+        console.log('Autoplay bloqué, tentative manuelle');
     });
     if (videoId) {
         db.collection('videos').doc(videoId).update({ views: firebase.firestore.FieldValue.increment(1) }).catch(e => {});
@@ -1121,6 +1106,7 @@ function renderDownloads() {
     const badge = document.getElementById('download-count-badge');
     if (badge) badge.innerText = `${activeDownloads.length}`;
     if (!activeList) return;
+    
     if (activeDownloads.length === 0) {
         activeList.innerHTML = '<div class="text-center text-zinc-500 py-8 text-xs">Aucun téléchargement</div>';
     } else {
@@ -1128,7 +1114,9 @@ function renderDownloads() {
             <div class="bg-zinc-900 p-3 rounded-xl space-y-2">
                 <div class="flex justify-between items-center">
                     <p class="text-xs font-bold text-white truncate">📹 ${escapeAttr(d.title)}</p>
-                    <button onclick="cancelDownload('${d.id}')" class="w-6 h-6 bg-red-900/30 text-red-400 rounded flex items-center justify-center"><i class="fa-solid fa-xmark text-xs"></i></button>
+                    <button onclick="cancelDownload('${d.id}')" class="w-6 h-6 bg-red-900/30 text-red-400 rounded flex items-center justify-center">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
                 </div>
                 <div class="relative h-1.5 bg-zinc-700 rounded-full overflow-hidden">
                     <div class="absolute inset-y-0 left-0" style="width: ${d.progress}%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
@@ -1137,13 +1125,14 @@ function renderDownloads() {
             </div>
         `).join('');
     }
+    
     if (completedList) {
         completedList.innerHTML = completedDownloads.length ? completedDownloads.map(d => `
             <div class="bg-zinc-900 p-3 rounded-xl text-white">
                 <p class="text-xs font-bold">📹 ${escapeAttr(d.title)}</p>
-                <p class="text-[9px] text-zinc-500">📅 ${escapeAttr(d.date)} · ${escapeAttr(d.size || '')}</p>
+                <p class="text-[9px] text-zinc-500">📅 ${escapeAttr(d.date)}</p>
             </div>
-        `).join('') : '<div class="text-center text-zinc-500 py-8">Aucun téléchargement</div>';
+        `).join('') : '<div class="text-center text-zinc-500 py-8">Aucun</div>';
     }
 }
 
