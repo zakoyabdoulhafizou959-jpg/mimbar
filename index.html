@@ -232,7 +232,6 @@
                     <p class="text-xs text-zinc-400 mt-1">Pour accéder à toutes les fonctionnalités</p>
                 </div>
                 
-                <!-- Zone d'erreur -->
                 <div id="auth-error" class="hidden text-xs text-center px-3 py-2 rounded-lg"></div>
                 
                 <div class="bg-zinc-900 rounded-2xl p-5 space-y-3">
@@ -349,8 +348,8 @@
                 <button onclick="downloadWithQuality('audio')" class="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-sm font-bold text-white flex items-center gap-3">
                     <i class="fa-solid fa-music text-purple-400"></i>
                     <div class="text-left flex-1">
-                        <p class="text-xs font-bold">Audio seulement (MP3)</p>
-                        <p class="text-[10px] text-zinc-400">Conversion vidéo → audio</p>
+                        <p class="text-xs font-bold">Audio seulement (WAV)</p>
+                        <p class="text-[10px] text-zinc-400">Extraction audio</p>
                     </div>
                 </button>
             </div>
@@ -407,7 +406,7 @@ const TYPE_LABELS = {
 };
 
 // ============================================
-// 🔐 AUTH AMÉLIORÉE
+// 🔐 AUTH
 // ============================================
 auth.onAuthStateChanged(async (user) => {
     currentUser = user;
@@ -445,10 +444,10 @@ async function handleLogin() {
         let errorMsg = "Erreur de connexion";
         switch(e.code) {
             case 'auth/invalid-credential':
-                errorMsg = "❌ Email ou mot de passe incorrect. Vérifiez vos identifiants.";
+                errorMsg = "❌ Email ou mot de passe incorrect.";
                 break;
             case 'auth/user-not-found':
-                errorMsg = "❌ Aucun compte trouvé avec cet email. Inscrivez-vous d'abord.";
+                errorMsg = "❌ Aucun compte trouvé avec cet email.";
                 break;
             case 'auth/wrong-password':
                 errorMsg = "❌ Mot de passe incorrect.";
@@ -466,7 +465,7 @@ async function handleLogin() {
                 errorMsg = "❌ Problème de connexion internet.";
                 break;
             case 'auth/operation-not-allowed':
-                errorMsg = "❌ Connexion email/mot de passe non activée. Contactez l'admin.";
+                errorMsg = "❌ Connexion email/mot de passe non activée par l'admin.";
                 break;
             default:
                 errorMsg = `❌ ${e.message}`;
@@ -501,7 +500,7 @@ async function handleSignup() {
                 errorMsg = "❌ Format d'email invalide.";
                 break;
             case 'auth/operation-not-allowed':
-                errorMsg = "❌ Inscription email/mot de passe non activée.";
+                errorMsg = "❌ Inscription email non activée.";
                 break;
             default:
                 errorMsg = `❌ ${e.message}`;
@@ -560,13 +559,7 @@ async function resetPassword() {
 
 function showAuthError(msg) {
     let errorDiv = document.getElementById('auth-error');
-    if (!errorDiv) {
-        errorDiv = document.createElement('div');
-        errorDiv.id = 'auth-error';
-        errorDiv.className = 'text-xs text-center px-3 py-2 rounded-lg';
-        const loginBtn = document.querySelector('[onclick="handleLogin()"]');
-        loginBtn.parentNode.insertBefore(errorDiv, loginBtn.nextSibling);
-    }
+    if (!errorDiv) return;
     
     if (!msg) {
         errorDiv.classList.add('hidden');
@@ -606,9 +599,7 @@ async function loadAllAlbums() {
     try {
         const snapshot = await db.collection('albums').where('status', '==', 'approved').get();
         allAlbums = [];
-        snapshot.forEach(doc => {
-            allAlbums.push({ id: doc.id, ...doc.data() });
-        });
+        snapshot.forEach(doc => allAlbums.push({ id: doc.id, ...doc.data() }));
     } catch(e) { console.error("Erreur albums:", e); }
 }
 
@@ -690,11 +681,8 @@ function updateProfileUI() {
         albumPending.classList.add('hidden');
         albumApproved.classList.add('hidden');
         
-        if (userAlbum.status === 'pending') {
-            albumPending.classList.remove('hidden');
-        } else if (userAlbum.status === 'approved') {
-            albumApproved.classList.remove('hidden');
-        }
+        if (userAlbum.status === 'pending') albumPending.classList.remove('hidden');
+        else if (userAlbum.status === 'approved') albumApproved.classList.remove('hidden');
     } else {
         myalbumEmpty.classList.remove('hidden');
         myalbumContent.classList.add('hidden');
@@ -756,14 +744,18 @@ async function submitAlbumRequest() {
 }
 
 // ============================================
-// 🎬 UPLOAD
+// 🎬 UPLOAD DIRECT VERS B2 (SANS LIMITE VERCEL)
 // ============================================
 function handleFileSelected(input) {
     if (!input.files?.length) return;
     currentSelectedFile = input.files[0];
     
     if (!currentUser || !userAlbum) { alert("Album non trouvé"); input.value = ''; return; }
-    if (currentSelectedFile.size > 400 * 1024 * 1024) { alert("Max 400 Mo"); input.value = ''; return; }
+    if (currentSelectedFile.size > 500 * 1024 * 1024) { 
+        alert("Max 500 Mo"); 
+        input.value = ''; 
+        return; 
+    }
     
     document.getElementById('selected-file-name').innerText = currentSelectedFile.name;
     document.getElementById('videoTitle').value = currentSelectedFile.name.replace(/\.[^/.]+$/, "");
@@ -810,31 +802,66 @@ async function uploadVideoToB2() {
     progressText.innerText = '0% - Préparation...';
     
     try {
+        // ÉTAPE 1: Obtenir URL d'upload depuis Vercel (petit payload)
+        progressText.innerText = '5% - Connexion à B2...';
+        
+        const urlResponse = await fetch('/api/get-upload-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!urlResponse.ok) {
+            const err = await urlResponse.json().catch(() => ({ error: urlResponse.status }));
+            throw new Error('Erreur proxy: ' + (err.error || urlResponse.status));
+        }
+        
+        const { uploadUrl, authorizationToken, downloadUrl } = await urlResponse.json();
+        
+        progressText.innerText = '10% - Génération miniature...';
         const thumbnail = await generateThumbnail(currentSelectedFile);
-        progressText.innerText = '10% - Envoi...';
+        
+        // ÉTAPE 2: Upload DIRECT vers B2 (gros fichier)
+        progressText.innerText = '15% - Envoi vers B2...';
         
         const fileName = `${Date.now()}_${currentSelectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-        const xhr = new XMLHttpRequest();
         
-        const uploadPromise = new Promise((resolve, reject) => {
+        const uploadResult = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            
             xhr.upload.addEventListener('progress', (e) => {
                 if (e.lengthComputable) {
-                    const percent = 10 + (e.loaded / e.total) * 80;
+                    const percent = 15 + (e.loaded / e.total) * 75;
                     progressBar.style.width = `${percent}%`;
-                    progressText.innerText = `${Math.round(percent)}%`;
+                    progressText.innerText = `${Math.round(percent)}% - ${(e.loaded / 1024 / 1024).toFixed(1)}/${(e.total / 1024 / 1024).toFixed(1)} Mo`;
                 }
             });
-            xhr.onload = () => xhr.status === 200 ? resolve(JSON.parse(xhr.responseText)) : reject(new Error('Erreur ' + xhr.status));
-            xhr.onerror = () => reject(new Error('Erreur réseau'));
-            xhr.open('POST', '/api/upload-b2');
-            xhr.setRequestHeader('X-Bz-File-Name', fileName);
+            
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    resolve(JSON.parse(xhr.responseText));
+                } else {
+                    reject(new Error('Upload B2 échoué: ' + xhr.status + ' - ' + xhr.responseText));
+                }
+            };
+            
+            xhr.onerror = () => reject(new Error('Erreur réseau - Vérifiez CORS sur B2'));
+            xhr.ontimeout = () => reject(new Error('Timeout - Fichier trop volumineux'));
+            
+            xhr.open('POST', uploadUrl);
+            xhr.setRequestHeader('Authorization', authorizationToken);
+            xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
             xhr.setRequestHeader('Content-Type', currentSelectedFile.type || 'application/octet-stream');
+            xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
+            xhr.timeout = 600000; // 10 minutes
+            
             xhr.send(currentSelectedFile);
         });
         
-        const result = await uploadPromise;
+        // ÉTAPE 3: Sauvegarder dans Firestore
         progressBar.style.width = '95%';
-        progressText.innerText = '95% - Sauvegarde...';
+        progressText.innerText = '95% - Sauvegarde métadonnées...';
+        
+        const publicUrl = downloadUrl + encodeURIComponent(fileName);
         
         await db.collection('videos').add({
             userId: currentUser.uid,
@@ -846,7 +873,7 @@ async function uploadVideoToB2() {
             date: new Date().toISOString().split('T')[0],
             views: 0,
             downloads: 0,
-            downloadURL: result.downloadUrl,
+            downloadURL: publicUrl,
             thumbnail: thumbnail,
             uploadedAt: new Date(),
             size: currentSelectedFile.size,
@@ -866,11 +893,21 @@ async function uploadVideoToB2() {
         await loadAllVideos();
         updateProfileUI();
         renderAll();
-        alert("✅ Vidéo publiée !");
+        alert("✅ Vidéo publiée avec succès !");
         
     } catch(error) {
-        console.error("❌ Erreur:", error);
-        alert("Erreur: " + error.message);
+        console.error("❌ Erreur upload:", error);
+        
+        let errorMsg = error.message;
+        if (errorMsg.includes('CORS')) {
+            errorMsg = "❌ CORS bloqué. Configurez CORS sur votre bucket B2.";
+        } else if (errorMsg.includes('413')) {
+            errorMsg = "❌ Fichier trop volumineux.";
+        } else if (errorMsg.includes('Timeout')) {
+            errorMsg = "❌ Délai dépassé. Vérifiez votre connexion.";
+        }
+        
+        alert("Erreur: " + errorMsg);
         progressDiv.classList.add('hidden');
     }
 }
