@@ -44,19 +44,13 @@
         
         <!-- ====== ACCUEIL ====== -->
         <div id="tab-home" class="p-4 space-y-4">
-            <!-- Recherche -->
             <div class="relative">
                 <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher Imam, titre, ville..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
             </div>
 
-            <!-- Filtres par type -->
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="type-chips"></div>
-
-            <!-- Filtres par album (Imams) -->
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="album-chips"></div>
-
-            <!-- Grille vidéos -->
             <div id="video-grid" class="space-y-4"></div>
         </div>
 
@@ -96,7 +90,7 @@
                             <option value="">-- Choisir --</option>
                             <option value="preche">📢 Prêche quotidien</option>
                             <option value="tafsir">📖 Tafsir</option>
-                            <option value="hadith"> Hadith</option>
+                            <option value="hadith">📜 Hadith</option>
                             <option value="coran">🕌 Lecture du Coran</option>
                         </select>
                     </div>
@@ -111,7 +105,6 @@
                     </button>
                 </div>
 
-                <!-- Si album déjà demandé -->
                 <div id="album-pending" class="hidden text-center py-8">
                     <div class="w-16 h-16 mx-auto rounded-full bg-yellow-500/20 flex items-center justify-center mb-3">
                         <i class="fa-solid fa-hourglass-half text-2xl text-yellow-500"></i>
@@ -120,7 +113,6 @@
                     <p class="text-xs text-zinc-400 mt-1">Votre demande est en cours de validation par l'administrateur.</p>
                 </div>
 
-                <!-- Si album approuvé -->
                 <div id="album-approved" class="hidden text-center py-8">
                     <div class="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center mb-3">
                         <i class="fa-solid fa-check text-2xl text-emerald-500"></i>
@@ -132,7 +124,6 @@
                     </button>
                 </div>
 
-                <!-- Si limite atteinte -->
                 <div id="album-limit" class="hidden text-center py-8">
                     <div class="w-16 h-16 mx-auto rounded-full bg-red-500/20 flex items-center justify-center mb-3">
                         <i class="fa-solid fa-ban text-2xl text-red-500"></i>
@@ -153,7 +144,6 @@
             </div>
 
             <div id="myalbum-content" class="hidden space-y-4">
-                <!-- En-tête album -->
                 <div class="bg-gradient-to-br from-orange-950 to-zinc-900 rounded-2xl p-4 border border-orange-500/30">
                     <div class="flex items-center justify-between mb-2">
                         <span class="px-2 py-0.5 rounded bg-orange-500 text-zinc-950 text-[9px] font-black uppercase" id="album-status-badge">APPROUVÉ</span>
@@ -171,7 +161,6 @@
                     </div>
                 </div>
 
-                <!-- Barre sélection -->
                 <div id="selection-bar" class="hidden bg-zinc-900 rounded-xl p-3 border border-orange-500/30 flex items-center justify-between">
                     <span class="text-xs text-white"><span id="selected-count">0</span> sélectionnée(s)</span>
                     <div class="flex gap-2">
@@ -184,7 +173,6 @@
                     </div>
                 </div>
 
-                <!-- Upload -->
                 <div id="upload-section" class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed" style="border-color:rgba(255,87,34,0.5)">
                     <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="handleFileSelected(this)">
                     <button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 rounded-xl text-sm font-bold" style="background:rgba(255,87,34,0.2);color:#ff5722">
@@ -210,7 +198,6 @@
                     </div>
                 </div>
 
-                <!-- Mes vidéos -->
                 <div>
                     <h3 class="text-xs font-black text-zinc-400 uppercase mb-2">Mes vidéos</h3>
                     <div id="my-videos-list" class="space-y-2"></div>
@@ -239,18 +226,40 @@
         <!-- ====== PROFIL ====== -->
         <div id="tab-profile" class="hidden p-4 space-y-4">
             <div id="profile-unauth" class="space-y-4">
-                <div class="text-center py-8 px-4 bg-zinc-900 rounded-2xl">
+                <div class="text-center py-6 px-4 bg-zinc-900 rounded-2xl">
                     <i class="fa-solid fa-user-circle text-5xl text-zinc-600"></i>
                     <h3 class="text-sm font-bold text-white mt-3">Connectez-vous</h3>
+                    <p class="text-xs text-zinc-400 mt-1">Pour accéder à toutes les fonctionnalités</p>
                 </div>
+                
+                <!-- Zone d'erreur -->
+                <div id="auth-error" class="hidden text-xs text-center px-3 py-2 rounded-lg"></div>
+                
                 <div class="bg-zinc-900 rounded-2xl p-5 space-y-3">
-                    <button onclick="handleGoogleSignIn()" class="w-full py-2.5 bg-white text-zinc-950 rounded-xl text-sm font-bold flex items-center justify-center gap-2">
-                        <i class="fa-brands fa-google text-red-500"></i> Google
+                    <button onclick="handleGoogleSignIn()" class="w-full py-2.5 bg-white text-zinc-950 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-zinc-100">
+                        <i class="fa-brands fa-google text-red-500"></i> Continuer avec Google
                     </button>
-                    <input type="email" id="loginEmail" placeholder="Email" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
-                    <input type="password" id="loginPassword" placeholder="Mot de passe" class="w-full bg-zinc-800 rounded-xl px-3 py-2 text-sm text-white">
-                    <button onclick="handleLogin()" class="w-full py-2 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Se connecter</button>
-                    <button onclick="handleSignup()" class="w-full py-2 bg-zinc-800 rounded-xl text-sm text-white">Créer un compte</button>
+                    
+                    <div class="relative flex py-2 items-center">
+                        <div class="flex-grow border-t border-zinc-800"></div>
+                        <span class="flex-shrink mx-3 text-[10px] text-zinc-500 font-bold">OU</span>
+                        <div class="flex-grow border-t border-zinc-800"></div>
+                    </div>
+                    
+                    <input type="email" id="loginEmail" placeholder="📧 Email" class="w-full bg-zinc-800 rounded-xl px-3 py-2.5 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
+                    <input type="password" id="loginPassword" placeholder="🔒 Mot de passe" class="w-full bg-zinc-800 rounded-xl px-3 py-2.5 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
+                    
+                    <button onclick="handleLogin()" id="btn-login" class="w-full py-2.5 rounded-xl text-sm font-bold text-white" style="background:#ff5722">
+                        <i class="fa-solid fa-right-to-bracket mr-1"></i>Se connecter
+                    </button>
+                    
+                    <button onclick="handleSignup()" id="btn-signup" class="w-full py-2 bg-zinc-800 rounded-xl text-sm text-white hover:bg-zinc-700">
+                        <i class="fa-solid fa-user-plus mr-1"></i>Créer un compte
+                    </button>
+                    
+                    <button onclick="resetPassword()" class="w-full py-2 text-xs text-zinc-400 hover:text-orange-500 underline">
+                        Mot de passe oublié ?
+                    </button>
                 </div>
             </div>
 
@@ -398,7 +407,7 @@ const TYPE_LABELS = {
 };
 
 // ============================================
-// 🔐 AUTH
+// 🔐 AUTH AMÉLIORÉE
 // ============================================
 auth.onAuthStateChanged(async (user) => {
     currentUser = user;
@@ -418,30 +427,167 @@ auth.onAuthStateChanged(async (user) => {
 async function handleLogin() {
     const email = document.getElementById('loginEmail').value.trim();
     const pwd = document.getElementById('loginPassword').value;
-    if (!email || !email.includes('@')) { alert("Email valide requis"); return; }
-    if (pwd.length < 6) { alert("Mot de passe min 6 caractères"); return; }
-    try { await auth.signInWithEmailAndPassword(email, pwd); showTab('home'); }
-    catch(e) { alert("Erreur: " + e.message); }
+    
+    if (!email) { showAuthError("Veuillez saisir votre email"); return; }
+    if (!email.includes('@') || !email.includes('.')) { showAuthError("Format d'email invalide"); return; }
+    if (!pwd) { showAuthError("Veuillez saisir votre mot de passe"); return; }
+    if (pwd.length < 6) { showAuthError("Le mot de passe doit contenir au moins 6 caractères"); return; }
+    
+    try {
+        showAuthLoading(true);
+        await auth.signInWithEmailAndPassword(email, pwd);
+        showAuthError('');
+        showTab('home');
+    } catch(e) {
+        console.error("Erreur login:", e.code, e.message);
+        showAuthLoading(false);
+        
+        let errorMsg = "Erreur de connexion";
+        switch(e.code) {
+            case 'auth/invalid-credential':
+                errorMsg = "❌ Email ou mot de passe incorrect. Vérifiez vos identifiants.";
+                break;
+            case 'auth/user-not-found':
+                errorMsg = "❌ Aucun compte trouvé avec cet email. Inscrivez-vous d'abord.";
+                break;
+            case 'auth/wrong-password':
+                errorMsg = "❌ Mot de passe incorrect.";
+                break;
+            case 'auth/invalid-email':
+                errorMsg = "❌ Format d'email invalide.";
+                break;
+            case 'auth/user-disabled':
+                errorMsg = "❌ Ce compte a été désactivé.";
+                break;
+            case 'auth/too-many-requests':
+                errorMsg = "❌ Trop de tentatives. Réessayez plus tard.";
+                break;
+            case 'auth/network-request-failed':
+                errorMsg = "❌ Problème de connexion internet.";
+                break;
+            case 'auth/operation-not-allowed':
+                errorMsg = "❌ Connexion email/mot de passe non activée. Contactez l'admin.";
+                break;
+            default:
+                errorMsg = `❌ ${e.message}`;
+        }
+        showAuthError(errorMsg);
+    }
 }
 
 async function handleSignup() {
     const email = document.getElementById('loginEmail').value.trim();
     const pwd = document.getElementById('loginPassword').value;
-    if (!email || !email.includes('@')) { alert("Email valide requis"); return; }
-    if (pwd.length < 6) { alert("Mot de passe min 6 caractères"); return; }
-    try { await auth.createUserWithEmailAndPassword(email, pwd); showTab('home'); }
-    catch(e) { alert("Erreur: " + e.message); }
+    
+    if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
+    if (pwd.length < 6) { showAuthError("Mot de passe : 6 caractères minimum"); return; }
+    
+    try {
+        showAuthLoading(true);
+        await auth.createUserWithEmailAndPassword(email, pwd);
+        showAuthError('');
+        showTab('home');
+    } catch(e) {
+        showAuthLoading(false);
+        let errorMsg = "Erreur d'inscription";
+        switch(e.code) {
+            case 'auth/email-already-in-use':
+                errorMsg = "❌ Cet email est déjà utilisé. Connectez-vous.";
+                break;
+            case 'auth/weak-password':
+                errorMsg = "❌ Mot de passe trop faible (min 6 caractères).";
+                break;
+            case 'auth/invalid-email':
+                errorMsg = "❌ Format d'email invalide.";
+                break;
+            case 'auth/operation-not-allowed':
+                errorMsg = "❌ Inscription email/mot de passe non activée.";
+                break;
+            default:
+                errorMsg = `❌ ${e.message}`;
+        }
+        showAuthError(errorMsg);
+    }
 }
 
 async function handleGoogleSignIn() {
     try {
+        showAuthLoading(true);
         const provider = new firebase.auth.GoogleAuthProvider();
         await auth.signInWithPopup(provider);
+        showAuthError('');
         showTab('home');
-    } catch(e) { alert("Erreur Google: " + e.message); }
+    } catch(e) {
+        showAuthLoading(false);
+        showAuthError(`❌ ${e.message}`);
+    }
 }
 
 function handleLogout() { auth.signOut(); showTab('profile'); }
+
+async function resetPassword() {
+    const email = document.getElementById('loginEmail').value.trim();
+    
+    if (!email || !email.includes('@')) {
+        showAuthError("Saisissez d'abord votre email ci-dessus");
+        return;
+    }
+    
+    if (!confirm(`Envoyer un email de réinitialisation à ${email} ?`)) return;
+    
+    try {
+        showAuthLoading(true);
+        await auth.sendPasswordResetEmail(email);
+        showAuthError('');
+        showAuthLoading(false);
+        alert(`✅ Email envoyé à ${email} ! Vérifiez votre boîte de réception.`);
+    } catch(e) {
+        showAuthLoading(false);
+        let errorMsg = "Erreur";
+        switch(e.code) {
+            case 'auth/user-not-found':
+                errorMsg = "❌ Aucun compte avec cet email.";
+                break;
+            case 'auth/invalid-email':
+                errorMsg = "❌ Email invalide.";
+                break;
+            default:
+                errorMsg = `❌ ${e.message}`;
+        }
+        showAuthError(errorMsg);
+    }
+}
+
+function showAuthError(msg) {
+    let errorDiv = document.getElementById('auth-error');
+    if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.id = 'auth-error';
+        errorDiv.className = 'text-xs text-center px-3 py-2 rounded-lg';
+        const loginBtn = document.querySelector('[onclick="handleLogin()"]');
+        loginBtn.parentNode.insertBefore(errorDiv, loginBtn.nextSibling);
+    }
+    
+    if (!msg) {
+        errorDiv.classList.add('hidden');
+        errorDiv.innerText = '';
+        return;
+    }
+    
+    errorDiv.classList.remove('hidden');
+    errorDiv.innerText = msg;
+    errorDiv.style.background = msg.includes('✅') ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)';
+    errorDiv.style.color = msg.includes('✅') ? '#10b981' : '#ef4444';
+    errorDiv.style.border = `1px solid ${msg.includes('✅') ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`;
+}
+
+function showAuthLoading(loading) {
+    const loginBtn = document.getElementById('btn-login');
+    const signupBtn = document.getElementById('btn-signup');
+    if (loginBtn) loginBtn.disabled = loading;
+    if (signupBtn) signupBtn.disabled = loading;
+    if (loginBtn) loginBtn.innerHTML = loading ? '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Connexion...' : '<i class="fa-solid fa-right-to-bracket mr-1"></i>Se connecter';
+}
 
 // ============================================
 // 📚 DONNÉES FIREBASE
@@ -540,7 +686,6 @@ function updateProfileUI() {
         
         renderMyVideos();
         
-        // Formulaire création
         createForm.classList.add('hidden');
         albumPending.classList.add('hidden');
         albumApproved.classList.add('hidden');
@@ -560,7 +705,7 @@ function updateProfileUI() {
 }
 
 // ============================================
-//  CRÉATION ALBUM
+// 📝 CRÉATION ALBUM
 // ============================================
 async function submitAlbumRequest() {
     if (!currentUser) { alert("Connectez-vous d'abord"); return; }
@@ -576,7 +721,6 @@ async function submitAlbumRequest() {
         return;
     }
     
-    // Vérifier limite 20 albums
     const totalAlbums = await db.collection('albums').get();
     if (totalAlbums.size >= 20) {
         document.getElementById('create-album-form').classList.add('hidden');
@@ -732,7 +876,7 @@ async function uploadVideoToB2() {
 }
 
 // ============================================
-// 📥 TÉLÉCHARGEMENT AVEC OPTIONS
+// 📥 TÉLÉCHARGEMENT
 // ============================================
 function showDownloadOptions() {
     if (!currentPlayingVideo) return;
@@ -753,18 +897,16 @@ async function downloadWithQuality(quality) {
     let filename = v.title + '.mp4';
     
     if (quality === 'audio') {
-        // Conversion vidéo → audio via extraction
         alert("🎵 Extraction audio en cours...");
         try {
             await extractAudio(v.videoUrl, v.title);
         } catch(e) {
-            alert(" Erreur extraction audio: " + e.message);
+            alert("Erreur extraction audio: " + e.message);
         }
         return;
     }
     
     if (quality === 'medium') {
-        // Pour qualité moyenne, on télécharge l'original (optimisation future: transcodage serveur)
         filename = v.title + '_medium.mp4';
     }
     
@@ -772,7 +914,6 @@ async function downloadWithQuality(quality) {
 }
 
 async function extractAudio(videoUrl, title) {
-    // Méthode: télécharger la vidéo puis extraire l'audio via Web Audio API
     const downloadId = 'dl_' + Date.now();
     activeDownloads.push({ id: downloadId, title: title + ' (audio)', url: videoUrl, progress: 0 });
     localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
@@ -809,7 +950,6 @@ async function extractAudio(videoUrl, title) {
         const arrayBuffer = await blob.arrayBuffer();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
         
-        // Convertir en WAV (simple)
         const wavBlob = audioBufferToWav(audioBuffer);
         const wavUrl = URL.createObjectURL(wavBlob);
         
@@ -839,7 +979,7 @@ async function extractAudio(videoUrl, title) {
 function audioBufferToWav(buffer) {
     const numChannels = buffer.numberOfChannels;
     const sampleRate = buffer.sampleRate;
-    const format = 1; // PCM
+    const format = 1;
     const bitDepth = 16;
     const bytesPerSample = bitDepth / 8;
     const blockAlign = numChannels * bytesPerSample;
@@ -1060,7 +1200,6 @@ function renderVideoGrid() {
     }).join('');
 }
 
-// Appui long pour télécharger
 function startLongPress(videoId) {
     longPressTimer = setTimeout(() => {
         const v = allVideos.find(x => x.id === videoId);
@@ -1080,7 +1219,6 @@ function cancelLongPress() {
 
 function handleVideoClick(videoId) {
     if (longPressTimer) {
-        // Clic court = ouvrir lecteur
         const v = allVideos.find(x => x.id === videoId);
         if (v) openVideoPlayer(v.videoUrl, v.title, v.speaker, v.id);
     }
