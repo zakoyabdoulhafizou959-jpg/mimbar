@@ -50,6 +50,14 @@
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="type-chips"></div>
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="album-chips"></div>
             
+            <!-- Bouton pour activer le mode sélection -->
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-xs font-black text-zinc-400 uppercase">Vidéos disponibles</h3>
+                <button onclick="toggleHomeSelectionMode()" id="btn-home-select-mode" class="text-[10px] px-3 py-1.5 rounded-full bg-zinc-800 text-white">
+                    <i class="fa-regular fa-square-check mr-1"></i>Sélectionner
+                </button>
+            </div>
+            
             <!-- Barre de sélection pour la page d'accueil -->
             <div id="home-selection-bar" class="hidden bg-zinc-900 rounded-xl p-3 border border-orange-500/30 flex items-center justify-between">
                 <div class="flex items-center gap-2">
@@ -273,7 +281,7 @@
         <button onclick="showTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-user text-lg"></i><span class="text-[9px]">Profil</span></button>
     </nav>
 
-    <!-- LECTEUR VIDÉO - SANS preload pour éviter les conflits -->
+    <!-- LECTEUR VIDÉO -->
     <div id="video-overlay-player" class="hidden fixed inset-0 bg-black z-50 flex flex-col">
         <div class="bg-zinc-900 p-3 flex items-center justify-between">
             <button onclick="closeVideoPlayer()" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-white"></i></button>
@@ -859,8 +867,8 @@ function renderAlbumChips() {
     `).join('');
 }
 
-function renderVideoGrid() {
-    const container = document.getElementById('video-grid');
+// Fonction pour obtenir les vidéos filtrées actuellement affichées
+function getFilteredVideos() {
     let filtered = [...allVideos];
     
     if (selectedTypeFilter) {
@@ -879,6 +887,12 @@ function renderVideoGrid() {
                    (album && (album.country || '').toLowerCase().includes(q));
         });
     }
+    return filtered;
+}
+
+function renderVideoGrid() {
+    const container = document.getElementById('video-grid');
+    const filtered = getFilteredVideos();
     
     if (filtered.length === 0) {
         container.innerHTML = `<div class="text-center py-12"><i class="fa-solid fa-video-slash text-4xl text-zinc-700"></i><p class="text-sm text-zinc-500 mt-3">Aucune vidéo</p></div>`;
@@ -905,7 +919,7 @@ function renderVideoGrid() {
                 <img src="${thumb}" alt="${escapeAttr(v.title)}" class="w-full h-full object-cover" onerror="this.src='${defaultThumb}'">
                 ${homeSelectionMode ? `
                     <div class="absolute top-2 left-2 z-10" onclick="event.stopPropagation(); toggleHomeVideoSelection('${v.id}')">
-                        <div class="w-6 h-6 rounded border-2 flex items-center justify-center ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-white bg-black/50'}">
+                        <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-white bg-black/50'}">
                             ${isSelected ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
                         </div>
                     </div>
@@ -929,7 +943,29 @@ function renderVideoGrid() {
     }).join('');
 }
 
-// Fonctions pour la sélection sur la page d'accueil
+// === FONCTIONS DE SÉLECTION PAGE D'ACCUEIL ===
+
+function toggleHomeSelectionMode() {
+    homeSelectionMode = !homeSelectionMode;
+    homeSelectedVideoIds.clear();
+    
+    const btn = document.getElementById('btn-home-select-mode');
+    const bar = document.getElementById('home-selection-bar');
+    
+    if (homeSelectionMode) {
+        btn.innerHTML = '<i class="fa-solid fa-xmark mr-1"></i>Annuler';
+        btn.style.background = '#ff5722';
+        bar.classList.remove('hidden');
+    } else {
+        btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner';
+        btn.style.background = '';
+        bar.classList.add('hidden');
+    }
+    
+    document.getElementById('home-selected-count').innerText = '0';
+    renderVideoGrid();
+}
+
 function toggleHomeVideoSelection(videoId) {
     if (homeSelectedVideoIds.has(videoId)) {
         homeSelectedVideoIds.delete(videoId);
@@ -941,32 +977,15 @@ function toggleHomeVideoSelection(videoId) {
 }
 
 function toggleSelectAllHome() {
-    const container = document.getElementById('video-grid');
-    const videoCards = container.querySelectorAll('.video-card');
-    const visibleVideos = allVideos.filter(v => {
-        let show = true;
-        if (selectedTypeFilter) {
-            const albumIds = allAlbums.filter(a => a.type === selectedTypeFilter).map(a => a.id);
-            show = albumIds.includes(v.albumId);
-        }
-        if (selectedAlbumFilter && show) show = v.albumId === selectedAlbumFilter;
-        if (searchQuery && show) {
-            const q = searchQuery.toLowerCase();
-            const album = allAlbums.find(a => a.id === v.albumId);
-            show = v.title.toLowerCase().includes(q) || 
-                   v.speaker.toLowerCase().includes(q) ||
-                   (album && (album.imamName || '').toLowerCase().includes(q));
-        }
-        return show;
-    });
-    
-    const allSelected = visibleVideos.every(v => homeSelectedVideoIds.has(v.id));
+    const visibleVideos = getFilteredVideos();
+    const allSelected = visibleVideos.length > 0 && visibleVideos.every(v => homeSelectedVideoIds.has(v.id));
     
     if (allSelected) {
         visibleVideos.forEach(v => homeSelectedVideoIds.delete(v.id));
     } else {
         visibleVideos.forEach(v => homeSelectedVideoIds.add(v.id));
     }
+    
     updateHomeSelectionUI();
     renderVideoGrid();
 }
@@ -974,33 +993,52 @@ function toggleSelectAllHome() {
 function updateHomeSelectionUI() {
     const count = homeSelectedVideoIds.size;
     document.getElementById('home-selected-count').innerText = count;
-    const bar = document.getElementById('home-selection-bar');
-    if (count > 0) {
-        bar.classList.remove('hidden');
-    } else {
-        bar.classList.add('hidden');
-    }
 }
 
 function cancelSelectionHome() {
+    homeSelectionMode = false;
     homeSelectedVideoIds.clear();
-    updateHomeSelectionUI();
+    
+    const btn = document.getElementById('btn-home-select-mode');
+    const bar = document.getElementById('home-selection-bar');
+    
+    if (btn) {
+        btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner';
+        btn.style.background = '';
+    }
+    if (bar) {
+        bar.classList.add('hidden');
+    }
+    
     renderVideoGrid();
 }
 
 async function downloadSelectedHome() {
-    if (homeSelectedVideoIds.size === 0) { alert("Aucune vidéo sélectionnée"); return; }
+    if (homeSelectedVideoIds.size === 0) { 
+        alert("Aucune vidéo sélectionnée"); 
+        return; 
+    }
+    
     const videos = allVideos.filter(v => homeSelectedVideoIds.has(v.id));
     alert(`Téléchargement de ${videos.length} vidéo(s)...`);
+    
     for (const v of videos) {
-        try { await downloadVideo(v.videoUrl, v.title + '.mp4', v.id); }
-        catch(e) { window.open(v.videoUrl, '_blank'); }
+        try { 
+            await downloadVideo(v.videoUrl, v.title + '.mp4', v.id); 
+        } catch(e) { 
+            window.open(v.videoUrl, '_blank'); 
+        }
         await new Promise(r => setTimeout(r, 500));
     }
+    
     cancelSelectionHome();
 }
 
+// === FIN FONCTIONS SÉLECTION ===
+
 function startLongPress(videoId) {
+    if (homeSelectionMode) return; // Ne pas activer le long press en mode sélection
+    
     longPressTimer = setTimeout(() => {
         const v = allVideos.find(x => x.id === videoId);
         if (v) { 
@@ -1019,11 +1057,10 @@ function cancelLongPress() {
 }
 
 function handleVideoClick(videoId, event) {
-    // Si on est en mode sélection, ne pas ouvrir la vidéo
+    // Si on est en mode sélection, toggle la sélection au lieu d'ouvrir la vidéo
     if (homeSelectionMode) {
-        if (event && event.target.closest('.video-card')) {
-            toggleHomeVideoSelection(videoId);
-        }
+        if (event) event.stopPropagation();
+        toggleHomeVideoSelection(videoId);
         return;
     }
     
@@ -1038,7 +1075,6 @@ function handleVideoClick(videoId, event) {
     openVideoPlayer(video.videoUrl, video.title, video.speaker, video.id);
 }
 
-// ✅ CORRECTION : Attendre que la vidéo soit prête avant de lancer play()
 function openVideoPlayer(url, title, speaker, videoId) {
     console.log('▶️ openVideoPlayer - URL:', url);
     
@@ -1057,22 +1093,15 @@ function openVideoPlayer(url, title, speaker, videoId) {
     const video = document.getElementById('native-video');
     const source = document.getElementById('video-source');
     
-    // 1. Arrêter la lecture précédente
     video.pause();
-    
-    // 2. Afficher le lecteur AVANT de charger
     document.getElementById('video-overlay-player').classList.remove('hidden');
     
-    // 3. Changer la source
     source.src = url;
     source.type = 'video/mp4';
-    
-    // 4. Recharger
     video.load();
     
     console.log('✅ Source chargée:', source.src);
     
-    // 5. ✅ IMPORTANT : Attendre que la vidéo soit prête avant de lancer play()
     const onCanPlay = () => {
         video.removeEventListener('canplay', onCanPlay);
         video.removeEventListener('error', onError);
@@ -1090,7 +1119,6 @@ function openVideoPlayer(url, title, speaker, videoId) {
     video.addEventListener('canplay', onCanPlay);
     video.addEventListener('error', onError);
     
-    // Incrémenter les vues
     if (videoId) {
         db.collection('videos').doc(videoId).update({ 
             views: firebase.firestore.FieldValue.increment(1) 
@@ -1098,7 +1126,6 @@ function openVideoPlayer(url, title, speaker, videoId) {
     }
 }
 
-// ✅ CORRECTION : Ferme correctement le lecteur
 function closeVideoPlayer() { 
     const video = document.getElementById('native-video');
     const source = document.getElementById('video-source');
@@ -1121,9 +1148,12 @@ function renderMyVideos() {
         container.innerHTML = '<p class="text-center text-zinc-500 text-xs py-6">Aucune vidéo</p>';
         return;
     }
+    
+    const defaultThumb = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzI3MjcyNyIvPjxjaXJjbGUgY3g9IjE2MCIgY3k9IjkwIiByPSI0MCIgZmlsbD0iI2ZmNTcyMiIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDc1IDE1MCwxMDUgMTgwLDkwIiBmaWxsPSIjZmZmIi8+PC9zdmc+';
+    
     container.innerHTML = myVids.map(v => {
         const isSelected = selectedVideoIds.has(v.id);
-        const thumb = v.thumbnail && v.thumbnail.trim() !== '' ? v.thumbnail : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzI3MjcyNyIvPjxjaXJjbGUgY3g9IjE2MCIgY3k9IjkwIiByPSI0MCIgZmlsbD0iI2ZmNTcyMiIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDc1IDE1MCwxMDUgMTgwLDkwIiBmaWxsPSIjZmZmIi8+PC9zdmc+';
+        const thumb = v.thumbnail && v.thumbnail.trim() !== '' ? v.thumbnail : defaultThumb;
         return `
         <div class="bg-zinc-900 rounded-xl p-2 flex gap-3 items-center ${isSelected ? 'border-2 border-orange-500' : 'border border-zinc-800'}">
             ${selectionMode ? `
@@ -1131,7 +1161,7 @@ function renderMyVideos() {
                     ${isSelected ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
                 </button>
             ` : ''}
-            ${thumb ? `<img src="${thumb}" class="w-20 h-12 rounded object-cover shrink-0" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzI3MjcyNyIvPjxjaXJjbGUgY3g9IjE2MCIgY3k9IjkwIiByPSI0MCIgZmlsbD0iI2ZmNTcyMiIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDc1IDE1MCwxMDUgMTgwLDkwIiBmaWxsPSIjZmZmIi8+PC9zdmc+'">` : `<div class="w-20 h-12 rounded bg-zinc-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-film text-orange-500"></i></div>`}
+            ${thumb ? `<img src="${thumb}" class="w-20 h-12 rounded object-cover shrink-0" onerror="this.src='${defaultThumb}'">` : `<div class="w-20 h-12 rounded bg-zinc-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-film text-orange-500"></i></div>`}
             <div class="flex-1 min-w-0" onclick="openVideoPlayer('${escapeAttr(v.videoUrl)}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
                 <p class="text-xs font-bold text-white truncate">${escapeAttr(v.title)}</p>
                 <p class="text-[9px] text-zinc-500">${v.views || 0} vues</p>
@@ -1272,11 +1302,13 @@ function showTab(tab) {
     if (target) target.classList.remove('hidden');
     const activeBtn = document.getElementById(`nav-${tab}`);
     if (activeBtn) activeBtn.style.color = '#ff5722';
+    
     if (tab === 'downloads') renderDownloads();
     if (tab === 'myalbum' && currentUser) { updateProfileUI(); renderMyVideos(); }
     if (tab === 'create' && currentUser) updateProfileUI();
-    if (tab === 'home') {
-        // Réinitialiser la sélection quand on quitte l'accueil
+    
+    // Réinitialiser la sélection quand on quitte l'accueil
+    if (tab !== 'home') {
         cancelSelectionHome();
     }
 }
