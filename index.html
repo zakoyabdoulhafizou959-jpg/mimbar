@@ -2,12 +2,11 @@
 <html lang="fr" class="h-full bg-zinc-950 text-white select-none">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>أهل السنة والجماعة</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
@@ -15,21 +14,17 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .fade-in { animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .video-card { touch-action: manipulation; }
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .arabic-title { font-family: 'Amiri', serif; font-size: 1.1rem; font-weight: 700; }
-        .azkar-iframe { width: 100%; height: 100%; border: none; }
-        .pulse-record { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .message-bubble { max-width: 85%; word-wrap: break-word; }
     </style>
 </head>
 <body class="h-full bg-slate-900 flex justify-center items-center overflow-hidden font-sans">
 
 <div class="w-full h-full max-w-[480px] md:h-[92vh] md:rounded-[40px] md:border-[10px] md:border-zinc-800 bg-zinc-950 flex flex-col relative overflow-hidden shadow-2xl">
 
-    <header class="bg-zinc-900 px-4 pt-6 pb-3 border-b border-zinc-800/80 flex items-center justify-between shrink-0 z-20">
+    <header class="bg-zinc-900 px-4 pt-6 pb-3 border-b border-zinc-800/80 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-400 to-emerald-500 p-1 flex items-center justify-center shadow-lg">
                 <i class="fa-solid fa-mosque text-white text-xs"></i>
@@ -55,6 +50,7 @@
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="type-chips"></div>
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="album-chips"></div>
             
+            <!-- Bouton pour activer le mode sélection -->
             <div class="flex justify-between items-center mb-2">
                 <h3 class="text-xs font-black text-zinc-400 uppercase">Vidéos disponibles</h3>
                 <button onclick="toggleHomeSelectionMode()" id="btn-home-select-mode" class="text-[10px] px-3 py-1.5 rounded-full bg-zinc-800 text-white">
@@ -62,6 +58,7 @@
                 </button>
             </div>
             
+            <!-- Barre de sélection pour la page d'accueil -->
             <div id="home-selection-bar" class="hidden bg-zinc-900 rounded-xl p-3 border border-orange-500/30 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <button onclick="toggleSelectAllHome()" class="text-[10px] px-2 py-1 bg-zinc-800 rounded text-white">
@@ -82,154 +79,11 @@
             <div id="video-grid" class="space-y-4"></div>
         </div>
 
-        <div id="tab-album" class="hidden flex flex-col h-full">
-            <div class="bg-gradient-to-br from-orange-950 to-zinc-900 p-4 border-b border-orange-500/30 shrink-0">
-                <div class="flex items-center gap-2 mb-3">
-                    <button onclick="showTab('home')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
-                        <i class="fa-solid fa-arrow-left text-white"></i>
-                    </button>
-                    <h2 class="text-base font-bold text-white flex-1">Album de <span id="album-view-imam"></span></h2>
-                </div>
-                <div class="flex items-center gap-2 text-[11px] text-zinc-400 mb-2">
-                    <i class="fa-solid fa-location-dot"></i>
-                    <span id="album-view-location"></span>
-                </div>
-                <div class="flex gap-4 text-[10px] text-zinc-400">
-                    <span><i class="fa-solid fa-video"></i> <span id="album-view-videos-count">0</span> vidéos</span>
-                    <span><i class="fa-regular fa-eye"></i> <span id="album-view-views">0</span> vues</span>
-                </div>
-            </div>
-
-            <div class="flex-1 flex flex-col bg-zinc-950">
-                <div id="questions-list" class="flex-1 overflow-y-auto p-4 space-y-3">
-                    <div class="text-center text-zinc-500 py-8 text-xs">
-                        <i class="fa-regular fa-comments text-3xl mb-2"></i>
-                        <p>Poser une question à l'imam</p>
-                    </div>
-                </div>
-
-                <div class="border-t border-zinc-800 p-3 bg-zinc-900 shrink-0">
-                    <div id="question-input-area" class="space-y-2">
-                        <div class="flex gap-2">
-                            <input type="text" id="question-text" placeholder="Écrivez votre question..." class="flex-1 bg-zinc-800 border border-zinc-700 rounded-full px-4 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
-                            <button onclick="toggleVoiceRecording()" id="btn-voice-record" class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white">
-                                <i class="fa-solid fa-microphone"></i>
-                            </button>
-                            <button onclick="sendQuestion()" id="btn-send-question" class="w-10 h-10 rounded-full flex items-center justify-center text-white" style="background:#ff5722">
-                                <i class="fa-solid fa-paper-plane text-xs"></i>
-                            </button>
-                        </div>
-                        
-                        <div id="voice-recording-ui" class="hidden flex items-center justify-between bg-zinc-800 rounded-lg p-2">
-                            <div class="flex items-center gap-2">
-                                <div class="w-2 h-2 rounded-full bg-red-500 pulse-record"></div>
-                                <span class="text-[10px] text-zinc-300" id="recording-timer">00:00</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="cancelRecording()" class="px-2 py-1 rounded bg-zinc-700 text-[10px] text-white">
-                                    <i class="fa-solid fa-xmark mr-1"></i>Annuler
-                                </button>
-                                <button onclick="stopRecording()" class="px-2 py-1 rounded text-[10px] text-white" style="background:#ff5722">
-                                    <i class="fa-solid fa-check mr-1"></i>Envoyer
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div id="audio-preview" class="hidden flex items-center justify-between bg-zinc-800 rounded-lg p-2">
-                            <div class="flex items-center gap-2 flex-1">
-                                <i class="fa-solid fa-music text-orange-500"></i>
-                                <span class="text-xs text-white">Audio enregistré</span>
-                                <audio id="audio-preview-element" controls class="h-8"></audio>
-                            </div>
-                            <button onclick="removeAudio()" class="ml-2 text-red-400">
-                                <i class="fa-solid fa-trash text-xs"></i>
-                            </button>
-                        </div>
-                        
-                        <div id="audio-upload-progress" class="hidden bg-zinc-800 rounded-lg p-2">
-                            <div class="flex items-center gap-2 mb-1">
-                                <i class="fa-solid fa-cloud-arrow-up text-orange-500"></i>
-                                <span class="text-[10px] text-white" id="audio-upload-text">Upload audio...</span>
-                            </div>
-                            <div class="h-1 bg-zinc-700 rounded-full overflow-hidden">
-                                <div id="audio-progress-bar" class="h-full transition-all" style="width:0%;background:#ff5722"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-myalbum" class="hidden p-4 space-y-4">
-            <div class="flex items-center gap-2 mb-4">
-                <button onclick="showTab('profile')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
-                    <i class="fa-solid fa-arrow-left text-white"></i>
-                </button>
-                <h2 class="text-base font-bold text-white">Mon Album</h2>
-            </div>
-            
-            <div id="myalbum-empty" class="text-center py-12">
-                <i class="fa-solid fa-lock text-4xl text-zinc-600"></i>
-                <h3 class="text-sm font-bold text-white mt-3">Aucun album</h3>
-                <button onclick="showTab('create')" class="mt-4 px-4 py-2 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Créer un album</button>
-            </div>
-            
-            <div id="myalbum-content" class="hidden space-y-4">
-                <div class="bg-gradient-to-br from-orange-950 to-zinc-900 rounded-2xl p-4 border border-orange-500/30">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="px-2 py-0.5 rounded bg-orange-500 text-zinc-950 text-[9px] font-black uppercase" id="album-status-badge">APPROUVÉ</span>
-                    </div>
-                    <h3 class="text-base font-black text-white" id="my-album-title">Mon Album</h3>
-                    <p class="text-[10px] text-zinc-400 mt-1">
-                        <span id="my-album-imam"></span> · <span id="my-album-location"></span>
-                    </p>
-                    <div class="flex gap-4 mt-2 text-[10px] text-zinc-400">
-                        <span><i class="fa-solid fa-video"></i> <span id="my-videos-count">0</span> vidéos</span>
-                        <span><i class="fa-regular fa-eye"></i> <span id="my-album-views">0</span> vues</span>
-                    </div>
-                </div>
-
-                <div id="upload-section" class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed" style="border-color:rgba(255,87,34,0.5)">
-                    <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="handleFileSelected(this)">
-                    <button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 rounded-xl text-sm font-bold" style="background:rgba(255,87,34,0.2);color:#ff5722">
-                        <i class="fa-solid fa-cloud-arrow-up mr-2"></i>Ajouter une vidéo
-                    </button>
-                    <div id="upload-form" class="hidden mt-3 space-y-2">
-                        <div class="flex items-center gap-2 bg-zinc-800 rounded-lg p-2">
-                            <i class="fa-solid fa-film text-orange-500"></i>
-                            <span id="selected-file-name" class="text-xs text-white truncate flex-1"></span>
-                            <button onclick="cancelFileSelection()" class="text-zinc-400"><i class="fa-solid fa-xmark"></i></button>
-                        </div>
-                        <input type="text" id="videoTitle" placeholder="Titre de la vidéo" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
-                        <button onclick="uploadVideoToB2()" class="w-full py-2 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
-                            <i class="fa-solid fa-upload mr-1"></i>Publier
-                        </button>
-                        <div id="uploadProgress" class="hidden space-y-1">
-                            <div class="h-1.5 bg-zinc-700 rounded-full overflow-hidden">
-                                <div id="progressBar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
-                            </div>
-                            <p id="progressText" class="text-[10px] text-zinc-400 text-center">0%</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="text-xs font-black text-zinc-400 uppercase mb-2">Mes vidéos</h3>
-                    <div id="my-videos-list" class="space-y-2"></div>
-                </div>
-            </div>
-        </div>
-
         <div id="tab-create" class="hidden p-4 space-y-4">
             <div class="bg-zinc-900 rounded-2xl p-5 space-y-4">
-                <div class="flex items-center gap-2 mb-2">
-                    <button onclick="showTab('profile')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
-                        <i class="fa-solid fa-arrow-left text-white"></i>
-                    </button>
-                    <h2 class="text-base font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-plus-circle" style="color:#ff5722"></i>Créer un album
-                    </h2>
-                </div>
+                <h2 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle" style="color:#ff5722"></i>Créer un album
+                </h2>
                 <div id="create-album-form" class="space-y-3">
                     <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 text-xs text-blue-300">
                         <i class="fa-solid fa-circle-info mr-1"></i>Votre album sera examiné par l'administrateur.
@@ -254,7 +108,7 @@
                             <option value="">-- Choisir --</option>
                             <option value="preche">📢 Prêche quotidien</option>
                             <option value="tafsir">📖 Tafsir</option>
-                            <option value="hadith">📜 Hadith</option>
+                            <option value="hadith"> Hadith</option>
                             <option value="coran">🕌 Lecture du Coran</option>
                         </select>
                     </div>
@@ -290,21 +144,67 @@
             </div>
         </div>
 
-        <div id="tab-azkar" class="hidden h-full flex flex-col">
-            <div class="p-4 border-b border-zinc-800 flex items-center justify-between shrink-0">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-book-open text-xl" style="color:#ff5722"></i>
-                    <div>
-                        <h2 class="text-base font-bold text-white">حصن المسلم</h2>
-                        <p class="text-[10px] text-zinc-400">Recueil d'invocations (Azkar)</p>
+        <div id="tab-myalbum" class="hidden p-4 space-y-4">
+            <div id="myalbum-empty" class="text-center py-12">
+                <i class="fa-solid fa-lock text-4xl text-zinc-600"></i>
+                <h3 class="text-sm font-bold text-white mt-3">Aucun album</h3>
+                <button onclick="showTab('create')" class="mt-4 px-4 py-2 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Créer un album</button>
+            </div>
+            <div id="myalbum-content" class="hidden space-y-4">
+                <div class="bg-gradient-to-br from-orange-950 to-zinc-900 rounded-2xl p-4 border border-orange-500/30">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="px-2 py-0.5 rounded bg-orange-500 text-zinc-950 text-[9px] font-black uppercase" id="album-status-badge">APPROUVÉ</span>
+                        <button onclick="toggleSelectionMode()" id="btn-select-mode" class="text-[10px] px-2 py-1 bg-zinc-800 rounded text-white">
+                            <i class="fa-regular fa-square-check mr-1"></i>Sélectionner
+                        </button>
+                    </div>
+                    <h3 class="text-base font-black text-white" id="my-album-title">Mon Album</h3>
+                    <p class="text-[10px] text-zinc-400 mt-1">
+                        <span id="my-album-imam"></span> · <span id="my-album-location"></span>
+                    </p>
+                    <div class="flex gap-4 mt-2 text-[10px] text-zinc-400">
+                        <span><i class="fa-solid fa-video"></i> <span id="my-videos-count">0</span> vidéos</span>
+                        <span><i class="fa-regular fa-eye"></i> <span id="my-album-views">0</span> vues</span>
                     </div>
                 </div>
-                <a href="https://raw.githubusercontent.com/zakoyabdoulhafizou959-jpg/mimbar/main/hisnul-muslim-pdf.pdf" target="_blank" class="px-3 py-1.5 rounded-lg text-[10px] font-bold text-white" style="background:#ff5722">
-                    <i class="fa-solid fa-download mr-1"></i>PDF
-                </a>
-            </div>
-            <div class="flex-1 bg-white">
-                <iframe id="azkar-iframe" class="azkar-iframe" src="https://docs.google.com/viewer?url=https://raw.githubusercontent.com/zakoyabdoulhafizou959-jpg/mimbar/main/hisnul-muslim-pdf.pdf&embedded=true&hl=fr" allowfullscreen></iframe>
+                <div id="selection-bar" class="hidden bg-zinc-900 rounded-xl p-3 border border-orange-500/30 flex items-center justify-between">
+                    <span class="text-xs text-white"><span id="selected-count">0</span> sélectionnée(s)</span>
+                    <div class="flex gap-2">
+                        <button onclick="downloadSelected()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold text-white" style="background:#ff5722">
+                            <i class="fa-solid fa-download mr-1"></i>Télécharger
+                        </button>
+                        <button onclick="deleteSelected()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-red-600 text-white">
+                            <i class="fa-solid fa-trash mr-1"></i>Supprimer
+                        </button>
+                    </div>
+                </div>
+                <div id="upload-section" class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed" style="border-color:rgba(255,87,34,0.5)">
+                    <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="handleFileSelected(this)">
+                    <button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 rounded-xl text-sm font-bold" style="background:rgba(255,87,34,0.2);color:#ff5722">
+                        <i class="fa-solid fa-cloud-arrow-up mr-2"></i>Ajouter une vidéo
+                    </button>
+                    <div id="upload-form" class="hidden mt-3 space-y-2">
+                        <div class="flex items-center gap-2 bg-zinc-800 rounded-lg p-2">
+                            <i class="fa-solid fa-film text-orange-500"></i>
+                            <span id="selected-file-name" class="text-xs text-white truncate flex-1"></span>
+                            <button onclick="cancelFileSelection()" class="text-zinc-400"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <input type="text" id="videoTitle" placeholder="Titre de la vidéo" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
+                        <button onclick="uploadVideoToB2()" class="w-full py-2 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
+                            <i class="fa-solid fa-upload mr-1"></i>Publier
+                        </button>
+                        <div id="uploadProgress" class="hidden space-y-1">
+                            <div class="h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                                <div id="progressBar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
+                            </div>
+                            <p id="progressText" class="text-[10px] text-zinc-400 text-center">0%</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xs font-black text-zinc-400 uppercase mb-2">Mes vidéos</h3>
+                    <div id="my-videos-list" class="space-y-2"></div>
+                </div>
             </div>
         </div>
 
@@ -365,7 +265,7 @@
                     <div class="bg-zinc-900 p-3 rounded-xl text-center"><p class="text-[9px] text-zinc-500">DL</p><p class="text-lg font-bold" style="color:#ff5722" id="statDownloads">0</p></div>
                 </div>
                 <button onclick="showTab('myalbum')" class="w-full py-3 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 border border-zinc-800">
-                    <i class="fa-solid fa-photo-film" style="color:#ff5722"></i>Mon Album
+                    <i class="fa-solid fa-photo-film" style="color:#ff5722"></i>Gérer mon album
                 </button>
                 <button onclick="showTab('create')" class="w-full py-3 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 border border-zinc-800">
                     <i class="fa-solid fa-plus" style="color:#ff5722"></i>Créer un nouvel album
@@ -374,13 +274,14 @@
         </div>
     </div>
 
-    <nav class="absolute bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800/80 py-2 px-4 flex items-center justify-around z-20">
+    <nav class="absolute bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800/80 py-2 px-4 flex items-center justify-around">
         <button onclick="showTab('home')" id="nav-home" class="flex flex-col items-center gap-1" style="color:#ff5722"><i class="fa-solid fa-house text-lg"></i><span class="text-[9px]">Accueil</span></button>
         <button onclick="showTab('downloads')" id="nav-downloads" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-download text-lg"></i><span class="text-[9px]">Downloads</span></button>
-        <button onclick="showTab('azkar')" id="nav-azkar" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-book-open text-lg"></i><span class="text-[9px]">Azkar</span></button>
+        <button onclick="showTab('myalbum')" id="nav-myalbum" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-photo-film text-lg"></i><span class="text-[9px]">Mon Album</span></button>
         <button onclick="showTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-user text-lg"></i><span class="text-[9px]">Profil</span></button>
     </nav>
 
+    <!-- LECTEUR VIDÉO -->
     <div id="video-overlay-player" class="hidden fixed inset-0 bg-black z-50 flex flex-col">
         <div class="bg-zinc-900 p-3 flex items-center justify-between">
             <button onclick="closeVideoPlayer()" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-white"></i></button>
@@ -390,6 +291,7 @@
         <div class="flex-1 flex items-center justify-center bg-black">
             <video id="native-video" class="w-full max-h-full" controls playsinline>
                 <source id="video-source" src="" type="video/mp4">
+                Votre navigateur ne supporte pas la lecture vidéo.
             </video>
         </div>
         <div class="bg-zinc-900 p-3 flex items-center justify-between">
@@ -444,25 +346,16 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const storage = firebase.storage();
 
 function escapeAttr(str) {
     if (!str) return '';
     return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ').replace(/\r/g, '');
 }
 
-function formatTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
-
 let currentUser = null;
 let userAlbum = null;
-let currentViewAlbum = null;
 let allVideos = [];
 let allAlbums = [];
-let allQuestions = [];
 let selectedTypeFilter = null;
 let selectedAlbumFilter = null;
 let searchQuery = '';
@@ -473,14 +366,10 @@ let currentSelectedFile = null;
 let completedDownloads = JSON.parse(localStorage.getItem('completedDownloads') || '[]');
 let activeDownloads = JSON.parse(localStorage.getItem('activeDownloads') || '[]');
 let longPressTimer = null;
+
+// Variables pour la sélection sur la page d'accueil
 let homeSelectionMode = false;
 let homeSelectedVideoIds = new Set();
-
-let mediaRecorder = null;
-let audioChunks = [];
-let recordingStartTime = null;
-let recordingTimerInterval = null;
-let currentAudioBlob = null;
 
 const TYPE_LABELS = {
     'preche': '📢 Prêche quotidien',
@@ -521,6 +410,7 @@ async function handleLogin() {
             case 'auth/invalid-credential': errorMsg = "❌ Email ou mot de passe incorrect."; break;
             case 'auth/user-not-found': errorMsg = "❌ Compte introuvable."; break;
             case 'auth/wrong-password': errorMsg = "❌ Mot de passe incorrect."; break;
+            case 'auth/operation-not-allowed': errorMsg = "❌ Connexion email non activée."; break;
             default: errorMsg = `❌ ${e.message}`;
         }
         showAuthError(errorMsg);
@@ -543,6 +433,7 @@ async function handleSignup() {
         switch(e.code) {
             case 'auth/email-already-in-use': errorMsg = "❌ Email déjà utilisé."; break;
             case 'auth/weak-password': errorMsg = "❌ Mot de passe trop faible."; break;
+            case 'auth/operation-not-allowed': errorMsg = "❌ Inscription non activée."; break;
             default: errorMsg = `❌ ${e.message}`;
         }
         showAuthError(errorMsg);
@@ -637,82 +528,83 @@ async function loadAllVideos() {
     } catch(e) { console.error("Erreur vidéos:", e); }
 }
 
-// ✅ CORRECTION : Charger les questions SANS orderBy (tri côté client)
-async function loadQuestions(albumId) {
-    try {
-        // ✅ Supprimer orderBy pour éviter l'erreur d'index
-        const snapshot = await db.collection('questions')
-            .where('albumId', '==', albumId)
-            .get();
-        
-        allQuestions = [];
-        snapshot.forEach(doc => {
-            allQuestions.push({ id: doc.id, ...doc.data() });
-        });
-        
-        // ✅ Trier côté client par timestamp (plus récent en premier)
-        allQuestions.sort((a, b) => {
-            const ta = a.timestamp ? a.timestamp.toDate() : new Date(0);
-            const tb = b.timestamp ? b.timestamp.toDate() : new Date(0);
-            return tb - ta; // Ordre décroissant
-        });
-        
-        renderQuestions();
-    } catch(e) { 
-        console.error("Erreur questions:", e);
-        alert("Erreur chargement questions: " + e.message);
+function updateProfileUI() {
+    const unauth = document.getElementById('profile-unauth');
+    const authDiv = document.getElementById('profile-auth');
+    const myalbumEmpty = document.getElementById('myalbum-empty');
+    const myalbumContent = document.getElementById('myalbum-content');
+    const createForm = document.getElementById('create-album-form');
+    const albumPending = document.getElementById('album-pending');
+    const albumApproved = document.getElementById('album-approved');
+    
+    if (!currentUser) {
+        unauth.classList.remove('hidden');
+        authDiv.classList.add('hidden');
+        myalbumEmpty.classList.remove('hidden');
+        myalbumContent.classList.add('hidden');
+        return;
+    }
+    
+    unauth.classList.add('hidden');
+    authDiv.classList.remove('hidden');
+    
+    document.getElementById('userName').innerText = currentUser.email?.split('@')[0] || 'User';
+    document.getElementById('userEmail').innerText = currentUser.email || '';
+    document.getElementById('userAvatar').innerText = (currentUser.email?.charAt(0) || 'U').toUpperCase();
+    
+    const myVids = allVideos.filter(v => v.userId === currentUser.uid);
+    document.getElementById('statVideos').innerText = myVids.length;
+    document.getElementById('statViews').innerText = myVids.reduce((s, v) => s + (v.views || 0), 0);
+    document.getElementById('statDownloads').innerText = completedDownloads.length;
+    
+    if (userAlbum) {
+        myalbumEmpty.classList.add('hidden');
+        myalbumContent.classList.remove('hidden');
+        document.getElementById('my-album-title').innerText = userAlbum.imamName || 'Mon Album';
+        document.getElementById('my-album-imam').innerText = userAlbum.imamName || '';
+        document.getElementById('my-album-location').innerText = `${userAlbum.city || ''}, ${userAlbum.country || ''}`;
+        document.getElementById('my-videos-count').innerText = myVids.length;
+        document.getElementById('my-album-views').innerText = myVids.reduce((s, v) => s + (v.views || 0), 0);
+        renderMyVideos();
+        createForm.classList.add('hidden');
+        albumPending.classList.add('hidden');
+        albumApproved.classList.add('hidden');
+        if (userAlbum.status === 'pending') albumPending.classList.remove('hidden');
+        else if (userAlbum.status === 'approved') albumApproved.classList.remove('hidden');
+    } else {
+        myalbumEmpty.classList.remove('hidden');
+        myalbumContent.classList.add('hidden');
+        createForm.classList.remove('hidden');
+        albumPending.classList.add('hidden');
+        albumApproved.classList.add('hidden');
     }
 }
 
 async function submitAlbumRequest() {
-    if (!currentUser) { alert("Connectez-vous d'abord"); return; }
-    
+    if (!currentUser) { alert("Connectez-vous"); return; }
     const imamName = document.getElementById('imamName').value.trim();
     const city = document.getElementById('imamCity').value.trim();
     const country = document.getElementById('imamCountry').value.trim();
     const type = document.getElementById('imamType').value;
     const desc = document.getElementById('imamDesc').value.trim();
+    if (!imamName || !city || !country || !type) { alert("Champs obligatoires manquants"); return; }
     
-    if (!imamName || !city || !country || !type) { 
-        alert("⚠️ Tous les champs obligatoires doivent être remplis"); 
-        return; 
+    const totalAlbums = await db.collection('albums').get();
+    if (totalAlbums.size >= 20) {
+        document.getElementById('create-album-form').classList.add('hidden');
+        document.getElementById('album-limit').classList.remove('hidden');
+        return;
     }
     
     try {
         await db.collection('albums').add({
-            userId: currentUser.uid,
-            imamName: imamName,
-            city: city,
-            country: country,
-            type: type,
-            description: desc,
-            status: 'pending',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            userEmail: currentUser.email || '',
-            userName: currentUser.displayName || currentUser.email?.split('@')[0] || 'User'
+            userId: currentUser.uid, imamName, city, country, type,
+            description: desc, status: 'pending', createdAt: new Date()
         });
-        
-        alert("✅ Demande soumise avec succès !\n\nVotre album sera examiné par l'administrateur.");
-        
-        document.getElementById('imamName').value = '';
-        document.getElementById('imamCity').value = '';
-        document.getElementById('imamCountry').value = '';
-        document.getElementById('imamType').value = '';
-        document.getElementById('imamDesc').value = '';
-        
+        alert("✅ Demande soumise !");
         await loadUserData();
         updateProfileUI();
-        
-    } catch(e) { 
-        console.error("Erreur création album:", e);
-        let errorMsg = "Erreur inconnue";
-        if (e.code === 'permission-denied') {
-            errorMsg = "❌ Accès refusé. Vérifiez les règles Firestore.";
-        } else {
-            errorMsg = `❌ ${e.message}`;
-        }
-        alert(errorMsg);
-    }
+    } catch(e) { alert("Erreur: " + e.message); }
 }
 
 function handleFileSelected(input) {
@@ -771,7 +663,10 @@ async function uploadVideoToB2() {
             headers: { 'Content-Type': 'application/json' }
         });
         
-        if (!urlResponse.ok) throw new Error(`API erreur ${urlResponse.status}`);
+        if (!urlResponse.ok) {
+            const errText = await urlResponse.text();
+            throw new Error(`API erreur ${urlResponse.status}: ${errText}`);
+        }
         
         const { uploadUrl, authorizationToken, downloadUrl } = await urlResponse.json();
         
@@ -783,22 +678,33 @@ async function uploadVideoToB2() {
         
         await new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
+            
             xhr.upload.addEventListener('progress', (e) => {
                 if (e.lengthComputable) {
                     const percent = 15 + (e.loaded / e.total) * 75;
                     progressBar.style.width = `${percent}%`;
-                    progressText.innerText = `${Math.round(percent)}%`;
+                    progressText.innerText = `${Math.round(percent)}% - ${(e.loaded / 1024 / 1024).toFixed(1)}/${(e.total / 1024 / 1024).toFixed(1)} Mo`;
                 }
             });
-            xhr.onload = () => xhr.status === 200 ? resolve() : reject(new Error('Upload failed'));
-            xhr.onerror = () => reject(new Error('Network error'));
+            
+            xhr.onload = () => {
+                if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
+                else reject(new Error('Upload B2: ' + xhr.status));
+            };
+            xhr.onerror = () => reject(new Error('Erreur réseau'));
+            xhr.ontimeout = () => reject(new Error('Timeout'));
+            
             xhr.open('POST', uploadUrl);
             xhr.setRequestHeader('Authorization', authorizationToken);
             xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
             xhr.setRequestHeader('Content-Type', currentSelectedFile.type || 'application/octet-stream');
             xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
+            xhr.timeout = 600000;
             xhr.send(currentSelectedFile);
         });
+        
+        progressBar.style.width = '95%';
+        progressText.innerText = '95% - Sauvegarde...';
         
         await db.collection('videos').add({
             userId: currentUser.uid,
@@ -811,7 +717,7 @@ async function uploadVideoToB2() {
             views: 0, downloads: 0,
             downloadURL: downloadUrl + encodeURIComponent(fileName),
             thumbnail: thumbnail,
-            uploadedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            uploadedAt: new Date(),
             size: currentSelectedFile.size,
             storage: 'backblaze_b2'
         });
@@ -832,281 +738,9 @@ async function uploadVideoToB2() {
         alert("✅ Vidéo publiée !");
         
     } catch(error) {
-        console.error("Erreur upload:", error);
+        console.error(" Erreur upload:", error);
         alert("Erreur: " + error.message);
         progressDiv.classList.add('hidden');
-    }
-}
-
-// ✅ NOUVELLE FONCTION : Upload audio vers Firebase Storage (plus simple que B2)
-async function uploadAudioToStorage(audioBlob, albumId) {
-    const fileName = `question_${Date.now()}.mp3`;
-    const storageRef = storage.ref(`questions/${albumId}/${fileName}`);
-    
-    const uploadTask = storageRef.put(audioBlob);
-    
-    return new Promise((resolve, reject) => {
-        uploadTask.on('state_changed',
-            (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                document.getElementById('audio-progress-bar').style.width = `${progress}%`;
-                document.getElementById('audio-upload-text').innerText = `Upload ${Math.round(progress)}%`;
-            },
-            (error) => {
-                console.error("Erreur upload audio:", error);
-                reject(error);
-            },
-            async () => {
-                const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
-                resolve(downloadURL);
-            }
-        );
-    });
-}
-
-async function sendQuestion() {
-    if (!currentUser) {
-        alert("Vous devez être connecté pour poser une question");
-        return;
-    }
-    
-    if (!currentViewAlbum) {
-        alert("Album non trouvé");
-        return;
-    }
-    
-    const questionText = document.getElementById('question-text').value.trim();
-    const btnSend = document.getElementById('btn-send-question');
-    
-    if (!questionText && !currentAudioBlob) {
-        alert("Veuillez écrire ou enregistrer une question");
-        return;
-    }
-    
-    btnSend.disabled = true;
-    btnSend.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i>';
-    
-    try {
-        const questionData = {
-            albumId: currentViewAlbum.id,
-            userId: currentUser.uid,
-            userName: currentUser.displayName || currentUser.email?.split('@')[0] || 'Anonyme',
-            userEmail: currentUser.email || '',
-            questionText: questionText || '',
-            questionAudio: '',
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            status: 'pending',
-            answerText: '',
-            answerAudio: '',
-            answeredAt: null
-        };
-        
-        // ✅ Upload audio si présent
-        if (currentAudioBlob) {
-            document.getElementById('audio-upload-progress').classList.remove('hidden');
-            document.getElementById('audio-progress-bar').style.width = '0%';
-            document.getElementById('audio-upload-text').innerText = 'Upload audio...';
-            
-            try {
-                questionData.questionAudio = await uploadAudioToStorage(currentAudioBlob, currentViewAlbum.id);
-                console.log("✅ Audio uploadé:", questionData.questionAudio);
-            } catch(e) {
-                console.error("Erreur upload audio:", e);
-                alert("❌ Erreur upload audio: " + e.message);
-                btnSend.disabled = false;
-                btnSend.innerHTML = '<i class="fa-solid fa-paper-plane text-xs"></i>';
-                document.getElementById('audio-upload-progress').classList.add('hidden');
-                return;
-            }
-            
-            document.getElementById('audio-upload-progress').classList.add('hidden');
-        }
-        
-        await db.collection('questions').add(questionData);
-        
-        document.getElementById('question-text').value = '';
-        removeAudio();
-        
-        await loadQuestions(currentViewAlbum.id);
-        
-        alert("✅ Question envoyée avec succès !");
-        
-    } catch(e) {
-        console.error("Erreur envoi question:", e);
-        alert("❌ Erreur: " + e.message);
-    } finally {
-        btnSend.disabled = false;
-        btnSend.innerHTML = '<i class="fa-solid fa-paper-plane text-xs"></i>';
-    }
-}
-
-function toggleVoiceRecording() {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-        stopRecording();
-    } else {
-        startRecording();
-    }
-}
-
-async function startRecording() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-        
-        mediaRecorder.ondataavailable = (event) => {
-            audioChunks.push(event.data);
-        };
-        
-        mediaRecorder.onstop = () => {
-            currentAudioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-            const audioUrl = URL.createObjectURL(currentAudioBlob);
-            document.getElementById('audio-preview-element').src = audioUrl;
-            document.getElementById('audio-preview').classList.remove('hidden');
-            document.getElementById('voice-recording-ui').classList.add('hidden');
-            
-            stream.getTracks().forEach(track => track.stop());
-        };
-        
-        mediaRecorder.start();
-        recordingStartTime = Date.now();
-        
-        document.getElementById('voice-recording-ui').classList.remove('hidden');
-        document.getElementById('btn-voice-record').classList.add('pulse-record', 'text-red-500');
-        
-        recordingTimerInterval = setInterval(() => {
-            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
-            document.getElementById('recording-timer').textContent = formatTime(elapsed);
-        }, 1000);
-        
-    } catch(e) {
-        console.error("Erreur enregistrement:", e);
-        alert("❌ Impossible d'accéder au microphone");
-    }
-}
-
-function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-        mediaRecorder.stop();
-        clearInterval(recordingTimerInterval);
-        document.getElementById('btn-voice-record').classList.remove('pulse-record', 'text-red-500');
-    }
-}
-
-function cancelRecording() {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-        mediaRecorder.stop();
-        mediaRecorder.stream.getTracks().forEach(track => track.stop());
-    }
-    clearInterval(recordingTimerInterval);
-    audioChunks = [];
-    currentAudioBlob = null;
-    document.getElementById('voice-recording-ui').classList.add('hidden');
-    document.getElementById('btn-voice-record').classList.remove('pulse-record', 'text-red-500');
-}
-
-function removeAudio() {
-    currentAudioBlob = null;
-    document.getElementById('audio-preview').classList.add('hidden');
-    document.getElementById('audio-preview-element').src = '';
-}
-
-function renderQuestions() {
-    const container = document.getElementById('questions-list');
-    
-    if (allQuestions.length === 0) {
-        container.innerHTML = `
-            <div class="text-center text-zinc-500 py-8 text-xs">
-                <i class="fa-regular fa-comments text-3xl mb-2"></i>
-                <p>Soyez le premier à poser une question</p>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = allQuestions.map(q => {
-        return `
-            <div class="bg-zinc-900 rounded-xl p-3 space-y-2 fade-in">
-                <div class="message-bubble bg-zinc-800 rounded-lg p-3 ml-auto">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="text-[10px] font-bold text-orange-400">${escapeAttr(q.userName)}</span>
-                        <span class="text-[9px] text-zinc-500">${q.timestamp ? new Date(q.timestamp.toDate()).toLocaleDateString('fr-FR') : ''}</span>
-                    </div>
-                    ${q.questionText ? `<p class="text-xs text-white">${escapeAttr(q.questionText)}</p>` : ''}
-                    ${q.questionAudio ? `
-                        <audio controls class="w-full mt-2 h-8">
-                            <source src="${q.questionAudio}" type="audio/mpeg">
-                        </audio>
-                    ` : ''}
-                </div>
-                
-                ${q.status === 'answered' && (q.answerText || q.answerAudio) ? `
-                    <div class="message-bubble bg-emerald-900/30 border border-emerald-500/30 rounded-lg p-3 mr-auto">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="text-[10px] font-bold text-emerald-400"><i class="fa-solid fa-check-circle mr-1"></i>Réponse</span>
-                            ${q.answeredAt ? `<span class="text-[9px] text-zinc-500">${new Date(q.answeredAt.toDate()).toLocaleDateString('fr-FR')}</span>` : ''}
-                        </div>
-                        ${q.answerText ? `<p class="text-xs text-white">${escapeAttr(q.answerText)}</p>` : ''}
-                        ${q.answerAudio ? `
-                            <audio controls class="w-full mt-2 h-8">
-                                <source src="${q.answerAudio}" type="audio/mpeg">
-                            </audio>
-                        ` : ''}
-                    </div>
-                ` : `
-                    <div class="text-[10px] text-zinc-500 text-center py-1">
-                        <i class="fa-regular fa-clock mr-1"></i>En attente de réponse
-                    </div>
-                `}
-            </div>
-        `;
-    }).join('');
-}
-
-function renderMyVideos() {
-    const container = document.getElementById('my-videos-list');
-    if (!currentUser || !userAlbum) {
-        container.innerHTML = '<p class="text-center text-zinc-500 text-xs py-6">Aucune vidéo</p>';
-        return;
-    }
-    
-    const myVids = allVideos.filter(v => v.userId === currentUser.uid && v.albumId === userAlbum.id);
-    
-    if (myVids.length === 0) {
-        container.innerHTML = '<p class="text-center text-zinc-500 text-xs py-6">Aucune vidéo dans votre album</p>';
-        return;
-    }
-    
-    const defaultThumb = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzI3MjcyNyIvPjxjaXJjbGUgY3g9IjE2MCIgY3k9IjkwIiByPSI0MCIgZmlsbD0iI2ZmNTcyMiIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDc1IDE1MCwxMDUgMTgwLDkwIiBmaWxsPSIjZmZmIi8+PC9zdmc+';
-    
-    container.innerHTML = myVids.map(v => `
-        <div class="bg-zinc-900 rounded-xl p-2 flex gap-3 items-center border border-zinc-800">
-            <img src="${v.thumbnail && v.thumbnail.trim() !== '' ? v.thumbnail : defaultThumb}" 
-                 class="w-20 h-12 rounded object-cover shrink-0" 
-                 onerror="this.src='${defaultThumb}'">
-            <div class="flex-1 min-w-0" onclick="openVideoPlayer('${escapeAttr(v.videoUrl)}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
-                <p class="text-xs font-bold text-white truncate">${escapeAttr(v.title)}</p>
-                <p class="text-[9px] text-zinc-500">${v.views || 0} vues</p>
-            </div>
-            <button onclick="deleteMyVideo('${v.id}')" class="w-8 h-8 rounded bg-red-900/30 text-red-400 flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-trash text-xs"></i>
-            </button>
-        </div>
-    `).join('');
-}
-
-async function deleteMyVideo(videoId) {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette vidéo ?")) return;
-    
-    try {
-        await db.collection('videos').doc(videoId).delete();
-        await loadAllVideos();
-        updateProfileUI();
-        renderMyVideos();
-        alert("✅ Vidéo supprimée avec succès");
-    } catch(e) {
-        console.error("Erreur suppression:", e);
-        alert("❌ Erreur: " + e.message);
     }
 }
 
@@ -1121,16 +755,19 @@ function closeDownloadModal() {
 }
 
 function openVideoInNewTab() {
-    if (currentPlayingVideo) window.open(currentPlayingVideo.videoUrl, '_blank');
+    if (currentPlayingVideo) {
+        window.open(currentPlayingVideo.videoUrl, '_blank');
+    }
 }
 
 async function downloadWithQuality(quality) {
     if (!currentPlayingVideo) return;
     closeDownloadModal();
+    const v = currentPlayingVideo;
     try {
-        await downloadVideo(currentPlayingVideo.videoUrl, currentPlayingVideo.title + '.mp4', currentPlayingVideo.id);
+        await downloadVideo(v.videoUrl, v.title + '.mp4', v.id);
     } catch(e) {
-        window.open(currentPlayingVideo.videoUrl, '_blank');
+        window.open(v.videoUrl, '_blank');
     }
 }
 
@@ -1186,6 +823,7 @@ async function downloadVideo(url, filename, videoId) {
         if (confirm("Téléchargement bloqué. Ouvrir dans un nouvel onglet ?")) {
             window.open(url, '_blank');
         }
+        throw e;
     }
 }
 
@@ -1221,7 +859,7 @@ function renderAlbumChips() {
         ...allAlbums.map(a => ({ id: a.id, name: a.imamName || 'Album' }))
     ];
     container.innerHTML = chips.map(c => `
-        <button onclick="openAlbum('${c.id}')" 
+        <button onclick="filterByAlbum(${c.id ? `'${c.id}'` : 'null'})" 
             class="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap ${selectedAlbumFilter === c.id ? 'text-white' : 'bg-zinc-800 text-zinc-400'}"
             ${selectedAlbumFilter === c.id ? 'style="background:#ff5722"' : ''}>
             ${escapeAttr(c.name)}
@@ -1229,8 +867,10 @@ function renderAlbumChips() {
     `).join('');
 }
 
+// Fonction pour obtenir les vidéos filtrées actuellement affichées
 function getFilteredVideos() {
     let filtered = [...allVideos];
+    
     if (selectedTypeFilter) {
         const albumIds = allAlbums.filter(a => a.type === selectedTypeFilter).map(a => a.id);
         filtered = filtered.filter(v => albumIds.includes(v.albumId));
@@ -1243,7 +883,8 @@ function getFilteredVideos() {
             return v.title.toLowerCase().includes(q) || 
                    v.speaker.toLowerCase().includes(q) ||
                    (album && (album.imamName || '').toLowerCase().includes(q)) ||
-                   (album && (album.city || '').toLowerCase().includes(q));
+                   (album && (album.city || '').toLowerCase().includes(q)) ||
+                   (album && (album.country || '').toLowerCase().includes(q));
         });
     }
     return filtered;
@@ -1252,12 +893,14 @@ function getFilteredVideos() {
 function renderVideoGrid() {
     const container = document.getElementById('video-grid');
     const filtered = getFilteredVideos();
-    const defaultThumb = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzI3MjcyNyIvPjxjaXJjbGUgY3g9IjE2MCIgY3k9IjkwIiByPSI0MCIgZmlsbD0iI2ZmNTcyMiIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDc1IDE1MCwxMDUgMTgwLDkwIiBmaWxsPSIjZmZmIi8+PC9zdmc+';
     
     if (filtered.length === 0) {
         container.innerHTML = `<div class="text-center py-12"><i class="fa-solid fa-video-slash text-4xl text-zinc-700"></i><p class="text-sm text-zinc-500 mt-3">Aucune vidéo</p></div>`;
         return;
     }
+    
+    // Miniature SVG par défaut améliorée
+    const defaultThumb = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzI3MjcyNyIvPjxjaXJjbGUgY3g9IjE2MCIgY3k9IjkwIiByPSI0MCIgZmlsbD0iI2ZmNTcyMiIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDc1IDE1MCwxMDUgMTgwLDkwIiBmaWxsPSIjZmZmIi8+PC9zdmc+';
     
     container.innerHTML = filtered.map(v => {
         const album = allAlbums.find(a => a.id === v.albumId);
@@ -1266,8 +909,11 @@ function renderVideoGrid() {
         
         return `
         <div class="video-card bg-zinc-900 rounded-xl overflow-hidden cursor-pointer fade-in ${isSelected ? 'ring-2 ring-orange-500' : ''}" 
-             onmousedown="startLongPress('${v.id}')" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()"
-             ontouchstart="startLongPress('${v.id}')" ontouchend="cancelLongPress()"
+             onmousedown="startLongPress('${v.id}')" 
+             onmouseup="cancelLongPress()" 
+             onmouseleave="cancelLongPress()"
+             ontouchstart="startLongPress('${v.id}')" 
+             ontouchend="cancelLongPress()"
              onclick="handleVideoClick('${v.id}', event)">
             <div class="relative aspect-video bg-zinc-800">
                 <img src="${thumb}" alt="${escapeAttr(v.title)}" class="w-full h-full object-cover" onerror="this.src='${defaultThumb}'">
@@ -1297,74 +943,15 @@ function renderVideoGrid() {
     }).join('');
 }
 
-function updateProfileUI() {
-    const unauth = document.getElementById('profile-unauth');
-    const authDiv = document.getElementById('profile-auth');
-    const myalbumEmpty = document.getElementById('myalbum-empty');
-    const myalbumContent = document.getElementById('myalbum-content');
-    const createForm = document.getElementById('create-album-form');
-    const albumPending = document.getElementById('album-pending');
-    const albumApproved = document.getElementById('album-approved');
-    
-    if (!currentUser) {
-        unauth.classList.remove('hidden');
-        authDiv.classList.add('hidden');
-        myalbumEmpty.classList.remove('hidden');
-        myalbumContent.classList.add('hidden');
-        return;
-    }
-    
-    unauth.classList.add('hidden');
-    authDiv.classList.remove('hidden');
-    
-    document.getElementById('userName').innerText = currentUser.email?.split('@')[0] || 'User';
-    document.getElementById('userEmail').innerText = currentUser.email || '';
-    document.getElementById('userAvatar').innerText = (currentUser.email?.charAt(0) || 'U').toUpperCase();
-    
-    const myVids = allVideos.filter(v => v.userId === currentUser.uid);
-    document.getElementById('statVideos').innerText = myVids.length;
-    document.getElementById('statViews').innerText = myVids.reduce((s, v) => s + (v.views || 0), 0);
-    document.getElementById('statDownloads').innerText = completedDownloads.length;
-    
-    if (userAlbum) {
-        myalbumEmpty.classList.add('hidden');
-        myalbumContent.classList.remove('hidden');
-        document.getElementById('my-album-title').innerText = userAlbum.imamName || 'Mon Album';
-        document.getElementById('my-album-imam').innerText = userAlbum.imamName || '';
-        document.getElementById('my-album-location').innerText = `${userAlbum.city || ''}, ${userAlbum.country || ''}`;
-        document.getElementById('my-videos-count').innerText = myVids.length;
-        document.getElementById('my-album-views').innerText = myVids.reduce((s, v) => s + (v.views || 0), 0);
-        
-        const statusBadge = document.getElementById('album-status-badge');
-        if (userAlbum.status === 'pending') {
-            statusBadge.innerText = 'EN ATTENTE';
-            statusBadge.className = 'px-2 py-0.5 rounded bg-yellow-500 text-zinc-950 text-[9px] font-black uppercase';
-        } else if (userAlbum.status === 'approved') {
-            statusBadge.innerText = 'APPROUVÉ';
-            statusBadge.className = 'px-2 py-0.5 rounded bg-orange-500 text-zinc-950 text-[9px] font-black uppercase';
-        }
-        
-        createForm.classList.add('hidden');
-        albumPending.classList.add('hidden');
-        albumApproved.classList.add('hidden');
-        if (userAlbum.status === 'pending') albumPending.classList.remove('hidden');
-        else if (userAlbum.status === 'approved') albumApproved.classList.remove('hidden');
-        
-        renderMyVideos();
-    } else {
-        myalbumEmpty.classList.remove('hidden');
-        myalbumContent.classList.add('hidden');
-        createForm.classList.remove('hidden');
-        albumPending.classList.add('hidden');
-        albumApproved.classList.add('hidden');
-    }
-}
+// === FONCTIONS DE SÉLECTION PAGE D'ACCUEIL ===
 
 function toggleHomeSelectionMode() {
     homeSelectionMode = !homeSelectionMode;
     homeSelectedVideoIds.clear();
+    
     const btn = document.getElementById('btn-home-select-mode');
     const bar = document.getElementById('home-selection-bar');
+    
     if (homeSelectionMode) {
         btn.innerHTML = '<i class="fa-solid fa-xmark mr-1"></i>Annuler';
         btn.style.background = '#ff5722';
@@ -1374,13 +961,17 @@ function toggleHomeSelectionMode() {
         btn.style.background = '';
         bar.classList.add('hidden');
     }
+    
     document.getElementById('home-selected-count').innerText = '0';
     renderVideoGrid();
 }
 
 function toggleHomeVideoSelection(videoId) {
-    if (homeSelectedVideoIds.has(videoId)) homeSelectedVideoIds.delete(videoId);
-    else homeSelectedVideoIds.add(videoId);
+    if (homeSelectedVideoIds.has(videoId)) {
+        homeSelectedVideoIds.delete(videoId);
+    } else {
+        homeSelectedVideoIds.add(videoId);
+    }
     updateHomeSelectionUI();
     renderVideoGrid();
 }
@@ -1388,117 +979,263 @@ function toggleHomeVideoSelection(videoId) {
 function toggleSelectAllHome() {
     const visibleVideos = getFilteredVideos();
     const allSelected = visibleVideos.length > 0 && visibleVideos.every(v => homeSelectedVideoIds.has(v.id));
-    if (allSelected) visibleVideos.forEach(v => homeSelectedVideoIds.delete(v.id));
-    else visibleVideos.forEach(v => homeSelectedVideoIds.add(v.id));
+    
+    if (allSelected) {
+        visibleVideos.forEach(v => homeSelectedVideoIds.delete(v.id));
+    } else {
+        visibleVideos.forEach(v => homeSelectedVideoIds.add(v.id));
+    }
+    
     updateHomeSelectionUI();
     renderVideoGrid();
 }
 
 function updateHomeSelectionUI() {
-    document.getElementById('home-selected-count').innerText = homeSelectedVideoIds.size;
+    const count = homeSelectedVideoIds.size;
+    document.getElementById('home-selected-count').innerText = count;
 }
 
 function cancelSelectionHome() {
     homeSelectionMode = false;
     homeSelectedVideoIds.clear();
+    
     const btn = document.getElementById('btn-home-select-mode');
     const bar = document.getElementById('home-selection-bar');
-    if (btn) { btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner'; btn.style.background = ''; }
-    if (bar) bar.classList.add('hidden');
+    
+    if (btn) {
+        btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner';
+        btn.style.background = '';
+    }
+    if (bar) {
+        bar.classList.add('hidden');
+    }
+    
     renderVideoGrid();
 }
 
 async function downloadSelectedHome() {
-    if (homeSelectedVideoIds.size === 0) { alert("Aucune vidéo sélectionnée"); return; }
+    if (homeSelectedVideoIds.size === 0) { 
+        alert("Aucune vidéo sélectionnée"); 
+        return; 
+    }
+    
     const videos = allVideos.filter(v => homeSelectedVideoIds.has(v.id));
+    alert(`Téléchargement de ${videos.length} vidéo(s)...`);
+    
+    for (const v of videos) {
+        try { 
+            await downloadVideo(v.videoUrl, v.title + '.mp4', v.id); 
+        } catch(e) { 
+            window.open(v.videoUrl, '_blank'); 
+        }
+        await new Promise(r => setTimeout(r, 500));
+    }
+    
+    cancelSelectionHome();
+}
+
+// === FIN FONCTIONS SÉLECTION ===
+
+function startLongPress(videoId) {
+    if (homeSelectionMode) return; // Ne pas activer le long press en mode sélection
+    
+    longPressTimer = setTimeout(() => {
+        const v = allVideos.find(x => x.id === videoId);
+        if (v) { 
+            currentPlayingVideo = v; 
+            showDownloadOptions();
+            longPressTimer = null;
+        }
+    }, 600);
+}
+
+function cancelLongPress() {
+    if (longPressTimer) { 
+        clearTimeout(longPressTimer); 
+        longPressTimer = null; 
+    }
+}
+
+function handleVideoClick(videoId, event) {
+    // Si on est en mode sélection, toggle la sélection au lieu d'ouvrir la vidéo
+    if (homeSelectionMode) {
+        if (event) event.stopPropagation();
+        toggleHomeVideoSelection(videoId);
+        return;
+    }
+    
+    if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+    }
+    
+    const video = allVideos.find(x => x.id === videoId);
+    if (!video) return;
+    
+    openVideoPlayer(video.videoUrl, video.title, video.speaker, video.id);
+}
+
+function openVideoPlayer(url, title, speaker, videoId) {
+    console.log('▶️ openVideoPlayer - URL:', url);
+    
+    if (!url) {
+        console.error('❌ URL vide !');
+        return;
+    }
+    
+    currentPlayingVideo = allVideos.find(v => v.id === videoId) || { 
+        videoUrl: url, title, speaker, id: videoId 
+    };
+    
+    document.getElementById('video-player-title').innerText = title;
+    document.getElementById('video-player-speaker').innerText = speaker;
+    
+    const video = document.getElementById('native-video');
+    const source = document.getElementById('video-source');
+    
+    video.pause();
+    document.getElementById('video-overlay-player').classList.remove('hidden');
+    
+    source.src = url;
+    source.type = 'video/mp4';
+    video.load();
+    
+    console.log('✅ Source chargée:', source.src);
+    
+    const onCanPlay = () => {
+        video.removeEventListener('canplay', onCanPlay);
+        video.removeEventListener('error', onError);
+        console.log('✅ Vidéo prête, démarrage lecture');
+        video.play().catch(e => console.log('️ Autoplay bloqué:', e.message));
+    };
+    
+    const onError = (e) => {
+        video.removeEventListener('canplay', onCanPlay);
+        video.removeEventListener('error', onError);
+        console.error('❌ Erreur chargement vidéo');
+        alert('Impossible de lire cette vidéo. Essayez le bouton "Ouvrir".');
+    };
+    
+    video.addEventListener('canplay', onCanPlay);
+    video.addEventListener('error', onError);
+    
+    if (videoId) {
+        db.collection('videos').doc(videoId).update({ 
+            views: firebase.firestore.FieldValue.increment(1) 
+        }).catch(e => {});
+    }
+}
+
+function closeVideoPlayer() { 
+    const video = document.getElementById('native-video');
+    const source = document.getElementById('video-source');
+    
+    video.pause();
+    source.src = '';
+    video.load();
+    
+    document.getElementById('video-overlay-player').classList.add('hidden');
+    currentPlayingVideo = null;
+    
+    console.log('🔒 Lecteur fermé');
+}
+
+function renderMyVideos() {
+    const container = document.getElementById('my-videos-list');
+    if (!currentUser) return;
+    const myVids = allVideos.filter(v => v.userId === currentUser.uid);
+    if (myVids.length === 0) {
+        container.innerHTML = '<p class="text-center text-zinc-500 text-xs py-6">Aucune vidéo</p>';
+        return;
+    }
+    
+    const defaultThumb = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzI3MjcyNyIvPjxjaXJjbGUgY3g9IjE2MCIgY3k9IjkwIiByPSI0MCIgZmlsbD0iI2ZmNTcyMiIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDc1IDE1MCwxMDUgMTgwLDkwIiBmaWxsPSIjZmZmIi8+PC9zdmc+';
+    
+    container.innerHTML = myVids.map(v => {
+        const isSelected = selectedVideoIds.has(v.id);
+        const thumb = v.thumbnail && v.thumbnail.trim() !== '' ? v.thumbnail : defaultThumb;
+        return `
+        <div class="bg-zinc-900 rounded-xl p-2 flex gap-3 items-center ${isSelected ? 'border-2 border-orange-500' : 'border border-zinc-800'}">
+            ${selectionMode ? `
+                <button onclick="event.stopPropagation(); toggleVideoSelection('${v.id}')" class="w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-zinc-600'}">
+                    ${isSelected ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
+                </button>
+            ` : ''}
+            ${thumb ? `<img src="${thumb}" class="w-20 h-12 rounded object-cover shrink-0" onerror="this.src='${defaultThumb}'">` : `<div class="w-20 h-12 rounded bg-zinc-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-film text-orange-500"></i></div>`}
+            <div class="flex-1 min-w-0" onclick="openVideoPlayer('${escapeAttr(v.videoUrl)}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
+                <p class="text-xs font-bold text-white truncate">${escapeAttr(v.title)}</p>
+                <p class="text-[9px] text-zinc-500">${v.views || 0} vues</p>
+            </div>
+            ${!selectionMode ? `
+                <button onclick="event.stopPropagation(); deleteMyVideo('${v.id}')" class="w-7 h-7 rounded bg-red-900/30 text-red-400 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+            ` : ''}
+        </div>
+        `;
+    }).join('');
+}
+
+function toggleSelectionMode() {
+    selectionMode = !selectionMode;
+    selectedVideoIds.clear();
+    const btn = document.getElementById('btn-select-mode');
+    const bar = document.getElementById('selection-bar');
+    if (selectionMode) {
+        btn.innerHTML = '<i class="fa-solid fa-xmark mr-1"></i>Annuler';
+        btn.style.background = '#ff5722';
+        bar.classList.remove('hidden');
+    } else {
+        btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner';
+        btn.style.background = '';
+        bar.classList.add('hidden');
+    }
+    document.getElementById('selected-count').innerText = selectedVideoIds.size;
+    renderMyVideos();
+}
+
+function toggleVideoSelection(videoId) {
+    if (selectedVideoIds.has(videoId)) selectedVideoIds.delete(videoId);
+    else selectedVideoIds.add(videoId);
+    document.getElementById('selected-count').innerText = selectedVideoIds.size;
+    renderMyVideos();
+}
+
+async function downloadSelected() {
+    if (selectedVideoIds.size === 0) { alert("Aucune vidéo"); return; }
+    const videos = allVideos.filter(v => selectedVideoIds.has(v.id));
     alert(`Téléchargement de ${videos.length} vidéo(s)...`);
     for (const v of videos) {
         try { await downloadVideo(v.videoUrl, v.title + '.mp4', v.id); }
         catch(e) { window.open(v.videoUrl, '_blank'); }
         await new Promise(r => setTimeout(r, 500));
     }
-    cancelSelectionHome();
+    toggleSelectionMode();
 }
 
-async function openAlbum(albumId) {
-    const album = allAlbums.find(a => a.id === albumId);
-    if (!album) return;
-    
-    currentViewAlbum = album;
-    
-    document.getElementById('album-view-imam').innerText = album.imamName || 'Imam';
-    document.getElementById('album-view-location').innerText = `${album.city || ''}, ${album.country || ''}`;
-    
-    const albumVideos = allVideos.filter(v => v.albumId === albumId);
-    document.getElementById('album-view-videos-count').innerText = albumVideos.length;
-    document.getElementById('album-view-views').innerText = albumVideos.reduce((s, v) => s + (v.views || 0), 0);
-    
-    await loadQuestions(albumId);
-    
-    showTab('album');
-}
-
-function startLongPress(videoId) {
-    if (homeSelectionMode) return;
-    longPressTimer = setTimeout(() => {
-        const v = allVideos.find(x => x.id === videoId);
-        if (v) { currentPlayingVideo = v; showDownloadOptions(); longPressTimer = null; }
-    }, 600);
-}
-
-function cancelLongPress() {
-    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-}
-
-function handleVideoClick(videoId, event) {
-    if (homeSelectionMode) {
-        if (event) event.stopPropagation();
-        toggleHomeVideoSelection(videoId);
-        return;
+async function deleteSelected() {
+    if (selectedVideoIds.size === 0) { alert("Aucune vidéo"); return; }
+    if (!confirm(`Supprimer ${selectedVideoIds.size} vidéo(s) ?`)) return;
+    for (const id of selectedVideoIds) {
+        try { await db.collection('videos').doc(id).delete(); } catch(e) {}
     }
-    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-    const video = allVideos.find(x => x.id === videoId);
-    if (!video) return;
-    openVideoPlayer(video.videoUrl, video.title, video.speaker, video.id);
+    selectedVideoIds.clear();
+    await loadAllVideos();
+    updateProfileUI();
+    renderMyVideos();
+    renderVideoGrid();
+    toggleSelectionMode();
 }
 
-function openVideoPlayer(url, title, speaker, videoId) {
-    if (!url) return;
-    currentPlayingVideo = allVideos.find(v => v.id === videoId) || { videoUrl: url, title, speaker, id: videoId };
-    document.getElementById('video-player-title').innerText = title;
-    document.getElementById('video-player-speaker').innerText = speaker;
-    const video = document.getElementById('native-video');
-    const source = document.getElementById('video-source');
-    video.pause();
-    document.getElementById('video-overlay-player').classList.remove('hidden');
-    source.src = url;
-    source.type = 'video/mp4';
-    video.load();
-    const onCanPlay = () => {
-        video.removeEventListener('canplay', onCanPlay);
-        video.removeEventListener('error', onError);
-        video.play().catch(e => console.log('Autoplay bloqué:', e.message));
-    };
-    const onError = (e) => {
-        video.removeEventListener('canplay', onCanPlay);
-        video.removeEventListener('error', onError);
-        alert('Impossible de lire cette vidéo.');
-    };
-    video.addEventListener('canplay', onCanPlay);
-    video.addEventListener('error', onError);
-    if (videoId) {
-        db.collection('videos').doc(videoId).update({ views: firebase.firestore.FieldValue.increment(1) }).catch(e => {});
-    }
-}
-
-function closeVideoPlayer() {
-    const video = document.getElementById('native-video');
-    const source = document.getElementById('video-source');
-    video.pause();
-    source.src = '';
-    video.load();
-    document.getElementById('video-overlay-player').classList.add('hidden');
-    currentPlayingVideo = null;
+async function deleteMyVideo(videoId) {
+    if (!confirm("Supprimer ?")) return;
+    try {
+        await db.collection('videos').doc(videoId).delete();
+        await loadAllVideos();
+        updateProfileUI();
+        renderMyVideos();
+        renderVideoGrid();
+    } catch(e) { alert("Erreur: " + e.message); }
 }
 
 function renderDownloads() {
@@ -1515,7 +1252,9 @@ function renderDownloads() {
             <div class="bg-zinc-900 p-3 rounded-xl space-y-2">
                 <div class="flex justify-between items-center">
                     <p class="text-xs font-bold text-white truncate">📹 ${escapeAttr(d.title)}</p>
-                    <button onclick="cancelDownload('${d.id}')" class="w-6 h-6 bg-red-900/30 text-red-400 rounded flex items-center justify-center"><i class="fa-solid fa-xmark text-xs"></i></button>
+                    <button onclick="cancelDownload('${d.id}')" class="w-6 h-6 bg-red-900/30 text-red-400 rounded flex items-center justify-center">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
                 </div>
                 <div class="relative h-1.5 bg-zinc-700 rounded-full overflow-hidden">
                     <div class="absolute inset-y-0 left-0" style="width: ${d.progress}%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
@@ -1549,15 +1288,11 @@ function toggleDlSubTab(sub) {
 }
 
 function filterByType(typeId) { selectedTypeFilter = typeId; renderTypeChips(); renderVideoGrid(); }
-function filterByAlbum(albumId) { 
-    selectedAlbumFilter = albumId; 
-    renderAlbumChips(); 
-    renderVideoGrid(); 
-}
+function filterByAlbum(albumId) { selectedAlbumFilter = albumId; renderAlbumChips(); renderVideoGrid(); }
 function handleSearch(val) { searchQuery = val; renderVideoGrid(); }
 
 function showTab(tab) {
-    ['home','downloads','azkar','profile','create','album','myalbum'].forEach(t => {
+    ['home','downloads','myalbum','profile','create'].forEach(t => {
         const el = document.getElementById(`tab-${t}`);
         if (el) el.classList.add('hidden');
         const btn = document.getElementById(`nav-${t}`);
@@ -1569,12 +1304,13 @@ function showTab(tab) {
     if (activeBtn) activeBtn.style.color = '#ff5722';
     
     if (tab === 'downloads') renderDownloads();
+    if (tab === 'myalbum' && currentUser) { updateProfileUI(); renderMyVideos(); }
     if (tab === 'create' && currentUser) updateProfileUI();
-    if (tab === 'myalbum' && currentUser) {
-        updateProfileUI();
-        renderMyVideos();
+    
+    // Réinitialiser la sélection quand on quitte l'accueil
+    if (tab !== 'home') {
+        cancelSelectionHome();
     }
-    if (tab !== 'home') cancelSelectionHome();
 }
 
 showTab('home');
