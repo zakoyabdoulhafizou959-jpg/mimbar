@@ -143,7 +143,6 @@
             </div>
         </div>
 
-        <!-- NOUVELLE SECTION MON ALBUM -->
         <div id="tab-myalbum" class="hidden p-4 space-y-4">
             <div id="myalbum-empty" class="text-center py-12">
                 <i class="fa-solid fa-lock text-4xl text-zinc-600"></i>
@@ -439,6 +438,23 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// ============================================
+// 🚀 FONCTION CDN BUNNY.NET
+// ============================================
+// Cette fonction transforme automatiquement toutes les URLs B2 en URLs Bunny CDN
+// Les utilisateurs verront kitabwasunna.b-cdn.net au lieu de f005.backblazeb2.com
+function getCdnUrl(originalUrl) {
+    if (!originalUrl) return '';
+    
+    const b2Domain = 'f005.backblazeb2.com'; 
+    const bunnyDomain = 'kitabwasunna.b-cdn.net';
+    
+    if (originalUrl.includes(b2Domain)) {
+        return originalUrl.replace(b2Domain, bunnyDomain);
+    }
+    return originalUrl;
+}
+
 function escapeAttr(str) {
     if (!str) return '';
     return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ').replace(/\r/g, '');
@@ -611,7 +627,8 @@ async function loadAllVideos() {
                 date: v.date || new Date().toISOString().split('T')[0],
                 views: v.views || 0,
                 downloads: v.downloads || 0,
-                videoUrl: v.downloadURL,
+                // 🚀 APPLICATION DU CDN BUNNY.NET SUR L'URL VIDÉO
+                videoUrl: getCdnUrl(v.downloadURL),
                 thumbnail: v.thumbnail || '',
                 size: v.size || 0
             });
@@ -900,7 +917,8 @@ function closeDownloadModal() {
 
 function openVideoInNewTab() {
     if (currentPlayingVideo) {
-        window.open(currentPlayingVideo.videoUrl, '_blank');
+        // 🚀 UTILISATION DU CDN POUR L'OUVERTURE DANS UN NOUVEL ONGLET
+        window.open(getCdnUrl(currentPlayingVideo.videoUrl), '_blank');
     }
 }
 
@@ -909,9 +927,10 @@ async function downloadWithQuality(quality) {
     closeDownloadModal();
     const v = currentPlayingVideo;
     try {
-        await downloadVideo(v.videoUrl, v.title + '.mp4', v.id);
+        // 🚀 UTILISATION DU CDN POUR LE TÉLÉCHARGEMENT
+        await downloadVideo(getCdnUrl(v.videoUrl), v.title + '.mp4', v.id);
     } catch(e) {
-        window.open(v.videoUrl, '_blank');
+        window.open(getCdnUrl(v.videoUrl), '_blank');
     }
 }
 
@@ -1164,9 +1183,10 @@ async function downloadSelectedHome() {
     
     for (const v of videos) {
         try { 
-            await downloadVideo(v.videoUrl, v.title + '.mp4', v.id); 
+            // 🚀 UTILISATION DU CDN POUR LE TÉLÉCHARGEMENT
+            await downloadVideo(getCdnUrl(v.videoUrl), v.title + '.mp4', v.id); 
         } catch(e) { 
-            window.open(v.videoUrl, '_blank'); 
+            window.open(getCdnUrl(v.videoUrl), '_blank'); 
         }
         await new Promise(r => setTimeout(r, 500));
     }
@@ -1209,7 +1229,8 @@ function handleVideoClick(videoId, event) {
     const video = allVideos.find(x => x.id === videoId);
     if (!video) return;
     
-    openVideoPlayer(video.videoUrl, video.title, video.speaker, video.id);
+    // 🚀 UTILISATION DU CDN POUR L'OUVERTURE DU LECTEUR
+    openVideoPlayer(getCdnUrl(video.videoUrl), video.title, video.speaker, video.id);
 }
 
 function openVideoPlayer(url, title, speaker, videoId) {
@@ -1231,6 +1252,7 @@ function openVideoPlayer(url, title, speaker, videoId) {
     video.pause();
     document.getElementById('video-overlay-player').classList.remove('hidden');
     
+    // 🚀 L'URL EST DÉJÀ TRANSFORMÉE PAR getCdnUrl()
     source.src = url;
     source.type = 'video/mp4';
     video.load();
@@ -1294,7 +1316,7 @@ function renderMyVideos() {
                 </button>
             ` : ''}
             ${thumb ? `<img src="${thumb}" class="w-20 h-12 rounded object-cover shrink-0" onerror="this.src='${defaultThumb}'">` : `<div class="w-20 h-12 rounded bg-zinc-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-film text-orange-500"></i></div>`}
-            <div class="flex-1 min-w-0" onclick="openVideoPlayer('${escapeAttr(v.videoUrl)}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
+            <div class="flex-1 min-w-0" onclick="openVideoPlayer('${escapeAttr(getCdnUrl(v.videoUrl))}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
                 <p class="text-xs font-bold text-white truncate">${escapeAttr(v.title)}</p>
                 <p class="text-[9px] text-zinc-500">${v.views || 0} vues</p>
             </div>
@@ -1340,8 +1362,13 @@ async function downloadSelected() {
     const videos = allVideos.filter(v => selectedVideoIds.has(v.id));
     alert(`Téléchargement de ${videos.length} vidéo(s)...`);
     for (const v of videos) {
-        try { await downloadVideo(v.videoUrl, v.title + '.mp4', v.id); }
-        catch(e) { window.open(v.videoUrl, '_blank'); }
+        try { 
+            // 🚀 UTILISATION DU CDN POUR LE TÉLÉCHARGEMENT
+            await downloadVideo(getCdnUrl(v.videoUrl), v.title + '.mp4', v.id); 
+        }
+        catch(e) { 
+            window.open(getCdnUrl(v.videoUrl), '_blank'); 
+        }
         await new Promise(r => setTimeout(r, 500));
     }
     toggleSelectionMode();
