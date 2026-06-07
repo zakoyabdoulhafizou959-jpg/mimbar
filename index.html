@@ -20,7 +20,6 @@
         .arabic-title { font-family: 'Amiri', serif; font-size: 1.1rem; font-weight: 700; }
         .arabic-text { font-family: 'Amiri', serif; direction: rtl; line-height: 2.2; }
         .azkar-card { background: linear-gradient(135deg, #18181b 0%, #27272a 100%); }
-        /* ✅ YouTube-like duration badge */
         .duration-badge {
             position: absolute;
             bottom: 8px;
@@ -33,14 +32,22 @@
             font-weight: 600;
             letter-spacing: 0.5px;
         }
-        /* ✅ Speed indicator animation */
         @keyframes pulse-speed {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.6; }
         }
-        .speed-pulse {
-            animation: pulse-speed 1.5s infinite;
+        .speed-pulse { animation: pulse-speed 1.5s infinite; }
+        .type-badge {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
         }
+        .type-coran { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .type-hadith { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .type-tafsir { background: rgba(59, 130, 246, 0.2); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .type-preche { background: rgba(168, 85, 247, 0.2); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
     </style>
 </head>
 <body class="h-full bg-slate-900 flex justify-center items-center overflow-hidden font-sans">
@@ -212,11 +219,23 @@
                             <button onclick="cancelFileSelection()" class="text-zinc-400"><i class="fa-solid fa-xmark"></i></button>
                         </div>
                         <input type="text" id="videoTitle" placeholder="Titre de la vidéo" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
+                        
+                        <!-- ✅ NOUVEAU CHAMP TYPE DE VIDÉO -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Type de vidéo *</label>
+                            <select id="videoType" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
+                                <option value="">-- Choisir le type --</option>
+                                <option value="coran">🕌 Lecture du Coran</option>
+                                <option value="hadith">📜 Hadith</option>
+                                <option value="tafsir">📖 Tafsir</option>
+                                <option value="preche">📢 Prêche hebdomadaire</option>
+                            </select>
+                        </div>
+                        
                         <button onclick="uploadVideoToB2()" id="btn-upload" class="w-full py-2 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
                             <i class="fa-solid fa-upload mr-1"></i>Publier
                         </button>
                         
-                        <!-- ✅ PROGRESSION AMÉLIORÉE AVEC VITESSE -->
                         <div id="uploadProgress" class="hidden space-y-2">
                             <div class="h-2 bg-zinc-700 rounded-full overflow-hidden">
                                 <div id="progressBar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
@@ -231,6 +250,9 @@
                                 <span id="progressDetail">0 Mo / 0 Mo</span>
                                 <span id="timeRemaining">Temps restant: calcul...</span>
                             </div>
+                            <button onclick="cancelUpload()" id="btn-cancel-upload" class="w-full py-2 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors">
+                                <i class="fa-solid fa-stop-circle mr-1"></i>Annuler l'upload
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -255,31 +277,24 @@
                     </span>
                     <span class="text-[10px] text-zinc-500">1 / 3</span>
                 </div>
-                
                 <div class="text-center py-4">
                     <p class="arabic-text text-xl text-white mb-4 leading-loose">
                         اللَّهُمَّ أَنْتَ رَبِّي لاَ إِلَهَ إِلاَّ أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ لَكَ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لاَ يَغْفِرُ الذُّنُوبَ إِلاَّ أَنْتَ
                     </p>
                 </div>
-
                 <div class="border-t border-zinc-800 pt-3">
                     <div class="flex gap-4 mb-3 border-b border-zinc-800">
                         <button onclick="showAzkarTab('phonetic1')" id="btn-phonetic1" class="pb-2 text-xs font-bold text-emerald-400 border-b-2 border-emerald-500">PHONÉTIQUE</button>
                         <button onclick="showAzkarTab('traduction1')" id="btn-traduction1" class="pb-2 text-xs font-bold text-zinc-500">TRADUCTION</button>
                     </div>
-                    
                     <div id="phonetic1" class="space-y-2">
                         <p class="text-xs text-zinc-300 italic leading-relaxed">
                             Allâhumma Anta Rabbî, lâ ilâha illâ Anta, khalaqtanî wa ana 'abduka, wa ana 'alâ 'ahdika wa wa'dika ma-stata'tu. A'ûdhu bika min sharri mâ sana'tu, abû'u laka bi-ni'matika 'alayya, wa abû'u bi-dhanbî faghfirlî, fa-innahu lâ yaghfiru-dh-dhunûba illâ Anta.
                         </p>
                     </div>
-                    
                     <div id="traduction1" class="hidden space-y-2">
                         <p class="text-xs text-zinc-400 leading-relaxed">
                             "Ô Allah, Tu es mon Seigneur, il n'y a de dieu que Toi. Tu m'as créé et je suis Ton serviteur. Je reste fidèle à Ton alliance et à Ta promesse autant que je le peux. Je cherche refuge auprès de Toi contre le mal de ce que j'ai fait. Je reconnais Tes bienfaits envers moi et je reconnais mon péché. Pardonne-moi, car nul ne pardonne les péchés sauf Toi."
-                        </p>
-                        <p class="text-[10px] text-emerald-400 mt-2">
-                            <i class="fa-solid fa-circle-info mr-1"></i>Celui qui la récite avec conviction en mourant le jour même entrera au Paradis.
                         </p>
                     </div>
                 </div>
@@ -292,41 +307,27 @@
                     </span>
                     <span class="text-[10px] text-zinc-500">1 / 6</span>
                 </div>
-                
                 <div class="text-center py-4">
                     <p class="arabic-text text-xl text-white mb-4 leading-loose">
                         اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا، وَفِي بَصَرِي نُورًا، وَفِي سَمْعِي نُورًا، وَعَنْ يَمِينِي نُورًا، وَعَنْ شِمَالِي نُورًا، وَمِنْ فَوْقِي نُورًا، وَمِنْ تَحْتِي نُورًا، وَأَمَامِي نُورًا، وَخَلْفِي نُورًا، وَاجْعَلْ لِي نُورًا
                     </p>
                 </div>
-
                 <div class="border-t border-zinc-800 pt-3">
                     <div class="flex gap-4 mb-3 border-b border-zinc-800">
                         <button onclick="showAzkarTab('phonetic2')" id="btn-phonetic2" class="pb-2 text-xs font-bold text-amber-400 border-b-2 border-amber-500">TRANSLITTÉRATION</button>
                         <button onclick="showAzkarTab('traduction2')" id="btn-traduction2" class="pb-2 text-xs font-bold text-zinc-500">TRADUCTION</button>
                     </div>
-                    
                     <div id="phonetic2" class="space-y-2">
                         <p class="text-xs text-zinc-300 italic leading-relaxed">
                             Allahumma-j'al fî qalbî nûran, wa fî basharî nûran, wa fî sam'î nûran, wa 'an yamînî nûran, wa 'an shimâlî nûran, wa min fawqî nûran, wa min tahtî nûran, wa amâmî nûran, wa khalfî nûran, waj'al lî nûran.
                         </p>
                     </div>
-                    
                     <div id="traduction2" class="hidden space-y-2">
                         <p class="text-xs text-zinc-400 leading-relaxed">
                             "Ô Allah, mets de la lumière dans mon cœur, dans ma vue, dans mon ouïe, à ma droite, à ma gauche, au-dessus de moi, en dessous de moi, devant moi, derrière moi, et fais de moi une lumière."
                         </p>
-                        <p class="text-[10px] text-amber-400 mt-2">
-                            <i class="fa-solid fa-book mr-1"></i>Sahih Muslim
-                        </p>
                     </div>
                 </div>
-            </div>
-
-            <div class="text-center py-8">
-                <div class="w-16 h-16 mx-auto rounded-full bg-zinc-800 flex items-center justify-center mb-3">
-                    <i class="fa-solid fa-compass-drafting text-2xl text-zinc-600"></i>
-                </div>
-                <p class="text-sm text-zinc-500">Plus d'invocations bientôt...</p>
             </div>
         </div>
 
@@ -467,6 +468,14 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// Labels des types de vidéo
+const VIDEO_TYPE_LABELS = {
+    'coran': { label: '🕌 Coran', class: 'type-coran' },
+    'hadith': { label: '📜 Hadith', class: 'type-hadith' },
+    'tafsir': { label: '📖 Tafsir', class: 'type-tafsir' },
+    'preche': { label: '📢 Prêche', class: 'type-preche' }
+};
+
 function getCdnUrl(originalUrl) {
     if (!originalUrl) return '';
     if (originalUrl.includes('kitabwasunna.b-cdn.net')) return originalUrl;
@@ -483,7 +492,6 @@ function escapeAttr(str) {
     return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ').replace(/\r/g, '');
 }
 
-// ✅ Fonction pour formater la durée (secondes → MM:SS ou HH:MM:SS)
 function formatDuration(seconds) {
     if (!seconds || isNaN(seconds)) return '00:00';
     const h = Math.floor(seconds / 3600);
@@ -501,6 +509,7 @@ let allVideos = [];
 let allAlbums = [];
 let selectedTypeFilter = null;
 let selectedAlbumFilter = null;
+let selectedVideoTypeFilter = null; // ✅ NOUVEAU : Filtre par type de vidéo
 let searchQuery = '';
 let selectionMode = false;
 let selectedVideoIds = new Set();
@@ -511,6 +520,8 @@ let activeDownloads = JSON.parse(localStorage.getItem('activeDownloads') || '[]'
 let longPressTimer = null;
 let homeSelectionMode = false;
 let homeSelectedVideoIds = new Set();
+let currentXhr = null;
+let uploadStuckCheck = null;
 
 auth.onAuthStateChanged(async (user) => {
     currentUser = user;
@@ -662,7 +673,8 @@ async function loadAllVideos() {
                 downloads: v.downloads || 0,
                 videoUrl: getCdnUrl(v.downloadURL),
                 thumbnail: v.thumbnail || '',
-                size: v.size || 0
+                size: v.size || 0,
+                videoType: v.videoType || '' // ✅ NOUVEAU : Type de vidéo
             });
         });
     } catch(e) { 
@@ -811,7 +823,6 @@ function cancelFileSelection() {
     document.getElementById('upload-form').classList.add('hidden');
 }
 
-// ✅ AMÉLIORATION : Génération de miniature avec gestion d'erreur et durée
 async function generateThumbnail(file) {
     return new Promise((resolve) => {
         const video = document.createElement('video');
@@ -825,7 +836,6 @@ async function generateThumbnail(file) {
         video.onloadedmetadata = () => {
             duration = video.duration || 0;
             console.log('🎬 Durée vidéo:', formatDuration(duration));
-            // Aller à 10% de la vidéo pour une meilleure miniature
             video.currentTime = Math.min(5, duration * 0.1);
         };
         
@@ -843,7 +853,7 @@ async function generateThumbnail(file) {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 const thumbnail = canvas.toDataURL('image/jpeg', 0.7);
-                console.log('✅ Miniature générée:', thumbnail.substring(0, 50) + '...');
+                console.log('✅ Miniature générée');
                 resolve({ thumbnail, duration: formatDuration(duration) });
             } catch (e) {
                 console.error('❌ Erreur génération miniature:', e);
@@ -856,7 +866,6 @@ async function generateThumbnail(file) {
             resolve({ thumbnail: '', duration: '00:00' });
         };
         
-        // Timeout de sécurité
         setTimeout(() => {
             resolve({ thumbnail: '', duration: '00:00' });
         }, 10000);
@@ -868,9 +877,11 @@ async function generateThumbnail(file) {
 async function uploadVideoToB2() {
     if (!currentSelectedFile) return;
     const title = document.getElementById('videoTitle').value.trim();
-    if (!title) { alert("Titre requis"); return; }
+    const videoType = document.getElementById('videoType').value;
     
-    // ✅ Taille max 600 Mo (timeout 30 min)
+    if (!title) { alert("Titre requis"); return; }
+    if (!videoType) { alert("Veuillez sélectionner le type de vidéo"); return; }
+    
     const maxSize = 600 * 1024 * 1024;
     if (currentSelectedFile.size > maxSize) {
         alert(`❌ Fichier trop volumineux (${(currentSelectedFile.size / 1024 / 1024).toFixed(2)} Mo). Maximum : 600 Mo`);
@@ -884,9 +895,11 @@ async function uploadVideoToB2() {
     const progressDetail = document.getElementById('progressDetail');
     const timeRemaining = document.getElementById('timeRemaining');
     const uploadBtn = document.getElementById('btn-upload');
+    const cancelBtn = document.getElementById('btn-cancel-upload');
     
     uploadBtn.disabled = true;
     uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Upload en cours...';
+    cancelBtn.classList.remove('hidden');
     
     progressDiv.classList.remove('hidden');
     progressBar.style.width = '0%';
@@ -895,10 +908,11 @@ async function uploadVideoToB2() {
     progressDetail.innerText = '0 Mo / ' + (currentSelectedFile.size / 1024 / 1024).toFixed(1) + ' Mo';
     timeRemaining.innerText = 'Temps restant: calcul...';
     
-    // ✅ Variables pour calcul de vitesse
     let lastLoaded = 0;
     let lastTime = Date.now();
     let speeds = [];
+    let lastProgressTime = Date.now();
+    let stuckCounter = 0;
     
     try {
         progressText.innerText = '5% - Obtention des droits...';
@@ -915,60 +929,71 @@ async function uploadVideoToB2() {
         
         const { uploadUrl, authorizationToken, downloadUrl } = await urlResponse.json();
         
-        console.log('📡 Upload URL:', uploadUrl);
-        console.log('📡 Download URL:', downloadUrl);
+        console.log('📡 Upload URL:', uploadUrl.substring(0, 50) + '...');
+        console.log('📡 File size:', (currentSelectedFile.size / 1024 / 1024).toFixed(2), 'Mo');
         
         progressText.innerText = '8% - Génération miniature...';
-        
-        // ✅ Générer miniature AVANT l'upload
         const { thumbnail, duration } = await generateThumbnail(currentSelectedFile);
-        console.log('⏱️ Durée détectée:', duration);
         
         progressText.innerText = '10% - Envoi vers B2...';
         
         const fileName = `videos/${Date.now()}_${currentSelectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         
-        console.log('📁 Nom du fichier:', fileName);
-        console.log('📦 Taille:', (currentSelectedFile.size / 1024 / 1024).toFixed(2), 'Mo');
+        uploadStuckCheck = setInterval(() => {
+            const now = Date.now();
+            const timeSinceLastProgress = (now - lastProgressTime) / 1000;
+            
+            if (timeSinceLastProgress > 20) {
+                stuckCounter++;
+                console.warn(`⚠️ Upload bloqué depuis ${timeSinceLastProgress.toFixed(1)}s (tentative ${stuckCounter}/3)`);
+                
+                if (stuckCounter >= 3) {
+                    clearInterval(uploadStuckCheck);
+                    if (currentXhr) {
+                        currentXhr.abort();
+                    }
+                    throw new Error('Upload bloqué - Connexion interrompue depuis 60s');
+                }
+                
+                timeRemaining.innerHTML = `<span class="text-yellow-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Connexion lente... ${stuckCounter}/3</span>`;
+            }
+        }, 5000);
         
         await new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
+            currentXhr = new XMLHttpRequest();
             
-            // ✅ PROGRESSION AMÉLIORÉE AVEC VITESSE
-            xhr.upload.addEventListener('progress', (e) => {
+            currentXhr.upload.addEventListener('progress', (e) => {
                 if (e.lengthComputable) {
-                    const now = Date.now();
-                    const timeDiff = (now - lastTime) / 1000; // en secondes
+                    lastProgressTime = Date.now();
+                    stuckCounter = 0;
                     
-                    if (timeDiff >= 0.5) { // Mise à jour toutes les 0.5s
+                    const now = Date.now();
+                    const timeDiff = (now - lastTime) / 1000;
+                    
+                    if (timeDiff >= 0.5) {
                         const loadedDiff = e.loaded - lastLoaded;
                         const speedMBps = (loadedDiff / 1024 / 1024) / timeDiff;
                         
-                        // Moyenne glissante sur les 5 dernières mesures
                         speeds.push(speedMBps);
                         if (speeds.length > 5) speeds.shift();
                         const avgSpeed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
                         
-                        // Pourcentage réel (de 10% à 95%)
                         const uploadPercent = (e.loaded / e.total) * 100;
                         const totalPercent = 10 + (uploadPercent * 0.85);
                         
                         progressBar.style.width = `${totalPercent}%`;
                         progressText.innerText = `${Math.round(totalPercent)}%`;
                         
-                        // ✅ Affichage vitesse
                         if (avgSpeed >= 1) {
                             speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${avgSpeed.toFixed(2)} Mo/s`;
                         } else {
                             speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${(avgSpeed * 1024).toFixed(0)} Ko/s`;
                         }
                         
-                        // ✅ Détails
                         const loadedMB = (e.loaded / 1024 / 1024).toFixed(1);
                         const totalMB = (e.total / 1024 / 1024).toFixed(1);
                         progressDetail.innerText = `${loadedMB} Mo / ${totalMB} Mo`;
                         
-                        // ✅ Temps restant estimé
                         if (avgSpeed > 0) {
                             const remainingBytes = e.total - e.loaded;
                             const remainingSeconds = remainingBytes / (avgSpeed * 1024 * 1024);
@@ -987,42 +1012,46 @@ async function uploadVideoToB2() {
                 }
             });
             
-            xhr.onload = () => {
-                console.log('📥 Réponse B2 - Status:', xhr.status);
-                console.log('📥 Réponse B2 - Body:', xhr.responseText);
+            currentXhr.onload = () => {
+                clearInterval(uploadStuckCheck);
+                console.log('📥 Réponse B2 - Status:', currentXhr.status);
                 
-                if (xhr.status === 200) {
-                    resolve(JSON.parse(xhr.responseText));
+                if (currentXhr.status === 200) {
+                    resolve(JSON.parse(currentXhr.responseText));
                 } else {
-                    let errorMsg = `Upload B2 échoué: ${xhr.status}`;
+                    let errorMsg = `Upload B2 échoué: ${currentXhr.status}`;
                     try {
-                        const errorData = JSON.parse(xhr.responseText);
-                        errorMsg += ` - ${errorData.code || ''}: ${errorData.message || xhr.responseText}`;
+                        const errorData = JSON.parse(currentXhr.responseText);
+                        errorMsg += ` - ${errorData.code || ''}: ${errorData.message || currentXhr.responseText}`;
                     } catch (e) {
-                        errorMsg += ` - ${xhr.responseText.substring(0, 200)}`;
+                        errorMsg += ` - ${currentXhr.responseText.substring(0, 200)}`;
                     }
                     reject(new Error(errorMsg));
                 }
             };
             
-            xhr.onerror = () => {
-                console.error('❌ Erreur réseau');
+            currentXhr.onerror = () => {
+                clearInterval(uploadStuckCheck);
+                console.error('❌ Erreur réseau XHR');
                 reject(new Error('Erreur réseau pendant l\'upload. Vérifiez votre connexion.'));
             };
             
-            xhr.ontimeout = () => {
-                console.error('⏱️ Timeout');
+            currentXhr.ontimeout = () => {
+                clearInterval(uploadStuckCheck);
+                console.error('⏱️ Timeout XHR');
                 reject(new Error('Timeout - L\'upload a pris trop de temps (30 min max)'));
             };
             
-            xhr.open('POST', uploadUrl, true);
-            xhr.setRequestHeader('Authorization', authorizationToken);
-            xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
-            xhr.setRequestHeader('Content-Type', 'video/mp4');
-            xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
-            xhr.setRequestHeader('X-Bz-Info-Author', 'mimbar-app');
-            xhr.timeout = 1800000; // ✅ 30 minutes
-            xhr.send(currentSelectedFile);
+            currentXhr.open('POST', uploadUrl, true);
+            currentXhr.setRequestHeader('Authorization', authorizationToken);
+            currentXhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
+            currentXhr.setRequestHeader('Content-Type', 'video/mp4');
+            currentXhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
+            currentXhr.setRequestHeader('X-Bz-Info-Author', 'mimbar-app');
+            currentXhr.timeout = 1800000;
+            
+            console.log('🚀 Début upload...');
+            currentXhr.send(currentSelectedFile);
         });
         
         progressBar.style.width = '97%';
@@ -1030,7 +1059,6 @@ async function uploadVideoToB2() {
         speedText.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Terminé';
         
         const finalVideoUrl = downloadUrl + encodeURIComponent(fileName);
-        console.log('✅ URL finale (CDN):', finalVideoUrl);
         
         await db.collection('videos').add({
             userId: currentUser.uid,
@@ -1038,16 +1066,17 @@ async function uploadVideoToB2() {
             fileName: currentSelectedFile.name,
             title: title,
             speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
-            duration: duration, // ✅ Durée réelle détectée
+            duration: duration,
             date: new Date().toISOString().split('T')[0],
             views: 0, 
             downloads: 0,
             downloadURL: finalVideoUrl,
-            thumbnail: thumbnail, // ✅ Miniature réelle
+            thumbnail: thumbnail,
             uploadedAt: new Date(),
             size: currentSelectedFile.size,
             storage: 'backblaze_b2',
-            cdn: 'bunny_net'
+            cdn: 'bunny_net',
+            videoType: videoType // ✅ NOUVEAU : Type de vidéo sauvegardé
         });
         
         progressBar.style.width = '100%';
@@ -1058,9 +1087,11 @@ async function uploadVideoToB2() {
             progressDiv.classList.add('hidden');
             document.getElementById('upload-form').classList.add('hidden');
             document.getElementById('videoUpload').value = '';
+            document.getElementById('videoType').value = '';
             currentSelectedFile = null;
             uploadBtn.disabled = false;
             uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
+            cancelBtn.classList.add('hidden');
         }, 1500);
         
         await loadAllVideos();
@@ -1069,11 +1100,29 @@ async function uploadVideoToB2() {
         alert("✅ Vidéo publiée avec succès !");
         
     } catch(error) {
+        clearInterval(uploadStuckCheck);
         console.error("❌ Erreur upload:", error);
-        alert("Erreur: " + error.message);
+        
+        if (error.name === 'AbortError') {
+            alert("⚠️ Upload annulé par l'utilisateur");
+        } else {
+            alert("Erreur: " + error.message);
+        }
+        
         progressDiv.classList.add('hidden');
         uploadBtn.disabled = false;
         uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
+        cancelBtn.classList.add('hidden');
+        currentXhr = null;
+    }
+}
+
+function cancelUpload() {
+    if (currentXhr) {
+        if (confirm("Êtes-vous sûr de vouloir annuler l'upload ?")) {
+            currentXhr.abort();
+            console.log('🛑 Upload annulé par l\'utilisateur');
+        }
     }
 }
 
@@ -1162,6 +1211,7 @@ async function downloadVideo(url, filename, videoId) {
 
 function renderAll() {
     renderTypeChips();
+    renderVideoTypeChips(); // ✅ NOUVEAU
     renderAlbumChips();
     renderVideoGrid();
     renderDownloads();
@@ -1185,13 +1235,53 @@ function renderTypeChips() {
     `).join('');
 }
 
-function renderAlbumChips() {
+// ✅ NOUVEAU : Chips pour filtrer par type de vidéo
+function renderVideoTypeChips() {
     const container = document.getElementById('album-chips');
     const chips = [
         { id: null, name: '👥 Tous les Imams' },
         ...allAlbums.map(a => ({ id: a.id, name: a.imamName || 'Album' }))
     ];
-    container.innerHTML = chips.map(c => `
+    
+    // Ajouter les types de vidéo en premier
+    const videoTypes = [
+        { id: 'all', name: '🎬 Tous types', isVideoType: true },
+        { id: 'coran', name: '🕌 Coran', isVideoType: true },
+        { id: 'hadith', name: '📜 Hadith', isVideoType: true },
+        { id: 'tafsir', name: '📖 Tafsir', isVideoType: true },
+        { id: 'preche', name: '📢 Prêche', isVideoType: true }
+    ];
+    
+    const typeContainer = document.createElement('div');
+    typeContainer.className = 'flex gap-2 overflow-x-auto no-scrollbar py-1';
+    typeContainer.innerHTML = videoTypes.map(t => `
+        <button onclick="filterByVideoType(${t.id === 'all' ? 'null' : `'${t.id}'`})" 
+            class="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap ${selectedVideoTypeFilter === t.id ? 'text-white' : 'bg-zinc-800 text-zinc-400'}"
+            ${selectedVideoTypeFilter === t.id ? 'style="background:#ff5722"' : ''}>
+            ${t.name}
+        </button>
+    `).join('');
+    
+    // Remplacer le container par le nouveau
+    container.parentNode.insertBefore(typeContainer, container);
+    container.remove();
+}
+
+function renderAlbumChips() {
+    // Créer un nouveau container pour les albums
+    let albumContainer = document.getElementById('album-chips-container');
+    if (!albumContainer) {
+        albumContainer = document.createElement('div');
+        albumContainer.id = 'album-chips-container';
+        albumContainer.className = 'flex gap-2 overflow-x-auto no-scrollbar py-1';
+        document.getElementById('album-chips')?.parentNode?.insertBefore(albumContainer, document.getElementById('album-chips'));
+    }
+    
+    const chips = [
+        { id: null, name: '👥 Tous les Imams' },
+        ...allAlbums.map(a => ({ id: a.id, name: a.imamName || 'Album' }))
+    ];
+    albumContainer.innerHTML = chips.map(c => `
         <button onclick="filterByAlbum(${c.id ? `'${c.id}'` : 'null'})" 
             class="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap ${selectedAlbumFilter === c.id ? 'text-white' : 'bg-zinc-800 text-zinc-400'}"
             ${selectedAlbumFilter === c.id ? 'style="background:#ff5722"' : ''}>
@@ -1203,10 +1293,17 @@ function renderAlbumChips() {
 function getFilteredVideos() {
     let filtered = [...allVideos];
     
+    // Filtre par type d'album (prêche, tafsir, etc.)
     if (selectedTypeFilter) {
         const albumIds = allAlbums.filter(a => a.type === selectedTypeFilter).map(a => a.id);
         filtered = filtered.filter(v => albumIds.includes(v.albumId));
     }
+    
+    // ✅ NOUVEAU : Filtre par type de vidéo
+    if (selectedVideoTypeFilter) {
+        filtered = filtered.filter(v => v.videoType === selectedVideoTypeFilter);
+    }
+    
     if (selectedAlbumFilter) filtered = filtered.filter(v => v.albumId === selectedAlbumFilter);
     if (searchQuery) {
         const q = searchQuery.toLowerCase();
@@ -1222,7 +1319,6 @@ function getFilteredVideos() {
     return filtered;
 }
 
-// ✅ AMÉLIORATION MAJEURE : Rendu YouTube-like avec miniatures et durée
 function renderVideoGrid() {
     const container = document.getElementById('video-grid');
     const filtered = getFilteredVideos();
@@ -1232,7 +1328,6 @@ function renderVideoGrid() {
         return;
     }
     
-    // Miniature par défaut améliorée
     const defaultThumb = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgZmlsbD0iIzE4MTgxYiIvPjxjaXJjbGUgY3g9IjI0MCIgY3k9IjEzNSIgcj0iNDAiIGZpbGw9IiNmZjU3MjIiLz48cG9seWdvbiBwb2ludHM9IjIyNSwxMTUgMjI1LDE1NSAyNjUsMTM1IiBmaWxsPSIjZmZmIi8+PC9zdmc+';
     
     container.innerHTML = filtered.map(v => {
@@ -1240,6 +1335,7 @@ function renderVideoGrid() {
         const thumb = v.thumbnail && v.thumbnail.trim() !== '' ? v.thumbnail : defaultThumb;
         const isSelected = homeSelectedVideoIds.has(v.id);
         const duration = v.duration || '00:00';
+        const typeInfo = VIDEO_TYPE_LABELS[v.videoType] || { label: '', class: '' };
         
         return `
         <div class="video-card bg-zinc-900 rounded-xl overflow-hidden cursor-pointer fade-in ${isSelected ? 'ring-2 ring-orange-500' : ''}" 
@@ -1252,18 +1348,18 @@ function renderVideoGrid() {
             <div class="relative aspect-video bg-zinc-800">
                 <img src="${thumb}" alt="${escapeAttr(v.title)}" class="w-full h-full object-cover" onerror="this.src='${defaultThumb}'">
                 
-                <!-- ✅ Badge durée style YouTube -->
                 <div class="duration-badge">${duration}</div>
                 
+                ${typeInfo.label ? `<div class="absolute top-2 left-2 type-badge ${typeInfo.class}">${typeInfo.label}</div>` : ''}
+                
                 ${homeSelectionMode ? `
-                    <div class="absolute top-2 left-2 z-10" onclick="event.stopPropagation(); toggleHomeVideoSelection('${v.id}')">
+                    <div class="absolute top-2 right-2 z-10" onclick="event.stopPropagation(); toggleHomeVideoSelection('${v.id}')">
                         <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-white bg-black/50'}">
                             ${isSelected ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
                         </div>
                     </div>
                 ` : ''}
                 
-                <!-- ✅ Overlay play au hover -->
                 <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                     <div class="w-14 h-14 rounded-full flex items-center justify-center" style="background:#ff5722">
                         <i class="fa-solid fa-play text-white text-xl pl-1"></i>
@@ -1271,7 +1367,6 @@ function renderVideoGrid() {
                 </div>
             </div>
             <div class="p-3 flex gap-3">
-                <!-- ✅ Avatar Imam -->
                 <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold shrink-0 text-xs" style="background:rgba(255,87,34,0.2);color:#ff5722">
                     ${(album?.imamName || v.speaker || 'U').charAt(0).toUpperCase()}
                 </div>
@@ -1474,7 +1569,6 @@ function closeVideoPlayer() {
     currentPlayingVideo = null;
 }
 
-// ✅ AMÉLIORATION : Liste "Mes vidéos" avec miniatures YouTube-like
 function renderMyVideos() {
     const container = document.getElementById('my-videos-list');
     if (!container) return;
@@ -1492,6 +1586,7 @@ function renderMyVideos() {
         const isSelected = selectedVideoIds.has(v.id);
         const thumb = v.thumbnail && v.thumbnail.trim() !== '' ? v.thumbnail : defaultThumb;
         const duration = v.duration || '00:00';
+        const typeInfo = VIDEO_TYPE_LABELS[v.videoType] || { label: '', class: '' };
         
         return `
         <div class="bg-zinc-900 rounded-xl overflow-hidden ${isSelected ? 'border-2 border-orange-500' : 'border border-zinc-800'}">
@@ -1502,7 +1597,6 @@ function renderMyVideos() {
                     </button>
                 ` : ''}
                 
-                <!-- ✅ Miniature avec durée -->
                 <div class="relative shrink-0 cursor-pointer" onclick="openVideoPlayer('${escapeAttr(getCdnUrl(v.videoUrl))}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
                     <img src="${thumb}" class="w-28 h-16 rounded object-cover" onerror="this.src='${defaultThumb}'">
                     <div class="absolute bottom-1 right-1 bg-black/80 text-white text-[9px] px-1 rounded font-bold">${duration}</div>
@@ -1510,6 +1604,7 @@ function renderMyVideos() {
                 
                 <div class="flex-1 min-w-0 cursor-pointer" onclick="openVideoPlayer('${escapeAttr(getCdnUrl(v.videoUrl))}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
                     <p class="text-xs font-bold text-white truncate">${escapeAttr(v.title)}</p>
+                    ${typeInfo.label ? `<span class="type-badge ${typeInfo.class} mt-1 inline-block">${typeInfo.label}</span>` : ''}
                     <p class="text-[9px] text-zinc-500 mt-0.5">
                         <i class="fa-regular fa-eye"></i> ${v.views || 0} vues · 
                         <i class="fa-solid fa-hard-drive"></i> ${(v.size / 1024 / 1024).toFixed(1)} Mo
@@ -1644,6 +1739,7 @@ function toggleDlSubTab(sub) {
 
 function filterByType(typeId) { selectedTypeFilter = typeId; renderTypeChips(); renderVideoGrid(); }
 function filterByAlbum(albumId) { selectedAlbumFilter = albumId; renderAlbumChips(); renderVideoGrid(); }
+function filterByVideoType(typeId) { selectedVideoTypeFilter = typeId; renderVideoTypeChips(); renderVideoGrid(); }
 function handleSearch(val) { searchQuery = val; renderVideoGrid(); }
 
 function showAzkarTab(tabName) {
