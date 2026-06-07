@@ -20,6 +20,27 @@
         .arabic-title { font-family: 'Amiri', serif; font-size: 1.1rem; font-weight: 700; }
         .arabic-text { font-family: 'Amiri', serif; direction: rtl; line-height: 2.2; }
         .azkar-card { background: linear-gradient(135deg, #18181b 0%, #27272a 100%); }
+        /* ✅ YouTube-like duration badge */
+        .duration-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        /* ✅ Speed indicator animation */
+        @keyframes pulse-speed {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .speed-pulse {
+            animation: pulse-speed 1.5s infinite;
+        }
     </style>
 </head>
 <body class="h-full bg-slate-900 flex justify-center items-center overflow-hidden font-sans">
@@ -125,14 +146,12 @@
                         <i class="fa-solid fa-hourglass-half text-2xl text-yellow-500"></i>
                     </div>
                     <h3 class="text-sm font-bold text-white">Album en examen</h3>
-                    <p class="text-xs text-zinc-400 mt-2">Votre demande est en cours de validation</p>
                 </div>
                 <div id="album-approved" class="hidden text-center py-8">
                     <div class="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center mb-3">
                         <i class="fa-solid fa-check text-2xl text-emerald-500"></i>
                     </div>
                     <h3 class="text-sm font-bold text-white">Album approuvé !</h3>
-                    <p class="text-xs text-zinc-400 mt-2">Vous pouvez maintenant ajouter des vidéos</p>
                 </div>
                 <div id="album-limit" class="hidden text-center py-8">
                     <div class="w-16 h-16 mx-auto rounded-full bg-red-500/20 flex items-center justify-center mb-3">
@@ -147,7 +166,6 @@
             <div id="myalbum-empty" class="text-center py-12">
                 <i class="fa-solid fa-lock text-4xl text-zinc-600"></i>
                 <h3 class="text-sm font-bold text-white mt-3">Aucun album</h3>
-                <p class="text-xs text-zinc-500 mt-2">Créez un album pour commencer</p>
                 <button onclick="showTab('create')" class="mt-4 px-4 py-2 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Créer un album</button>
             </div>
             
@@ -190,17 +208,29 @@
                         <div class="flex items-center gap-2 bg-zinc-800 rounded-lg p-2">
                             <i class="fa-solid fa-film text-orange-500"></i>
                             <span id="selected-file-name" class="text-xs text-white truncate flex-1"></span>
+                            <span id="selected-file-size" class="text-[10px] text-zinc-400"></span>
                             <button onclick="cancelFileSelection()" class="text-zinc-400"><i class="fa-solid fa-xmark"></i></button>
                         </div>
                         <input type="text" id="videoTitle" placeholder="Titre de la vidéo" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
                         <button onclick="uploadVideoToB2()" id="btn-upload" class="w-full py-2 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
                             <i class="fa-solid fa-upload mr-1"></i>Publier
                         </button>
-                        <div id="uploadProgress" class="hidden space-y-1">
-                            <div class="h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                        
+                        <!-- ✅ PROGRESSION AMÉLIORÉE AVEC VITESSE -->
+                        <div id="uploadProgress" class="hidden space-y-2">
+                            <div class="h-2 bg-zinc-700 rounded-full overflow-hidden">
                                 <div id="progressBar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
                             </div>
-                            <p id="progressText" class="text-[10px] text-zinc-400 text-center">0%</p>
+                            <div class="flex justify-between items-center text-[10px]">
+                                <span id="progressText" class="text-zinc-400">0%</span>
+                                <span id="speedText" class="text-emerald-400 font-bold speed-pulse">
+                                    <i class="fa-solid fa-bolt mr-1"></i>0 Mo/s
+                                </span>
+                            </div>
+                            <div class="flex justify-between text-[9px] text-zinc-500">
+                                <span id="progressDetail">0 Mo / 0 Mo</span>
+                                <span id="timeRemaining">Temps restant: calcul...</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -437,29 +467,32 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ============================================
-// 🚀 CONFIGURATION CDN BUNNY.NET
-// ============================================
 function getCdnUrl(originalUrl) {
     if (!originalUrl) return '';
-    
-    if (originalUrl.includes('kitabwasunna.b-cdn.net')) {
-        return originalUrl;
-    }
-    
+    if (originalUrl.includes('kitabwasunna.b-cdn.net')) return originalUrl;
     const b2Domain = 'f005.backblazeb2.com'; 
     const bunnyDomain = 'kitabwasunna.b-cdn.net';
-    
     if (originalUrl.includes(b2Domain)) {
         return originalUrl.replace(b2Domain, bunnyDomain);
     }
-    
     return originalUrl;
 }
 
 function escapeAttr(str) {
     if (!str) return '';
     return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ').replace(/\r/g, '');
+}
+
+// ✅ Fonction pour formater la durée (secondes → MM:SS ou HH:MM:SS)
+function formatDuration(seconds) {
+    if (!seconds || isNaN(seconds)) return '00:00';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    if (h > 0) {
+        return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
 let currentUser = null;
@@ -767,6 +800,7 @@ function handleFileSelected(input) {
         return; 
     }
     document.getElementById('selected-file-name').innerText = currentSelectedFile.name;
+    document.getElementById('selected-file-size').innerText = `(${(currentSelectedFile.size / 1024 / 1024).toFixed(1)} Mo)`;
     document.getElementById('videoTitle').value = currentSelectedFile.name.replace(/\.[^/.]+$/, "");
     document.getElementById('upload-form').classList.remove('hidden');
 }
@@ -777,22 +811,56 @@ function cancelFileSelection() {
     document.getElementById('upload-form').classList.add('hidden');
 }
 
+// ✅ AMÉLIORATION : Génération de miniature avec gestion d'erreur et durée
 async function generateThumbnail(file) {
     return new Promise((resolve) => {
         const video = document.createElement('video');
         video.preload = 'metadata';
         video.muted = true;
         video.playsInline = true;
-        video.onloadeddata = () => { video.currentTime = Math.min(2, video.duration / 2); };
-        video.onseeked = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = 320;
-            canvas.height = 180;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL('image/jpeg', 0.6));
+        video.crossOrigin = 'anonymous';
+        
+        let duration = 0;
+        
+        video.onloadedmetadata = () => {
+            duration = video.duration || 0;
+            console.log('🎬 Durée vidéo:', formatDuration(duration));
+            // Aller à 10% de la vidéo pour une meilleure miniature
+            video.currentTime = Math.min(5, duration * 0.1);
         };
-        video.onerror = () => resolve('');
+        
+        video.onloadeddata = () => {
+            if (duration === 0) {
+                video.currentTime = Math.min(2, (video.duration || 10) / 2);
+            }
+        };
+        
+        video.onseeked = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 480;
+                canvas.height = 270;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const thumbnail = canvas.toDataURL('image/jpeg', 0.7);
+                console.log('✅ Miniature générée:', thumbnail.substring(0, 50) + '...');
+                resolve({ thumbnail, duration: formatDuration(duration) });
+            } catch (e) {
+                console.error('❌ Erreur génération miniature:', e);
+                resolve({ thumbnail: '', duration: formatDuration(duration) });
+            }
+        };
+        
+        video.onerror = (e) => {
+            console.error('❌ Erreur chargement vidéo pour miniature:', e);
+            resolve({ thumbnail: '', duration: '00:00' });
+        };
+        
+        // Timeout de sécurité
+        setTimeout(() => {
+            resolve({ thumbnail: '', duration: '00:00' });
+        }, 10000);
+        
         video.src = URL.createObjectURL(file);
     });
 }
@@ -802,16 +870,19 @@ async function uploadVideoToB2() {
     const title = document.getElementById('videoTitle').value.trim();
     if (!title) { alert("Titre requis"); return; }
     
-    // ✅ Vérification de la taille du fichier (max 700 Mo)
-    const maxSize = 700 * 1024 * 1024;
+    // ✅ Taille max 600 Mo (timeout 30 min)
+    const maxSize = 600 * 1024 * 1024;
     if (currentSelectedFile.size > maxSize) {
-        alert(`❌ Fichier trop volumineux (${(currentSelectedFile.size / 1024 / 1024).toFixed(2)} Mo). Maximum : 700 Mo`);
+        alert(`❌ Fichier trop volumineux (${(currentSelectedFile.size / 1024 / 1024).toFixed(2)} Mo). Maximum : 600 Mo`);
         return;
     }
     
     const progressDiv = document.getElementById('uploadProgress');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
+    const speedText = document.getElementById('speedText');
+    const progressDetail = document.getElementById('progressDetail');
+    const timeRemaining = document.getElementById('timeRemaining');
     const uploadBtn = document.getElementById('btn-upload');
     
     uploadBtn.disabled = true;
@@ -819,10 +890,18 @@ async function uploadVideoToB2() {
     
     progressDiv.classList.remove('hidden');
     progressBar.style.width = '0%';
-    progressText.innerText = '0% - Préparation...';
+    progressText.innerText = '0%';
+    speedText.innerHTML = '<i class="fa-solid fa-bolt mr-1"></i>0 Mo/s';
+    progressDetail.innerText = '0 Mo / ' + (currentSelectedFile.size / 1024 / 1024).toFixed(1) + ' Mo';
+    timeRemaining.innerText = 'Temps restant: calcul...';
+    
+    // ✅ Variables pour calcul de vitesse
+    let lastLoaded = 0;
+    let lastTime = Date.now();
+    let speeds = [];
     
     try {
-        progressText.innerText = '5% - Obtention des droits d\'upload...';
+        progressText.innerText = '5% - Obtention des droits...';
         
         const urlResponse = await fetch('/api/upload-b2', {
             method: 'POST',
@@ -839,25 +918,72 @@ async function uploadVideoToB2() {
         console.log('📡 Upload URL:', uploadUrl);
         console.log('📡 Download URL:', downloadUrl);
         
-        progressText.innerText = '10% - Génération miniature...';
-        const thumbnail = await generateThumbnail(currentSelectedFile);
+        progressText.innerText = '8% - Génération miniature...';
         
-        progressText.innerText = '15% - Envoi vers Backblaze B2...';
+        // ✅ Générer miniature AVANT l'upload
+        const { thumbnail, duration } = await generateThumbnail(currentSelectedFile);
+        console.log('⏱️ Durée détectée:', duration);
+        
+        progressText.innerText = '10% - Envoi vers B2...';
         
         const fileName = `videos/${Date.now()}_${currentSelectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         
         console.log('📁 Nom du fichier:', fileName);
         console.log('📦 Taille:', (currentSelectedFile.size / 1024 / 1024).toFixed(2), 'Mo');
-        console.log('🎬 Type MIME:', currentSelectedFile.type);
         
         await new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             
+            // ✅ PROGRESSION AMÉLIORÉE AVEC VITESSE
             xhr.upload.addEventListener('progress', (e) => {
                 if (e.lengthComputable) {
-                    const percent = 15 + (e.loaded / e.total) * 75;
-                    progressBar.style.width = `${percent}%`;
-                    progressText.innerText = `${Math.round(percent)}% - ${(e.loaded / 1024 / 1024).toFixed(1)}/${(e.total / 1024 / 1024).toFixed(1)} Mo`;
+                    const now = Date.now();
+                    const timeDiff = (now - lastTime) / 1000; // en secondes
+                    
+                    if (timeDiff >= 0.5) { // Mise à jour toutes les 0.5s
+                        const loadedDiff = e.loaded - lastLoaded;
+                        const speedMBps = (loadedDiff / 1024 / 1024) / timeDiff;
+                        
+                        // Moyenne glissante sur les 5 dernières mesures
+                        speeds.push(speedMBps);
+                        if (speeds.length > 5) speeds.shift();
+                        const avgSpeed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
+                        
+                        // Pourcentage réel (de 10% à 95%)
+                        const uploadPercent = (e.loaded / e.total) * 100;
+                        const totalPercent = 10 + (uploadPercent * 0.85);
+                        
+                        progressBar.style.width = `${totalPercent}%`;
+                        progressText.innerText = `${Math.round(totalPercent)}%`;
+                        
+                        // ✅ Affichage vitesse
+                        if (avgSpeed >= 1) {
+                            speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${avgSpeed.toFixed(2)} Mo/s`;
+                        } else {
+                            speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${(avgSpeed * 1024).toFixed(0)} Ko/s`;
+                        }
+                        
+                        // ✅ Détails
+                        const loadedMB = (e.loaded / 1024 / 1024).toFixed(1);
+                        const totalMB = (e.total / 1024 / 1024).toFixed(1);
+                        progressDetail.innerText = `${loadedMB} Mo / ${totalMB} Mo`;
+                        
+                        // ✅ Temps restant estimé
+                        if (avgSpeed > 0) {
+                            const remainingBytes = e.total - e.loaded;
+                            const remainingSeconds = remainingBytes / (avgSpeed * 1024 * 1024);
+                            if (remainingSeconds < 60) {
+                                timeRemaining.innerText = `Restant: ${Math.ceil(remainingSeconds)}s`;
+                            } else if (remainingSeconds < 3600) {
+                                timeRemaining.innerText = `Restant: ${Math.floor(remainingSeconds / 60)}m ${Math.ceil(remainingSeconds % 60)}s`;
+                            } else {
+                                timeRemaining.innerText = `Restant: ${(remainingSeconds / 3600).toFixed(1)}h`;
+                            }
+                        }
+                        
+                        lastLoaded = e.loaded;
+                        lastTime = now;
+                    }
                 }
             });
             
@@ -886,7 +1012,7 @@ async function uploadVideoToB2() {
             
             xhr.ontimeout = () => {
                 console.error('⏱️ Timeout');
-                reject(new Error('Timeout - L\'upload a pris trop de temps (10 min max)'));
+                reject(new Error('Timeout - L\'upload a pris trop de temps (30 min max)'));
             };
             
             xhr.open('POST', uploadUrl, true);
@@ -895,12 +1021,13 @@ async function uploadVideoToB2() {
             xhr.setRequestHeader('Content-Type', 'video/mp4');
             xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
             xhr.setRequestHeader('X-Bz-Info-Author', 'mimbar-app');
-            xhr.timeout = 600000;
+            xhr.timeout = 1800000; // ✅ 30 minutes
             xhr.send(currentSelectedFile);
         });
         
-        progressBar.style.width = '95%';
-        progressText.innerText = '95% - Sauvegarde dans Firestore...';
+        progressBar.style.width = '97%';
+        progressText.innerText = '97% - Sauvegarde...';
+        speedText.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Terminé';
         
         const finalVideoUrl = downloadUrl + encodeURIComponent(fileName);
         console.log('✅ URL finale (CDN):', finalVideoUrl);
@@ -911,12 +1038,12 @@ async function uploadVideoToB2() {
             fileName: currentSelectedFile.name,
             title: title,
             speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
-            duration: "00:00",
+            duration: duration, // ✅ Durée réelle détectée
             date: new Date().toISOString().split('T')[0],
             views: 0, 
             downloads: 0,
             downloadURL: finalVideoUrl,
-            thumbnail: thumbnail,
+            thumbnail: thumbnail, // ✅ Miniature réelle
             uploadedAt: new Date(),
             size: currentSelectedFile.size,
             storage: 'backblaze_b2',
@@ -924,7 +1051,8 @@ async function uploadVideoToB2() {
         });
         
         progressBar.style.width = '100%';
-        progressText.innerText = '✅ Terminé !';
+        progressText.innerText = '100%';
+        timeRemaining.innerText = '✅ Terminé !';
         
         setTimeout(() => {
             progressDiv.classList.add('hidden');
@@ -1094,6 +1222,7 @@ function getFilteredVideos() {
     return filtered;
 }
 
+// ✅ AMÉLIORATION MAJEURE : Rendu YouTube-like avec miniatures et durée
 function renderVideoGrid() {
     const container = document.getElementById('video-grid');
     const filtered = getFilteredVideos();
@@ -1103,12 +1232,14 @@ function renderVideoGrid() {
         return;
     }
     
-    const defaultThumb = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzI3MjcyNyIvPjxjaXJjbGUgY3g9IjE2MCIgY3k9IjkwIiByPSI0MCIgZmlsbD0iI2ZmNTcyMiIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDc1IDE1MCwxMDUgMTgwLDkwIiBmaWxsPSIjZmZmIi8+PC9zdmc+';
+    // Miniature par défaut améliorée
+    const defaultThumb = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgZmlsbD0iIzE4MTgxYiIvPjxjaXJjbGUgY3g9IjI0MCIgY3k9IjEzNSIgcj0iNDAiIGZpbGw9IiNmZjU3MjIiLz48cG9seWdvbiBwb2ludHM9IjIyNSwxMTUgMjI1LDE1NSAyNjUsMTM1IiBmaWxsPSIjZmZmIi8+PC9zdmc+';
     
     container.innerHTML = filtered.map(v => {
         const album = allAlbums.find(a => a.id === v.albumId);
         const thumb = v.thumbnail && v.thumbnail.trim() !== '' ? v.thumbnail : defaultThumb;
         const isSelected = homeSelectedVideoIds.has(v.id);
+        const duration = v.duration || '00:00';
         
         return `
         <div class="video-card bg-zinc-900 rounded-xl overflow-hidden cursor-pointer fade-in ${isSelected ? 'ring-2 ring-orange-500' : ''}" 
@@ -1120,6 +1251,10 @@ function renderVideoGrid() {
              onclick="handleVideoClick('${v.id}', event)">
             <div class="relative aspect-video bg-zinc-800">
                 <img src="${thumb}" alt="${escapeAttr(v.title)}" class="w-full h-full object-cover" onerror="this.src='${defaultThumb}'">
+                
+                <!-- ✅ Badge durée style YouTube -->
+                <div class="duration-badge">${duration}</div>
+                
                 ${homeSelectionMode ? `
                     <div class="absolute top-2 left-2 z-10" onclick="event.stopPropagation(); toggleHomeVideoSelection('${v.id}')">
                         <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-white bg-black/50'}">
@@ -1127,18 +1262,26 @@ function renderVideoGrid() {
                         </div>
                     </div>
                 ` : ''}
-                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                
+                <!-- ✅ Overlay play au hover -->
+                <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                     <div class="w-14 h-14 rounded-full flex items-center justify-center" style="background:#ff5722">
                         <i class="fa-solid fa-play text-white text-xl pl-1"></i>
                     </div>
                 </div>
             </div>
-            <div class="p-3">
-                <h4 class="text-sm font-bold text-white line-clamp-2">${escapeAttr(v.title)}</h4>
-                <p class="text-[11px] mt-1" style="color:#ff5722">${escapeAttr(album?.imamName || v.speaker)}</p>
-                <div class="flex gap-3 text-[10px] text-zinc-500 mt-1">
-                    <span><i class="fa-regular fa-eye"></i> ${v.views || 0}</span>
-                    <span><i class="fa-solid fa-location-dot"></i> ${escapeAttr(album?.city || '')}</span>
+            <div class="p-3 flex gap-3">
+                <!-- ✅ Avatar Imam -->
+                <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold shrink-0 text-xs" style="background:rgba(255,87,34,0.2);color:#ff5722">
+                    ${(album?.imamName || v.speaker || 'U').charAt(0).toUpperCase()}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="text-sm font-bold text-white line-clamp-2 leading-tight">${escapeAttr(v.title)}</h4>
+                    <p class="text-[11px] mt-1 text-zinc-400">${escapeAttr(album?.imamName || v.speaker)}</p>
+                    <div class="flex gap-3 text-[10px] text-zinc-500 mt-0.5">
+                        <span><i class="fa-regular fa-eye"></i> ${v.views || 0} vues</span>
+                        <span><i class="fa-solid fa-location-dot"></i> ${escapeAttr(album?.city || '')}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1331,6 +1474,7 @@ function closeVideoPlayer() {
     currentPlayingVideo = null;
 }
 
+// ✅ AMÉLIORATION : Liste "Mes vidéos" avec miniatures YouTube-like
 function renderMyVideos() {
     const container = document.getElementById('my-videos-list');
     if (!container) return;
@@ -1342,28 +1486,42 @@ function renderMyVideos() {
         return;
     }
     
-    const defaultThumb = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzI3MjcyNyIvPjxjaXJjbGUgY3g9IjE2MCIgY3k9IjkwIiByPSI0MCIgZmlsbD0iI2ZmNTcyMiIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDc1IDE1MCwxMDUgMTgwLDkwIiBmaWxsPSIjZmZmIi8+PC9zdmc+';
+    const defaultThumb = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgZmlsbD0iIzE4MTgxYiIvPjxjaXJjbGUgY3g9IjI0MCIgY3k9IjEzNSIgcj0iNDAiIGZpbGw9IiNmZjU3MjIiLz48cG9seWdvbiBwb2ludHM9IjIyNSwxMTUgMjI1LDE1NSAyNjUsMTM1IiBmaWxsPSIjZmZmIi8+PC9zdmc+';
     
     container.innerHTML = myVids.map(v => {
         const isSelected = selectedVideoIds.has(v.id);
         const thumb = v.thumbnail && v.thumbnail.trim() !== '' ? v.thumbnail : defaultThumb;
+        const duration = v.duration || '00:00';
+        
         return `
-        <div class="bg-zinc-900 rounded-xl p-2 flex gap-3 items-center ${isSelected ? 'border-2 border-orange-500' : 'border border-zinc-800'}">
-            ${selectionMode ? `
-                <button onclick="event.stopPropagation(); toggleVideoSelection('${v.id}')" class="w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-zinc-600'}">
-                    ${isSelected ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
-                </button>
-            ` : ''}
-            ${thumb ? `<img src="${thumb}" class="w-20 h-12 rounded object-cover shrink-0" onerror="this.src='${defaultThumb}'">` : `<div class="w-20 h-12 rounded bg-zinc-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-film text-orange-500"></i></div>`}
-            <div class="flex-1 min-w-0" onclick="openVideoPlayer('${escapeAttr(getCdnUrl(v.videoUrl))}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
-                <p class="text-xs font-bold text-white truncate">${escapeAttr(v.title)}</p>
-                <p class="text-[9px] text-zinc-500">${v.views || 0} vues</p>
+        <div class="bg-zinc-900 rounded-xl overflow-hidden ${isSelected ? 'border-2 border-orange-500' : 'border border-zinc-800'}">
+            <div class="flex gap-3 p-2 items-center">
+                ${selectionMode ? `
+                    <button onclick="event.stopPropagation(); toggleVideoSelection('${v.id}')" class="w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-zinc-600'}">
+                        ${isSelected ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
+                    </button>
+                ` : ''}
+                
+                <!-- ✅ Miniature avec durée -->
+                <div class="relative shrink-0 cursor-pointer" onclick="openVideoPlayer('${escapeAttr(getCdnUrl(v.videoUrl))}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
+                    <img src="${thumb}" class="w-28 h-16 rounded object-cover" onerror="this.src='${defaultThumb}'">
+                    <div class="absolute bottom-1 right-1 bg-black/80 text-white text-[9px] px-1 rounded font-bold">${duration}</div>
+                </div>
+                
+                <div class="flex-1 min-w-0 cursor-pointer" onclick="openVideoPlayer('${escapeAttr(getCdnUrl(v.videoUrl))}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
+                    <p class="text-xs font-bold text-white truncate">${escapeAttr(v.title)}</p>
+                    <p class="text-[9px] text-zinc-500 mt-0.5">
+                        <i class="fa-regular fa-eye"></i> ${v.views || 0} vues · 
+                        <i class="fa-solid fa-hard-drive"></i> ${(v.size / 1024 / 1024).toFixed(1)} Mo
+                    </p>
+                </div>
+                
+                ${!selectionMode ? `
+                    <button onclick="event.stopPropagation(); deleteMyVideo('${v.id}')" class="w-7 h-7 rounded bg-red-900/30 text-red-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-trash text-xs"></i>
+                    </button>
+                ` : ''}
             </div>
-            ${!selectionMode ? `
-                <button onclick="event.stopPropagation(); deleteMyVideo('${v.id}')" class="w-7 h-7 rounded bg-red-900/30 text-red-400 flex items-center justify-center shrink-0">
-                    <i class="fa-solid fa-trash text-xs"></i>
-                </button>
-            ` : ''}
         </div>
         `;
     }).join('');
