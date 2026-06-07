@@ -802,10 +802,10 @@ async function uploadVideoToB2() {
     const title = document.getElementById('videoTitle').value.trim();
     if (!title) { alert("Titre requis"); return; }
     
-    // ✅ Vérification de la taille du fichier (max 100 Mo)
-    const maxSize = 100 * 1024 * 1024;
+    // ✅ Vérification de la taille du fichier (max 700 Mo)
+    const maxSize = 700 * 1024 * 1024;
     if (currentSelectedFile.size > maxSize) {
-        alert(`❌ Fichier trop volumineux (${(currentSelectedFile.size / 1024 / 1024).toFixed(2)} Mo). Maximum : 100 Mo`);
+        alert(`❌ Fichier trop volumineux (${(currentSelectedFile.size / 1024 / 1024).toFixed(2)} Mo). Maximum : 700 Mo`);
         return;
     }
     
