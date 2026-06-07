@@ -193,7 +193,7 @@
                             <button onclick="cancelFileSelection()" class="text-zinc-400"><i class="fa-solid fa-xmark"></i></button>
                         </div>
                         <input type="text" id="videoTitle" placeholder="Titre de la vidéo" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
-                        <button onclick="uploadVideoToB2()" class="w-full py-2 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
+                        <button onclick="uploadVideoToB2()" id="btn-upload" class="w-full py-2 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
                             <i class="fa-solid fa-upload mr-1"></i>Publier
                         </button>
                         <div id="uploadProgress" class="hidden space-y-1">
@@ -286,7 +286,7 @@
                             "Ô Allah, mets de la lumière dans mon cœur, dans ma vue, dans mon ouïe, à ma droite, à ma gauche, au-dessus de moi, en dessous de moi, devant moi, derrière moi, et fais de moi une lumière."
                         </p>
                         <p class="text-[10px] text-amber-400 mt-2">
-                            <i class="fa-solid fa-book mr-1"></i>Sahih Muslim - Doua pour demander la lumière dans tous les aspects de sa vie
+                            <i class="fa-solid fa-book mr-1"></i>Sahih Muslim
                         </p>
                     </div>
                 </div>
@@ -382,7 +382,6 @@
         <div class="flex-1 flex items-center justify-center bg-black">
             <video id="native-video" class="w-full max-h-full" controls playsinline>
                 <source id="video-source" src="" type="video/mp4">
-                Votre navigateur ne supporte pas la lecture vidéo.
             </video>
         </div>
         <div class="bg-zinc-900 p-3 flex items-center justify-between">
@@ -439,12 +438,14 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 // ============================================
-// 🚀 FONCTION CDN BUNNY.NET
+// 🚀 CONFIGURATION CDN BUNNY.NET
 // ============================================
-// Cette fonction transforme automatiquement toutes les URLs B2 en URLs Bunny CDN
-// Les utilisateurs verront kitabwasunna.b-cdn.net au lieu de f005.backblazeb2.com
 function getCdnUrl(originalUrl) {
     if (!originalUrl) return '';
+    
+    if (originalUrl.includes('kitabwasunna.b-cdn.net')) {
+        return originalUrl;
+    }
     
     const b2Domain = 'f005.backblazeb2.com'; 
     const bunnyDomain = 'kitabwasunna.b-cdn.net';
@@ -452,6 +453,7 @@ function getCdnUrl(originalUrl) {
     if (originalUrl.includes(b2Domain)) {
         return originalUrl.replace(b2Domain, bunnyDomain);
     }
+    
     return originalUrl;
 }
 
@@ -509,7 +511,6 @@ async function handleLogin() {
             case 'auth/invalid-credential': errorMsg = "❌ Email ou mot de passe incorrect."; break;
             case 'auth/user-not-found': errorMsg = "❌ Compte introuvable."; break;
             case 'auth/wrong-password': errorMsg = "❌ Mot de passe incorrect."; break;
-            case 'auth/operation-not-allowed': errorMsg = "❌ Connexion email non activée."; break;
             default: errorMsg = `❌ ${e.message}`;
         }
         showAuthError(errorMsg);
@@ -532,7 +533,6 @@ async function handleSignup() {
         switch(e.code) {
             case 'auth/email-already-in-use': errorMsg = "❌ Email déjà utilisé."; break;
             case 'auth/weak-password': errorMsg = "❌ Mot de passe trop faible."; break;
-            case 'auth/operation-not-allowed': errorMsg = "❌ Inscription non activée."; break;
             default: errorMsg = `❌ ${e.message}`;
         }
         showAuthError(errorMsg);
@@ -627,7 +627,6 @@ async function loadAllVideos() {
                 date: v.date || new Date().toISOString().split('T')[0],
                 views: v.views || 0,
                 downloads: v.downloads || 0,
-                // 🚀 APPLICATION DU CDN BUNNY.NET SUR L'URL VIDÉO
                 videoUrl: getCdnUrl(v.downloadURL),
                 thumbnail: v.thumbnail || '',
                 size: v.size || 0
@@ -698,17 +697,12 @@ function updateProfileUI() {
             myalbumEmpty.classList.remove('hidden');
             myalbumContent.classList.add('hidden');
             if (createForm) createForm.classList.remove('hidden');
-            if (albumPending) albumPending.classList.add('hidden');
-            if (albumApproved) albumApproved.classList.add('hidden');
         }
     }
 }
 
 async function submitAlbumRequest() {
-    if (!currentUser) { 
-        alert("Connectez-vous d'abord"); 
-        return; 
-    }
+    if (!currentUser) { alert("Connectez-vous d'abord"); return; }
     
     const imamName = document.getElementById('imamName').value.trim();
     const city = document.getElementById('imamCity').value.trim();
@@ -808,16 +802,27 @@ async function uploadVideoToB2() {
     const title = document.getElementById('videoTitle').value.trim();
     if (!title) { alert("Titre requis"); return; }
     
+    // ✅ Vérification de la taille du fichier (max 100 Mo)
+    const maxSize = 100 * 1024 * 1024;
+    if (currentSelectedFile.size > maxSize) {
+        alert(`❌ Fichier trop volumineux (${(currentSelectedFile.size / 1024 / 1024).toFixed(2)} Mo). Maximum : 100 Mo`);
+        return;
+    }
+    
     const progressDiv = document.getElementById('uploadProgress');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
+    const uploadBtn = document.getElementById('btn-upload');
+    
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Upload en cours...';
     
     progressDiv.classList.remove('hidden');
     progressBar.style.width = '0%';
     progressText.innerText = '0% - Préparation...';
     
     try {
-        progressText.innerText = '5% - Connexion à B2...';
+        progressText.innerText = '5% - Obtention des droits d\'upload...';
         
         const urlResponse = await fetch('/api/upload-b2', {
             method: 'POST',
@@ -831,11 +836,19 @@ async function uploadVideoToB2() {
         
         const { uploadUrl, authorizationToken, downloadUrl } = await urlResponse.json();
         
-        progressText.innerText = '10% - Miniature...';
+        console.log('📡 Upload URL:', uploadUrl);
+        console.log('📡 Download URL:', downloadUrl);
+        
+        progressText.innerText = '10% - Génération miniature...';
         const thumbnail = await generateThumbnail(currentSelectedFile);
         
-        progressText.innerText = '15% - Envoi vers B2...';
-        const fileName = `${Date.now()}_${currentSelectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        progressText.innerText = '15% - Envoi vers Backblaze B2...';
+        
+        const fileName = `videos/${Date.now()}_${currentSelectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        
+        console.log('📁 Nom du fichier:', fileName);
+        console.log('📦 Taille:', (currentSelectedFile.size / 1024 / 1024).toFixed(2), 'Mo');
+        console.log('🎬 Type MIME:', currentSelectedFile.type);
         
         await new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
@@ -849,23 +862,48 @@ async function uploadVideoToB2() {
             });
             
             xhr.onload = () => {
-                if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
-                else reject(new Error('Upload B2: ' + xhr.status));
+                console.log('📥 Réponse B2 - Status:', xhr.status);
+                console.log('📥 Réponse B2 - Body:', xhr.responseText);
+                
+                if (xhr.status === 200) {
+                    resolve(JSON.parse(xhr.responseText));
+                } else {
+                    let errorMsg = `Upload B2 échoué: ${xhr.status}`;
+                    try {
+                        const errorData = JSON.parse(xhr.responseText);
+                        errorMsg += ` - ${errorData.code || ''}: ${errorData.message || xhr.responseText}`;
+                    } catch (e) {
+                        errorMsg += ` - ${xhr.responseText.substring(0, 200)}`;
+                    }
+                    reject(new Error(errorMsg));
+                }
             };
-            xhr.onerror = () => reject(new Error('Erreur réseau'));
-            xhr.ontimeout = () => reject(new Error('Timeout'));
             
-            xhr.open('POST', uploadUrl);
+            xhr.onerror = () => {
+                console.error('❌ Erreur réseau');
+                reject(new Error('Erreur réseau pendant l\'upload. Vérifiez votre connexion.'));
+            };
+            
+            xhr.ontimeout = () => {
+                console.error('⏱️ Timeout');
+                reject(new Error('Timeout - L\'upload a pris trop de temps (10 min max)'));
+            };
+            
+            xhr.open('POST', uploadUrl, true);
             xhr.setRequestHeader('Authorization', authorizationToken);
             xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
-            xhr.setRequestHeader('Content-Type', currentSelectedFile.type || 'application/octet-stream');
+            xhr.setRequestHeader('Content-Type', 'video/mp4');
             xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
+            xhr.setRequestHeader('X-Bz-Info-Author', 'mimbar-app');
             xhr.timeout = 600000;
             xhr.send(currentSelectedFile);
         });
         
         progressBar.style.width = '95%';
-        progressText.innerText = '95% - Sauvegarde...';
+        progressText.innerText = '95% - Sauvegarde dans Firestore...';
+        
+        const finalVideoUrl = downloadUrl + encodeURIComponent(fileName);
+        console.log('✅ URL finale (CDN):', finalVideoUrl);
         
         await db.collection('videos').add({
             userId: currentUser.uid,
@@ -875,12 +913,14 @@ async function uploadVideoToB2() {
             speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
             duration: "00:00",
             date: new Date().toISOString().split('T')[0],
-            views: 0, downloads: 0,
-            downloadURL: downloadUrl + encodeURIComponent(fileName),
+            views: 0, 
+            downloads: 0,
+            downloadURL: finalVideoUrl,
             thumbnail: thumbnail,
             uploadedAt: new Date(),
             size: currentSelectedFile.size,
-            storage: 'backblaze_b2'
+            storage: 'backblaze_b2',
+            cdn: 'bunny_net'
         });
         
         progressBar.style.width = '100%';
@@ -891,17 +931,21 @@ async function uploadVideoToB2() {
             document.getElementById('upload-form').classList.add('hidden');
             document.getElementById('videoUpload').value = '';
             currentSelectedFile = null;
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
         }, 1500);
         
         await loadAllVideos();
         updateProfileUI();
         renderAll();
-        alert("✅ Vidéo publiée !");
+        alert("✅ Vidéo publiée avec succès !");
         
     } catch(error) {
-        console.error("Erreur upload:", error);
+        console.error("❌ Erreur upload:", error);
         alert("Erreur: " + error.message);
         progressDiv.classList.add('hidden');
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
     }
 }
 
@@ -917,7 +961,6 @@ function closeDownloadModal() {
 
 function openVideoInNewTab() {
     if (currentPlayingVideo) {
-        // 🚀 UTILISATION DU CDN POUR L'OUVERTURE DANS UN NOUVEL ONGLET
         window.open(getCdnUrl(currentPlayingVideo.videoUrl), '_blank');
     }
 }
@@ -927,7 +970,6 @@ async function downloadWithQuality(quality) {
     closeDownloadModal();
     const v = currentPlayingVideo;
     try {
-        // 🚀 UTILISATION DU CDN POUR LE TÉLÉCHARGEMENT
         await downloadVideo(getCdnUrl(v.videoUrl), v.title + '.mp4', v.id);
     } catch(e) {
         window.open(getCdnUrl(v.videoUrl), '_blank');
@@ -1183,7 +1225,6 @@ async function downloadSelectedHome() {
     
     for (const v of videos) {
         try { 
-            // 🚀 UTILISATION DU CDN POUR LE TÉLÉCHARGEMENT
             await downloadVideo(getCdnUrl(v.videoUrl), v.title + '.mp4', v.id); 
         } catch(e) { 
             window.open(getCdnUrl(v.videoUrl), '_blank'); 
@@ -1229,7 +1270,6 @@ function handleVideoClick(videoId, event) {
     const video = allVideos.find(x => x.id === videoId);
     if (!video) return;
     
-    // 🚀 UTILISATION DU CDN POUR L'OUVERTURE DU LECTEUR
     openVideoPlayer(getCdnUrl(video.videoUrl), video.title, video.speaker, video.id);
 }
 
@@ -1252,7 +1292,6 @@ function openVideoPlayer(url, title, speaker, videoId) {
     video.pause();
     document.getElementById('video-overlay-player').classList.remove('hidden');
     
-    // 🚀 L'URL EST DÉJÀ TRANSFORMÉE PAR getCdnUrl()
     source.src = url;
     source.type = 'video/mp4';
     video.load();
@@ -1363,7 +1402,6 @@ async function downloadSelected() {
     alert(`Téléchargement de ${videos.length} vidéo(s)...`);
     for (const v of videos) {
         try { 
-            // 🚀 UTILISATION DU CDN POUR LE TÉLÉCHARGEMENT
             await downloadVideo(getCdnUrl(v.videoUrl), v.title + '.mp4', v.id); 
         }
         catch(e) { 
