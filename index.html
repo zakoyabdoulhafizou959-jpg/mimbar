@@ -54,17 +54,12 @@
 
     <div class="flex-1 overflow-y-auto no-scrollbar pb-20" id="main-content">
         
-        <!-- ✅ PAGE ACCUEIL -->
         <div id="tab-home" class="p-4 space-y-4">
             <div class="relative">
                 <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher Imam, titre, ville..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
             </div>
-            
-            <!-- ✅ FILTRES UNIFIÉS : Type (albums + vidéos) -->
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="type-chips"></div>
-            
-            <!-- ✅ FILTRES PAR IMAM (albums) -->
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="album-chips"></div>
             
             <div class="flex justify-between items-center mb-2">
@@ -94,7 +89,6 @@
             <div id="video-grid" class="space-y-4"></div>
         </div>
 
-        <!-- ✅ PAGE CRÉER ALBUM -->
         <div id="tab-create" class="hidden p-4 space-y-4">
             <div class="bg-zinc-900 rounded-2xl p-5 space-y-4">
                 <h2 class="text-base font-bold text-white flex items-center gap-2">
@@ -157,14 +151,12 @@
             </div>
         </div>
 
-        <!-- ✅ PAGE MON ALBUM -->
         <div id="tab-myalbum" class="hidden p-4 space-y-4">
             <div id="myalbum-empty" class="text-center py-12">
                 <i class="fa-solid fa-lock text-4xl text-zinc-600"></i>
                 <h3 class="text-sm font-bold text-white mt-3">Aucun album</h3>
                 <button onclick="showTab('create')" class="mt-4 px-4 py-2 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Créer un album</button>
             </div>
-            
             <div id="myalbum-content" class="hidden space-y-4">
                 <div class="bg-gradient-to-br from-orange-950 to-zinc-900 rounded-2xl p-4 border border-orange-500/30">
                     <div class="flex items-center justify-between mb-2">
@@ -182,7 +174,6 @@
                         <span><i class="fa-regular fa-eye"></i> <span id="my-album-views">0</span> vues</span>
                     </div>
                 </div>
-
                 <div id="selection-bar" class="hidden bg-zinc-900 rounded-xl p-3 border border-orange-500/30 flex items-center justify-between">
                     <span class="text-xs text-white"><span id="selected-count">0</span> sélectionnée(s)</span>
                     <div class="flex gap-2">
@@ -194,7 +185,6 @@
                         </button>
                     </div>
                 </div>
-
                 <div id="upload-section" class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed" style="border-color:rgba(255,87,34,0.5)">
                     <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="handleFileSelected(this)">
                     <button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 rounded-xl text-sm font-bold" style="background:rgba(255,87,34,0.2);color:#ff5722">
@@ -247,7 +237,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div>
                     <h3 class="text-xs font-black text-zinc-400 uppercase mb-2">Mes vidéos</h3>
                     <div id="my-videos-list" class="space-y-2"></div>
@@ -255,7 +244,6 @@
             </div>
         </div>
 
-        <!-- ✅ PAGE AZKAR -->
         <div id="tab-azkar" class="hidden p-4 space-y-4">
             <div class="text-center mb-4">
                 <h2 class="text-lg font-bold text-white mb-1">أذكار وأدعية</h2>
@@ -284,14 +272,13 @@
                     </div>
                     <div id="traduction1" class="hidden space-y-2">
                         <p class="text-xs text-zinc-400 leading-relaxed">
-                            "Ô Allah, Tu es mon Seigneur, il n'y a de dieu que Toi..."
+                            "Ô Allah, Tu es mon Seigneur, il n'y a de dieu que Toi. Tu m'as créé et je suis Ton serviteur..."
                         </p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ✅ PAGE TÉLÉCHARGEMENTS -->
         <div id="tab-downloads" class="hidden">
             <div class="p-4 border-b border-zinc-800 flex justify-between">
                 <h2 class="text-base font-bold text-white"><i class="fa-solid fa-circle-down mr-2" style="color:#ff5722"></i>Téléchargements</h2>
@@ -309,7 +296,6 @@
             </div>
         </div>
 
-        <!-- ✅ PAGE PROFIL AMÉLIORÉE -->
         <div id="tab-profile" class="hidden p-4 space-y-4">
             <div id="profile-unauth" class="space-y-4">
                 <div class="text-center py-6 px-4 bg-zinc-900 rounded-2xl">
@@ -355,8 +341,6 @@
                 <button onclick="showTab('create')" class="w-full py-3 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 border border-zinc-800">
                     <i class="fa-solid fa-plus" style="color:#ff5722"></i>Créer un nouvel album
                 </button>
-                
-                <!-- ✅ NOUVELLES OPTIONS -->
                 <div class="space-y-2 pt-2 border-t border-zinc-800">
                     <button onclick="showTab('support')" class="w-full py-3 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 border border-zinc-800">
                         <i class="fa-solid fa-headset" style="color:#3b82f6"></i>Aide & Support
@@ -375,7 +359,6 @@
             </div>
         </div>
 
-        <!-- ✅ NOUVELLE PAGE : AIDE & SUPPORT -->
         <div id="tab-support" class="hidden p-4 space-y-4">
             <div class="flex items-center gap-2 mb-2">
                 <button onclick="showTab('profile')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
@@ -383,12 +366,10 @@
                 </button>
                 <h2 class="text-base font-bold text-white">Aide & Support</h2>
             </div>
-            
             <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 text-xs text-blue-300">
                 <i class="fa-solid fa-circle-info mr-1"></i>
-                Notre équipe vous répondra dans les plus brefs délais. Vous pouvez envoyer du texte, une note vocale ou des images.
+                Notre équipe vous répondra dans les plus brefs délais.
             </div>
-            
             <div class="bg-zinc-900 rounded-2xl p-4 space-y-3">
                 <div>
                     <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Sujet *</label>
@@ -400,13 +381,10 @@
                         <option value="other">📝 Autre</option>
                     </select>
                 </div>
-                
                 <div>
                     <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Votre message *</label>
-                    <textarea id="supportMessage" placeholder="Décrivez votre problème ou question..." rows="4" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500"></textarea>
+                    <textarea id="supportMessage" placeholder="Décrivez votre problème..." rows="4" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500"></textarea>
                 </div>
-                
-                <!-- Upload image -->
                 <div>
                     <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Images (optionnel)</label>
                     <input type="file" id="supportImages" accept="image/*" multiple class="hidden" onchange="handleSupportImages(this)">
@@ -415,8 +393,6 @@
                     </button>
                     <div id="support-images-preview" class="mt-2 flex flex-wrap gap-2"></div>
                 </div>
-                
-                <!-- Enregistrement vocal -->
                 <div>
                     <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Note vocale (optionnel)</label>
                     <div class="flex gap-2">
@@ -433,20 +409,16 @@
                         <button onclick="removeVoice()" class="text-zinc-400"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                 </div>
-                
                 <button onclick="submitSupport()" id="btn-submit-support" class="w-full py-3 rounded-xl text-sm font-bold text-white" style="background:#ff5722">
                     <i class="fa-solid fa-paper-plane mr-2"></i>Envoyer
                 </button>
             </div>
-            
             <div id="support-success" class="hidden text-center py-8 bg-emerald-900/20 border border-emerald-500/30 rounded-2xl">
                 <i class="fa-solid fa-circle-check text-4xl text-emerald-400"></i>
                 <h3 class="text-sm font-bold text-white mt-3">Message envoyé !</h3>
-                <p class="text-xs text-zinc-400 mt-1">Nous vous répondrons bientôt.</p>
             </div>
         </div>
 
-        <!-- ✅ NOUVELLE PAGE : CONFIDENTIALITÉ -->
         <div id="tab-privacy" class="hidden p-4 space-y-4">
             <div class="flex items-center gap-2 mb-2">
                 <button onclick="showTab('profile')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
@@ -454,57 +426,27 @@
                 </button>
                 <h2 class="text-base font-bold text-white">Confidentialité</h2>
             </div>
-            
             <div class="bg-zinc-900 rounded-2xl p-4 space-y-3 text-xs text-zinc-300 leading-relaxed">
                 <div class="flex items-center gap-2 mb-2">
                     <i class="fa-solid fa-shield-halved text-2xl" style="color:#a855f7"></i>
                     <h3 class="text-sm font-bold text-white">Politique de confidentialité</h3>
                 </div>
                 <p class="text-[10px] text-zinc-500">Dernière mise à jour : Juin 2026</p>
-                
                 <div class="border-t border-zinc-800 pt-3">
-                    <h4 class="text-xs font-bold text-white mb-1"><i class="fa-solid fa-user mr-1" style="color:#ff5722"></i>1. Collecte des données</h4>
-                    <p>Nous collectons uniquement les données nécessaires au fonctionnement de l'application :</p>
-                    <ul class="list-disc list-inside mt-1 space-y-1 text-zinc-400">
-                        <li>Email et nom (authentification)</li>
-                        <li>Vidéos uploadées (stockées sur Backblaze B2)</li>
-                        <li>Messages de support</li>
-                    </ul>
+                    <h4 class="text-xs font-bold text-white mb-1">1. Collecte des données</h4>
+                    <p>Nous collectons uniquement les données nécessaires : email, vidéos uploadées, messages de support.</p>
                 </div>
-                
                 <div class="border-t border-zinc-800 pt-3">
-                    <h4 class="text-xs font-bold text-white mb-1"><i class="fa-solid fa-lock mr-1" style="color:#ff5722"></i>2. Sécurité</h4>
-                    <p>Vos données sont protégées par :</p>
-                    <ul class="list-disc list-inside mt-1 space-y-1 text-zinc-400">
-                        <li>Chiffrement Firebase</li>
-                        <li>CDN Bunny.net sécurisé</li>
-                        <li>Règles d'accès strictes</li>
-                    </ul>
+                    <h4 class="text-xs font-bold text-white mb-1">2. Sécurité</h4>
+                    <p>Vos données sont protégées par Firebase et Backblaze B2 avec chiffrement.</p>
                 </div>
-                
                 <div class="border-t border-zinc-800 pt-3">
-                    <h4 class="text-xs font-bold text-white mb-1"><i class="fa-solid fa-share-nodes mr-1" style="color:#ff5722"></i>3. Partage</h4>
-                    <p>Nous ne vendons ni ne partageons vos données personnelles avec des tiers. Seuls les administrateurs de l'application peuvent accéder aux données de support.</p>
+                    <h4 class="text-xs font-bold text-white mb-1">3. Partage</h4>
+                    <p>Nous ne vendons ni ne partageons vos données personnelles avec des tiers.</p>
                 </div>
-                
                 <div class="border-t border-zinc-800 pt-3">
-                    <h4 class="text-xs font-bold text-white mb-1"><i class="fa-solid fa-trash mr-1" style="color:#ff5722"></i>4. Suppression</h4>
-                    <p>Vous pouvez à tout moment :</p>
-                    <ul class="list-disc list-inside mt-1 space-y-1 text-zinc-400">
-                        <li>Supprimer vos vidéos</li>
-                        <li>Supprimer votre compte</li>
-                        <li>Demander la suppression de vos données via le Support</li>
-                    </ul>
-                </div>
-                
-                <div class="border-t border-zinc-800 pt-3">
-                    <h4 class="text-xs font-bold text-white mb-1"><i class="fa-solid fa-cookie mr-1" style="color:#ff5722"></i>5. Cookies</h4>
-                    <p>Nous utilisons uniquement les cookies nécessaires à l'authentification et au stockage local des préférences.</p>
-                </div>
-                
-                <div class="border-t border-zinc-800 pt-3">
-                    <h4 class="text-xs font-bold text-white mb-1"><i class="fa-solid fa-envelope mr-1" style="color:#ff5722"></i>6. Contact</h4>
-                    <p>Pour toute question sur vos données, utilisez la section <strong>Aide & Support</strong>.</p>
+                    <h4 class="text-xs font-bold text-white mb-1">4. Contact</h4>
+                    <p>Pour toute question, utilisez la section <strong>Aide & Support</strong>.</p>
                 </div>
             </div>
         </div>
@@ -569,6 +511,9 @@
 </div>
 
 <script>
+// ============================================
+// 🔥 FIREBASE INIT
+// ============================================
 const firebaseConfig = {
     apiKey: "AIzaSyC3ybM8gMQZ-IjVLLXqs0MZLPEzqGmyREA",
     authDomain: "mimbar-e1bee.firebaseapp.com",
@@ -581,9 +526,9 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ✅ Configuration pour redirect Google (WebView/APK)
-auth.setSettings({ appVerificationDisabledForTesting: false });
-
+// ============================================
+// ✅ TOUTES LES VARIABLES GLOBALES EN PREMIER
+// ============================================
 const VIDEO_TYPE_LABELS = {
     'coran': { label: '🕌 Coran', class: 'type-coran' },
     'hadith': { label: '📜 Hadith', class: 'type-hadith' },
@@ -591,9 +536,38 @@ const VIDEO_TYPE_LABELS = {
     'preche': { label: '📢 Prêche', class: 'type-preche' }
 };
 
-const CHUNK_SIZE = 5 * 1024 * 1024; // 5 Mo (minimum B2)
+const CHUNK_SIZE = 5 * 1024 * 1024;
 const MAX_RETRY = 3;
 
+let currentUser = null;
+let userAlbum = null;
+let allVideos = [];
+let allAlbums = [];
+let selectedTypeFilter = null;
+let selectedAlbumFilter = null;
+let searchQuery = '';
+let selectionMode = false;
+let selectedVideoIds = new Set();
+let currentPlayingVideo = null;
+let currentSelectedFile = null;
+let completedDownloads = JSON.parse(localStorage.getItem('completedDownloads') || '[]');
+let activeDownloads = JSON.parse(localStorage.getItem('activeDownloads') || '[]');
+let longPressTimer = null;
+let homeSelectionMode = false;
+let homeSelectedVideoIds = new Set();
+let uploadAborted = false;
+
+// Support
+let supportImages = [];
+let supportVoiceBlob = null;
+let mediaRecorder = null;
+let recordingChunks = [];
+let recordingInterval = null;
+let recordingStartTime = 0;
+
+// ============================================
+// 🔧 FONCTIONS UTILITAIRES
+// ============================================
 function getCdnUrl(originalUrl) {
     if (!originalUrl) return '';
     if (originalUrl.includes('kitabwasunna.b-cdn.net')) return originalUrl;
@@ -617,32 +591,9 @@ function formatDuration(seconds) {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
-let currentUser = null;
-let userAlbum = null;
-let allVideos = [];
-let allAlbums = [];
-let selectedTypeFilter = null; // ✅ Filtre unifié (type d'album ET type de vidéo)
-let selectedAlbumFilter = null;
-let searchQuery = '';
-let selectionMode = false;
-let selectedVideoIds = new Set();
-let currentPlayingVideo = null;
-let currentSelectedFile = null;
-let completedDownloads = JSON.parse(localStorage.getItem('completedDownloads') || '[]');
-let activeDownloads = JSON.parse(localStorage.getItem('activeDownloads') || '[]');
-let longPressTimer = null;
-let homeSelectionMode = false;
-let homeSelectedVideoIds = new Set();
-let uploadAborted = false;
-
-// Support
-let supportImages = [];
-let supportVoiceBlob = null;
-let mediaRecorder = null;
-let recordingChunks = [];
-let recordingInterval = null;
-let recordingStartTime = 0;
-
+// ============================================
+// 🔐 AUTH
+// ============================================
 auth.onAuthStateChanged(async (user) => {
     currentUser = user;
     if (user) {
@@ -658,23 +609,20 @@ auth.onAuthStateChanged(async (user) => {
     renderAll();
 });
 
-// ✅ GOOGLE SIGN-IN COMPATIBLE WEBVIEW/APK
 async function handleGoogleSignIn() {
     try {
         showAuthLoading(true);
         const provider = new firebase.auth.GoogleAuthProvider();
         
-        // ✅ Détection WebView (APK via Median.co)
+        // Détection WebView/APK
         const isWebView = navigator.userAgent.includes('wv') || 
                          navigator.userAgent.includes('Median') ||
                          window.AndroidBridge !== undefined;
         
         if (isWebView) {
-            // Utiliser redirect pour WebView
             console.log('📱 WebView détecté → signInWithRedirect');
             await auth.signInWithRedirect(provider);
         } else {
-            // Utiliser popup pour navigateur normal
             console.log('🌐 Navigateur → signInWithPopup');
             await auth.signInWithPopup(provider);
         }
@@ -685,7 +633,6 @@ async function handleGoogleSignIn() {
         showAuthLoading(false);
         console.error('Google Sign-In error:', e);
         
-        // Si popup bloqué, essayer redirect
         if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request') {
             try {
                 const provider = new firebase.auth.GoogleAuthProvider();
@@ -701,7 +648,6 @@ async function handleGoogleSignIn() {
     }
 }
 
-// ✅ Gérer le retour du redirect
 auth.getRedirectResult().then((result) => {
     if (result) {
         console.log('✅ Redirect Google réussi');
@@ -789,6 +735,9 @@ function showAuthLoading(loading) {
     if (signupBtn) signupBtn.disabled = loading;
 }
 
+// ============================================
+// 📚 DONNÉES
+// ============================================
 async function loadUserData() {
     if (!currentUser) return;
     try {
@@ -872,10 +821,9 @@ function updateProfileUI() {
     document.getElementById('statViews').innerText = myVids.reduce((s, v) => s + (v.views || 0), 0);
     document.getElementById('statDownloads').innerText = completedDownloads.length;
     
-    // Notifications status
     const notifStatus = document.getElementById('notif-status');
     if (notifStatus) {
-        if (Notification.permission === 'granted') {
+        if ('Notification' in window && Notification.permission === 'granted') {
             notifStatus.innerText = 'Notifications activées ✓';
         } else {
             notifStatus.innerText = 'Activer les notifications';
@@ -973,16 +921,20 @@ async function submitAlbumRequest() {
     }
 }
 
-// ✅ FONCTION DE FILTRAGE UNIFIÉ
-// Quand on clique sur un type, ça filtre :
-// 1. Les albums de ce type (pour afficher les Imams correspondants)
-// 2. Les vidéos dont le videoType correspond
-// 3. Les vidéos appartenant à un album de ce type
+// ============================================
+// 🎛️ FILTRES
+// ============================================
 function filterByType(typeId) {
     selectedTypeFilter = typeId;
     renderTypeChips();
-    renderAlbumChips(); // ✅ Met à jour aussi la liste des Imams
+    renderAlbumChips();
     renderVideoGrid();
+}
+
+function filterByAlbum(albumId) { 
+    selectedAlbumFilter = albumId; 
+    renderAlbumChips(); 
+    renderVideoGrid(); 
 }
 
 function renderTypeChips() {
@@ -1006,7 +958,6 @@ function renderTypeChips() {
 function renderAlbumChips() {
     const container = document.getElementById('album-chips');
     
-    // ✅ Filtrer les albums par type sélectionné
     let filteredAlbums = allAlbums;
     if (selectedTypeFilter) {
         filteredAlbums = allAlbums.filter(a => a.type === selectedTypeFilter);
@@ -1026,23 +977,14 @@ function renderAlbumChips() {
     `).join('');
 }
 
-function filterByAlbum(albumId) { 
-    selectedAlbumFilter = albumId; 
-    renderAlbumChips(); 
-    renderVideoGrid(); 
-}
-
-// ✅ FILTRAGE UNIFIÉ DES VIDÉOS
 function getFilteredVideos() {
     let filtered = [...allVideos];
     
     if (selectedTypeFilter) {
-        // 1. Obtenir les IDs des albums de ce type
         const albumIdsOfType = allAlbums
             .filter(a => a.type === selectedTypeFilter)
             .map(a => a.id);
         
-        // 2. Filtrer : vidéo dont le videoType correspond OU vidéo d'un album de ce type
         filtered = filtered.filter(v => {
             const matchVideoType = v.videoType === selectedTypeFilter;
             const matchAlbumType = albumIdsOfType.includes(v.albumId);
@@ -1068,6 +1010,312 @@ function getFilteredVideos() {
     return filtered;
 }
 
+function handleSearch(val) { searchQuery = val; renderVideoGrid(); }
+
+// ============================================
+// 🎬 VIDÉO GRID
+// ============================================
+function renderVideoGrid() {
+    const container = document.getElementById('video-grid');
+    const filtered = getFilteredVideos();
+    
+    if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-center py-12"><i class="fa-solid fa-video-slash text-4xl text-zinc-700"></i><p class="text-sm text-zinc-500 mt-3">Aucune vidéo</p></div>`;
+        return;
+    }
+    
+    const defaultThumb = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgZmlsbD0iIzE4MTgxYiIvPjxjaXJjbGUgY3g9IjI0MCIgY3k9IjEzNSIgcj0iNDAiIGZpbGw9IiNmZjU3MjIiLz48cG9seWdvbiBwb2ludHM9IjIyNSwxMTUgMjI1LDE1NSAyNjUsMTM1IiBmaWxsPSIjZmZmIi8+PC9zdmc+';
+    
+    container.innerHTML = filtered.map(v => {
+        const album = allAlbums.find(a => a.id === v.albumId);
+        const thumb = v.thumbnail && v.thumbnail.trim() !== '' ? v.thumbnail : defaultThumb;
+        const isSelected = homeSelectedVideoIds.has(v.id);
+        const duration = v.duration || '00:00';
+        const typeInfo = VIDEO_TYPE_LABELS[v.videoType] || { label: '', class: '' };
+        
+        return `
+        <div class="video-card bg-zinc-900 rounded-xl overflow-hidden cursor-pointer fade-in ${isSelected ? 'ring-2 ring-orange-500' : ''}" 
+             onmousedown="startLongPress('${v.id}')" onmouseup="cancelLongPress()" 
+             onmouseleave="cancelLongPress()" ontouchstart="startLongPress('${v.id}')" 
+             ontouchend="cancelLongPress()" onclick="handleVideoClick('${v.id}', event)">
+            <div class="relative aspect-video bg-zinc-800">
+                <img src="${thumb}" alt="${escapeAttr(v.title)}" class="w-full h-full object-cover" onerror="this.src='${defaultThumb}'">
+                <div class="duration-badge">${duration}</div>
+                ${typeInfo.label ? `<div class="absolute top-2 left-2 type-badge ${typeInfo.class}">${typeInfo.label}</div>` : ''}
+                ${homeSelectionMode ? `
+                    <div class="absolute top-2 right-2 z-10" onclick="event.stopPropagation(); toggleHomeVideoSelection('${v.id}')">
+                        <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-white bg-black/50'}">
+                            ${isSelected ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
+                        </div>
+                    </div>
+                ` : ''}
+                <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center" style="background:#ff5722">
+                        <i class="fa-solid fa-play text-white text-xl pl-1"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="p-3 flex gap-3">
+                <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold shrink-0 text-xs" style="background:rgba(255,87,34,0.2);color:#ff5722">
+                    ${(album?.imamName || v.speaker || 'U').charAt(0).toUpperCase()}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="text-sm font-bold text-white line-clamp-2 leading-tight">${escapeAttr(v.title)}</h4>
+                    <p class="text-[11px] mt-1 text-zinc-400">${escapeAttr(album?.imamName || v.speaker)}</p>
+                    <div class="flex gap-3 text-[10px] text-zinc-500 mt-0.5">
+                        <span><i class="fa-regular fa-eye"></i> ${v.views || 0} vues</span>
+                        <span><i class="fa-solid fa-location-dot"></i> ${escapeAttr(album?.city || '')}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+    }).join('');
+}
+
+function toggleHomeSelectionMode() {
+    homeSelectionMode = !homeSelectionMode;
+    homeSelectedVideoIds.clear();
+    
+    const btn = document.getElementById('btn-home-select-mode');
+    const bar = document.getElementById('home-selection-bar');
+    
+    if (homeSelectionMode) {
+        btn.innerHTML = '<i class="fa-solid fa-xmark mr-1"></i>Annuler';
+        btn.style.background = '#ff5722';
+        bar.classList.remove('hidden');
+    } else {
+        btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner';
+        btn.style.background = '';
+        bar.classList.add('hidden');
+    }
+    
+    document.getElementById('home-selected-count').innerText = '0';
+    renderVideoGrid();
+}
+
+function toggleHomeVideoSelection(videoId) {
+    if (homeSelectedVideoIds.has(videoId)) homeSelectedVideoIds.delete(videoId);
+    else homeSelectedVideoIds.add(videoId);
+    document.getElementById('home-selected-count').innerText = homeSelectedVideoIds.size;
+    renderVideoGrid();
+}
+
+function toggleSelectAllHome() {
+    const visibleVideos = getFilteredVideos();
+    const allSelected = visibleVideos.length > 0 && visibleVideos.every(v => homeSelectedVideoIds.has(v.id));
+    if (allSelected) visibleVideos.forEach(v => homeSelectedVideoIds.delete(v.id));
+    else visibleVideos.forEach(v => homeSelectedVideoIds.add(v.id));
+    document.getElementById('home-selected-count').innerText = homeSelectedVideoIds.size;
+    renderVideoGrid();
+}
+
+function cancelSelectionHome() {
+    homeSelectionMode = false;
+    homeSelectedVideoIds.clear();
+    const btn = document.getElementById('btn-home-select-mode');
+    const bar = document.getElementById('home-selection-bar');
+    if (btn) { btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner'; btn.style.background = ''; }
+    if (bar) bar.classList.add('hidden');
+    renderVideoGrid();
+}
+
+async function downloadSelectedHome() {
+    if (homeSelectedVideoIds.size === 0) { alert("Aucune vidéo"); return; }
+    const videos = allVideos.filter(v => homeSelectedVideoIds.has(v.id));
+    for (const v of videos) {
+        try { await downloadVideo(getCdnUrl(v.videoUrl), v.title + '.mp4', v.id); } 
+        catch(e) { window.open(getCdnUrl(v.videoUrl), '_blank'); }
+        await new Promise(r => setTimeout(r, 500));
+    }
+    cancelSelectionHome();
+}
+
+function startLongPress(videoId) {
+    if (homeSelectionMode) return;
+    longPressTimer = setTimeout(() => {
+        const v = allVideos.find(x => x.id === videoId);
+        if (v) { currentPlayingVideo = v; showDownloadOptions(); longPressTimer = null; }
+    }, 600);
+}
+
+function cancelLongPress() {
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+}
+
+function handleVideoClick(videoId, event) {
+    if (homeSelectionMode) {
+        if (event) event.stopPropagation();
+        toggleHomeVideoSelection(videoId);
+        return;
+    }
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+    const video = allVideos.find(x => x.id === videoId);
+    if (!video) return;
+    openVideoPlayer(getCdnUrl(video.videoUrl), video.title, video.speaker, video.id);
+}
+
+function openVideoPlayer(url, title, speaker, videoId) {
+    if (!url) return;
+    currentPlayingVideo = allVideos.find(v => v.id === videoId) || { videoUrl: url, title, speaker, id: videoId };
+    document.getElementById('video-player-title').innerText = title;
+    document.getElementById('video-player-speaker').innerText = speaker;
+    const video = document.getElementById('native-video');
+    const source = document.getElementById('video-source');
+    video.pause();
+    document.getElementById('video-overlay-player').classList.remove('hidden');
+    source.src = url;
+    source.type = 'video/mp4';
+    video.load();
+    video.play().catch(() => {});
+    if (videoId) {
+        db.collection('videos').doc(videoId).update({ views: firebase.firestore.FieldValue.increment(1) }).catch(() => {});
+    }
+}
+
+function closeVideoPlayer() {
+    const video = document.getElementById('native-video');
+    video.pause();
+    document.getElementById('video-source').src = '';
+    document.getElementById('video-overlay-player').classList.add('hidden');
+    currentPlayingVideo = null;
+}
+
+// ============================================
+// 📥 TÉLÉCHARGEMENTS
+// ============================================
+function showDownloadOptions() {
+    if (!currentPlayingVideo) return;
+    document.getElementById('download-modal-title').innerText = currentPlayingVideo.title;
+    document.getElementById('download-modal').classList.remove('hidden');
+}
+
+function closeDownloadModal() {
+    document.getElementById('download-modal').classList.add('hidden');
+}
+
+function openVideoInNewTab() {
+    if (currentPlayingVideo) window.open(getCdnUrl(currentPlayingVideo.videoUrl), '_blank');
+}
+
+async function downloadWithQuality(quality) {
+    if (!currentPlayingVideo) return;
+    closeDownloadModal();
+    const v = currentPlayingVideo;
+    try {
+        await downloadVideo(getCdnUrl(v.videoUrl), v.title + '.mp4', v.id);
+    } catch(e) {
+        window.open(getCdnUrl(v.videoUrl), '_blank');
+    }
+}
+
+async function downloadVideo(url, filename, videoId) {
+    const downloadId = 'dl_' + Date.now();
+    activeDownloads.push({ id: downloadId, title: filename, url: url, progress: 0 });
+    localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
+    renderDownloads();
+    
+    try {
+        const response = await fetch(url, { mode: 'cors' });
+        if (!response.ok) throw new Error('Erreur: ' + response.status);
+        
+        const contentLength = response.headers.get('content-length');
+        const total = contentLength ? parseInt(contentLength) : 0;
+        let loaded = 0;
+        const reader = response.body.getReader();
+        const chunks = [];
+        
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+            loaded += value.length;
+            if (total > 0) {
+                const percent = (loaded / total) * 100;
+                const dl = activeDownloads.find(d => d.id === downloadId);
+                if (dl) { dl.progress = percent; renderDownloads(); }
+            }
+        }
+        
+        const blob = new Blob(chunks);
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+        
+        activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
+        completedDownloads.unshift({ title: filename, date: new Date().toLocaleString(), size: (blob.size / 1024 / 1024).toFixed(2) + ' Mo' });
+        localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
+        localStorage.setItem('completedDownloads', JSON.stringify(completedDownloads));
+        renderDownloads();
+        
+        sendNotification('✅ Téléchargement terminé', filename);
+        
+    } catch(e) {
+        console.error('Download error:', e);
+        activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
+        localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
+        renderDownloads();
+        if (confirm("Téléchargement bloqué. Ouvrir dans un nouvel onglet ?")) {
+            window.open(url, '_blank');
+        }
+    }
+}
+
+function renderDownloads() {
+    const activeList = document.getElementById('active-downloads-list');
+    const completedList = document.getElementById('completed-downloads-list');
+    const badge = document.getElementById('download-count-badge');
+    if (badge) badge.innerText = `${activeDownloads.length}`;
+    if (!activeList) return;
+    if (activeDownloads.length === 0) {
+        activeList.innerHTML = '<div class="text-center text-zinc-500 py-8 text-xs">Aucun</div>';
+    } else {
+        activeList.innerHTML = activeDownloads.map(d => `
+            <div class="bg-zinc-900 p-3 rounded-xl space-y-2">
+                <div class="flex justify-between items-center">
+                    <p class="text-xs font-bold text-white truncate">📹 ${escapeAttr(d.title)}</p>
+                    <button onclick="cancelDownload('${d.id}')" class="w-6 h-6 bg-red-900/30 text-red-400 rounded flex items-center justify-center">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                </div>
+                <div class="relative h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                    <div class="absolute inset-y-0 left-0" style="width: ${d.progress}%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
+                </div>
+                <p class="text-[10px] text-zinc-400 text-right">${Math.round(d.progress)}%</p>
+            </div>
+        `).join('');
+    }
+    if (completedList) {
+        completedList.innerHTML = completedDownloads.length ? completedDownloads.map(d => `
+            <div class="bg-zinc-900 p-3 rounded-xl text-white">
+                <p class="text-xs font-bold">📹 ${escapeAttr(d.title)}</p>
+                <p class="text-[9px] text-zinc-500">📅 ${escapeAttr(d.date)}</p>
+            </div>
+        `).join('') : '<div class="text-center text-zinc-500 py-8">Aucun</div>';
+    }
+}
+
+function cancelDownload(id) {
+    activeDownloads = activeDownloads.filter(d => d.id !== id);
+    localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
+    renderDownloads();
+}
+
+function toggleDlSubTab(sub) {
+    document.getElementById('dl-active-container').classList.toggle('hidden', sub !== 'active');
+    document.getElementById('dl-completed-container').classList.toggle('hidden', sub !== 'completed');
+    document.getElementById('btn-sub-active').className = sub === 'active' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
+    document.getElementById('btn-sub-completed').className = sub === 'completed' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
+}
+
+// ============================================
+// 📤 UPLOAD VIDÉO
+// ============================================
 function handleFileSelected(input) {
     if (!input.files?.length) return;
     currentSelectedFile = input.files[0];
@@ -1125,7 +1373,6 @@ async function generateThumbnail(file) {
     });
 }
 
-// ✅ UPLOAD HYBRIDE
 async function uploadVideoWithChunking() {
     if (!currentSelectedFile) return;
     const title = document.getElementById('videoTitle').value.trim();
@@ -1464,611 +1711,9 @@ function cancelUpload() {
     }
 }
 
-// ✅ NOTIFICATIONS AVEC SON ET VIBRATION
-async function toggleNotifications() {
-    if (!('Notification' in window)) {
-        alert("❌ Les notifications ne sont pas supportées par votre navigateur");
-        return;
-    }
-    
-    if (Notification.permission === 'granted') {
-        // Déjà activées - proposer de désactiver
-        if (confirm("Les notifications sont activées. Voulez-vous les désactiver ?")) {
-            alert("Pour désactiver, allez dans les paramètres du navigateur/site.");
-        }
-        return;
-    }
-    
-    if (Notification.permission === 'denied') {
-        alert("❌ Notifications bloquées. Allez dans les paramètres du navigateur pour les activer.");
-        return;
-    }
-    
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-        // Test avec son et vibration
-        sendNotification('🔔 Notifications activées !', 'Vous recevrez des notifications pour les nouvelles vidéos.');
-        updateProfileUI();
-    }
-}
-
-function sendNotification(title, body) {
-    if (Notification.permission !== 'granted') return;
-    
-    try {
-        const notif = new Notification(title, {
-            body: body,
-            icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2ZmNTcyMiIvPjx0ZXh0IHg9IjUwIiB5PSI2NSIgZm9udC1zaXplPSI0MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiPvCfhK08L3RleHQ+PC9zdmc+',
-            badge: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2ZmNTcyMiIvPjwvc3ZnPg==',
-            vibrate: [200, 100, 200], // ✅ Vibration : 200ms, pause 100ms, 200ms
-            requireInteraction: false,
-            tag: 'mimbar-notif-' + Date.now()
-        });
-        
-        // ✅ Son de notification
-        playNotificationSound();
-        
-        // ✅ Vibration supplémentaire pour mobile
-        if ('vibrate' in navigator) {
-            navigator.vibrate([200, 100, 200, 100, 200]);
-        }
-        
-        notif.onclick = () => {
-            window.focus();
-            notif.close();
-        };
-        
-        setTimeout(() => notif.close(), 5000);
-    } catch (e) {
-        console.error('Notification error:', e);
-    }
-}
-
-function playNotificationSound() {
-    try {
-        // Son de notification généré (pas de fichier externe)
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
-        
-        // Deuxième ton
-        setTimeout(() => {
-            const osc2 = audioContext.createOscillator();
-            const gain2 = audioContext.createGain();
-            osc2.connect(gain2);
-            gain2.connect(audioContext.destination);
-            osc2.frequency.value = 1000;
-            osc2.type = 'sine';
-            gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-            osc2.start();
-            osc2.stop(audioContext.currentTime + 0.3);
-        }, 200);
-    } catch (e) {
-        console.error('Sound error:', e);
-    }
-}
-
-// ✅ INVITATION D'AMI
-async function inviteFriend() {
-    const shareData = {
-        title: 'أهل السنة والجماعة',
-        text: '🕌 Rejoignez l\'application "Ahlu Sunna wal Jama\'a" pour écouter des prêches, tafsirs, hadiths et lectures du Coran !',
-        url: window.location.href
-    };
-    
-    // ✅ Utiliser Web Share API si disponible (mobile/APK)
-    if (navigator.share) {
-        try {
-            await navigator.share(shareData);
-            console.log('✅ Partage réussi');
-        } catch (e) {
-            if (e.name !== 'AbortError') {
-                copyToClipboard(shareData);
-            }
-        }
-    } else {
-        // Fallback : copier dans le presse-papier
-        copyToClipboard(shareData);
-    }
-}
-
-function copyToClipboard(shareData) {
-    const text = `${shareData.text}\n\n${shareData.url}`;
-    
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => {
-            alert('✅ Lien copié dans le presse-papier !\n\nVous pouvez le partager avec vos amis.');
-            sendNotification('📨 Invitation', 'Lien d\'invitation copié !');
-        }).catch(() => {
-            fallbackCopy(text);
-        });
-    } else {
-        fallbackCopy(text);
-    }
-}
-
-function fallbackCopy(text) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-        document.execCommand('copy');
-        alert('✅ Lien copié !');
-    } catch (e) {
-        alert('Impossible de copier. Lien : ' + window.location.href);
-    }
-    document.body.removeChild(textarea);
-}
-
-// ✅ AIDE & SUPPORT
-function handleSupportImages(input) {
-    supportImages = Array.from(input.files);
-    const preview = document.getElementById('support-images-preview');
-    preview.innerHTML = '';
-    
-    supportImages.forEach((img, i) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const div = document.createElement('div');
-            div.className = 'relative';
-            div.innerHTML = `
-                <img src="${e.target.result}" class="w-16 h-16 rounded object-cover border border-zinc-700">
-                <button onclick="removeSupportImage(${i})" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-600 text-white text-[10px]">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            `;
-            preview.appendChild(div);
-        };
-        reader.readAsDataURL(img);
-    });
-}
-
-function removeSupportImage(index) {
-    supportImages.splice(index, 1);
-    handleSupportImagesRefresh();
-}
-
-function handleSupportImagesRefresh() {
-    const preview = document.getElementById('support-images-preview');
-    preview.innerHTML = '';
-    supportImages.forEach((img, i) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const div = document.createElement('div');
-            div.className = 'relative';
-            div.innerHTML = `
-                <img src="${e.target.result}" class="w-16 h-16 rounded object-cover border border-zinc-700">
-                <button onclick="removeSupportImage(${i})" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-600 text-white text-[10px]">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            `;
-            preview.appendChild(div);
-        };
-        reader.readAsDataURL(img);
-    });
-}
-
-async function toggleRecording() {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-        // Arrêter
-        mediaRecorder.stop();
-        return;
-    }
-    
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        recordingChunks = [];
-        
-        mediaRecorder.ondataavailable = (e) => {
-            if (e.data.size > 0) recordingChunks.push(e.data);
-        };
-        
-        mediaRecorder.onstop = () => {
-            supportVoiceBlob = new Blob(recordingChunks, { type: 'audio/webm' });
-            document.getElementById('voice-preview').classList.remove('hidden');
-            document.getElementById('btn-record').innerHTML = '<i class="fa-solid fa-microphone mr-1" style="color:#ef4444"></i>Enregistrer';
-            document.getElementById('recording-timer').classList.add('hidden');
-            clearInterval(recordingInterval);
-            stream.getTracks().forEach(t => t.stop());
-        };
-        
-        mediaRecorder.start();
-        recordingStartTime = Date.now();
-        
-        document.getElementById('btn-record').innerHTML = '<i class="fa-solid fa-stop mr-1" style="color:#ef4444"></i>Arrêter';
-        document.getElementById('recording-timer').classList.remove('hidden');
-        
-        recordingInterval = setInterval(() => {
-            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
-            const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
-            const s = (elapsed % 60).toString().padStart(2, '0');
-            document.getElementById('rec-time').innerText = `${m}:${s}`;
-        }, 1000);
-        
-    } catch (e) {
-        alert('❌ Impossible d\'accéder au microphone : ' + e.message);
-    }
-}
-
-function removeVoice() {
-    supportVoiceBlob = null;
-    document.getElementById('voice-preview').classList.add('hidden');
-}
-
-async function submitSupport() {
-    if (!currentUser) {
-        alert("Connectez-vous pour envoyer un message");
-        return;
-    }
-    
-    const subject = document.getElementById('supportSubject').value;
-    const message = document.getElementById('supportMessage').value.trim();
-    
-    if (!message) {
-        alert("Veuillez écrire un message");
-        return;
-    }
-    
-    const btn = document.getElementById('btn-submit-support');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Envoi...';
-    
-    try {
-        const imageUrls = [];
-        let voiceUrl = '';
-        
-        // Upload images vers B2
-        if (supportImages.length > 0) {
-            for (let i = 0; i < supportImages.length; i++) {
-                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Image ${i+1}/${supportImages.length}...`;
-                const url = await uploadSupportFile(supportImages[i], 'support-images');
-                imageUrls.push(url);
-            }
-        }
-        
-        // Upload vocal vers B2
-        if (supportVoiceBlob) {
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Note vocale...';
-            voiceUrl = await uploadSupportFile(supportVoiceBlob, 'support-voices', 'audio.webm');
-        }
-        
-        // Sauvegarder dans Firestore
-        await db.collection('support').add({
-            userId: currentUser.uid,
-            userEmail: currentUser.email,
-            subject: subject,
-            message: message,
-            images: imageUrls,
-            voice: voiceUrl,
-            status: 'new',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        document.getElementById('support-success').classList.remove('hidden');
-        document.getElementById('supportMessage').value = '';
-        supportImages = [];
-        supportVoiceBlob = null;
-        document.getElementById('support-images-preview').innerHTML = '';
-        document.getElementById('voice-preview').classList.add('hidden');
-        
-        sendNotification('✅ Message envoyé', 'Notre équipe vous répondra bientôt.');
-        
-        setTimeout(() => {
-            document.getElementById('support-success').classList.add('hidden');
-        }, 3000);
-        
-    } catch (error) {
-        console.error('Erreur support:', error);
-        alert('❌ Erreur : ' + error.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>Envoyer';
-    }
-}
-
-async function uploadSupportFile(file, folder, customName = null) {
-    const response = await fetch('/api/upload-support', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-    });
-    
-    if (!response.ok) throw new Error(`API error: ${response.status}`);
-    
-    const { uploadUrl, authorizationToken, downloadUrl } = await response.json();
-    
-    const fileName = `${folder}/${Date.now()}_${customName || file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    
-    return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', uploadUrl, true);
-        xhr.setRequestHeader('Authorization', authorizationToken);
-        xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
-        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-        xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
-        
-        xhr.onload = () => {
-            if (xhr.status === 200) {
-                resolve(downloadUrl + encodeURIComponent(fileName));
-            } else {
-                reject(new Error(`Upload failed: ${xhr.status}`));
-            }
-        };
-        xhr.onerror = () => reject(new Error('Erreur réseau'));
-        xhr.timeout = 120000;
-        xhr.send(file);
-    });
-}
-
-// Fonctions de lecture vidéo (inchangées)
-function showDownloadOptions() {
-    if (!currentPlayingVideo) return;
-    document.getElementById('download-modal-title').innerText = currentPlayingVideo.title;
-    document.getElementById('download-modal').classList.remove('hidden');
-}
-
-function closeDownloadModal() {
-    document.getElementById('download-modal').classList.add('hidden');
-}
-
-function openVideoInNewTab() {
-    if (currentPlayingVideo) window.open(getCdnUrl(currentPlayingVideo.videoUrl), '_blank');
-}
-
-async function downloadWithQuality(quality) {
-    if (!currentPlayingVideo) return;
-    closeDownloadModal();
-    const v = currentPlayingVideo;
-    try {
-        await downloadVideo(getCdnUrl(v.videoUrl), v.title + '.mp4', v.id);
-    } catch(e) {
-        window.open(getCdnUrl(v.videoUrl), '_blank');
-    }
-}
-
-async function downloadVideo(url, filename, videoId) {
-    const downloadId = 'dl_' + Date.now();
-    activeDownloads.push({ id: downloadId, title: filename, url: url, progress: 0 });
-    localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-    renderDownloads();
-    
-    try {
-        const response = await fetch(url, { mode: 'cors' });
-        if (!response.ok) throw new Error('Erreur: ' + response.status);
-        
-        const contentLength = response.headers.get('content-length');
-        const total = contentLength ? parseInt(contentLength) : 0;
-        let loaded = 0;
-        const reader = response.body.getReader();
-        const chunks = [];
-        
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            chunks.push(value);
-            loaded += value.length;
-            if (total > 0) {
-                const percent = (loaded / total) * 100;
-                const dl = activeDownloads.find(d => d.id === downloadId);
-                if (dl) { dl.progress = percent; renderDownloads(); }
-            }
-        }
-        
-        const blob = new Blob(chunks);
-        const blobUrl = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-        
-        activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
-        completedDownloads.unshift({ title: filename, date: new Date().toLocaleString(), size: (blob.size / 1024 / 1024).toFixed(2) + ' Mo' });
-        localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-        localStorage.setItem('completedDownloads', JSON.stringify(completedDownloads));
-        renderDownloads();
-        
-        sendNotification('✅ Téléchargement terminé', filename);
-        
-    } catch(e) {
-        console.error('Download error:', e);
-        activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
-        localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-        renderDownloads();
-        if (confirm("Téléchargement bloqué. Ouvrir dans un nouvel onglet ?")) {
-            window.open(url, '_blank');
-        }
-    }
-}
-
-function renderAll() {
-    renderTypeChips();
-    renderAlbumChips();
-    renderVideoGrid();
-    renderDownloads();
-}
-
-function renderVideoGrid() {
-    const container = document.getElementById('video-grid');
-    const filtered = getFilteredVideos();
-    
-    if (filtered.length === 0) {
-        container.innerHTML = `<div class="text-center py-12"><i class="fa-solid fa-video-slash text-4xl text-zinc-700"></i><p class="text-sm text-zinc-500 mt-3">Aucune vidéo</p></div>`;
-        return;
-    }
-    
-    const defaultThumb = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgZmlsbD0iIzE4MTgxYiIvPjxjaXJjbGUgY3g9IjI0MCIgY3k9IjEzNSIgcj0iNDAiIGZpbGw9IiNmZjU3MjIiLz48cG9seWdvbiBwb2ludHM9IjIyNSwxMTUgMjI1LDE1NSAyNjUsMTM1IiBmaWxsPSIjZmZmIi8+PC9zdmc+';
-    
-    container.innerHTML = filtered.map(v => {
-        const album = allAlbums.find(a => a.id === v.albumId);
-        const thumb = v.thumbnail && v.thumbnail.trim() !== '' ? v.thumbnail : defaultThumb;
-        const isSelected = homeSelectedVideoIds.has(v.id);
-        const duration = v.duration || '00:00';
-        const typeInfo = VIDEO_TYPE_LABELS[v.videoType] || { label: '', class: '' };
-        
-        return `
-        <div class="video-card bg-zinc-900 rounded-xl overflow-hidden cursor-pointer fade-in ${isSelected ? 'ring-2 ring-orange-500' : ''}" 
-             onmousedown="startLongPress('${v.id}')" onmouseup="cancelLongPress()" 
-             onmouseleave="cancelLongPress()" ontouchstart="startLongPress('${v.id}')" 
-             ontouchend="cancelLongPress()" onclick="handleVideoClick('${v.id}', event)">
-            <div class="relative aspect-video bg-zinc-800">
-                <img src="${thumb}" alt="${escapeAttr(v.title)}" class="w-full h-full object-cover" onerror="this.src='${defaultThumb}'">
-                <div class="duration-badge">${duration}</div>
-                ${typeInfo.label ? `<div class="absolute top-2 left-2 type-badge ${typeInfo.class}">${typeInfo.label}</div>` : ''}
-                ${homeSelectionMode ? `
-                    <div class="absolute top-2 right-2 z-10" onclick="event.stopPropagation(); toggleHomeVideoSelection('${v.id}')">
-                        <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-white bg-black/50'}">
-                            ${isSelected ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
-                        </div>
-                    </div>
-                ` : ''}
-                <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                    <div class="w-14 h-14 rounded-full flex items-center justify-center" style="background:#ff5722">
-                        <i class="fa-solid fa-play text-white text-xl pl-1"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="p-3 flex gap-3">
-                <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold shrink-0 text-xs" style="background:rgba(255,87,34,0.2);color:#ff5722">
-                    ${(album?.imamName || v.speaker || 'U').charAt(0).toUpperCase()}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <h4 class="text-sm font-bold text-white line-clamp-2 leading-tight">${escapeAttr(v.title)}</h4>
-                    <p class="text-[11px] mt-1 text-zinc-400">${escapeAttr(album?.imamName || v.speaker)}</p>
-                    <div class="flex gap-3 text-[10px] text-zinc-500 mt-0.5">
-                        <span><i class="fa-regular fa-eye"></i> ${v.views || 0} vues</span>
-                        <span><i class="fa-solid fa-location-dot"></i> ${escapeAttr(album?.city || '')}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        `;
-    }).join('');
-}
-
-function toggleHomeSelectionMode() {
-    homeSelectionMode = !homeSelectionMode;
-    homeSelectedVideoIds.clear();
-    const btn = document.getElementById('btn-home-select-mode');
-    const bar = document.getElementById('home-selection-bar');
-    if (homeSelectionMode) {
-        btn.innerHTML = '<i class="fa-solid fa-xmark mr-1"></i>Annuler';
-        btn.style.background = '#ff5722';
-        bar.classList.remove('hidden');
-    } else {
-        btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner';
-        btn.style.background = '';
-        bar.classList.add('hidden');
-    }
-    document.getElementById('home-selected-count').innerText = '0';
-    renderVideoGrid();
-}
-
-function toggleHomeVideoSelection(videoId) {
-    if (homeSelectedVideoIds.has(videoId)) homeSelectedVideoIds.delete(videoId);
-    else homeSelectedVideoIds.add(videoId);
-    document.getElementById('home-selected-count').innerText = homeSelectedVideoIds.size;
-    renderVideoGrid();
-}
-
-function toggleSelectAllHome() {
-    const visibleVideos = getFilteredVideos();
-    const allSelected = visibleVideos.length > 0 && visibleVideos.every(v => homeSelectedVideoIds.has(v.id));
-    if (allSelected) visibleVideos.forEach(v => homeSelectedVideoIds.delete(v.id));
-    else visibleVideos.forEach(v => homeSelectedVideoIds.add(v.id));
-    document.getElementById('home-selected-count').innerText = homeSelectedVideoIds.size;
-    renderVideoGrid();
-}
-
-function cancelSelectionHome() {
-    homeSelectionMode = false;
-    homeSelectedVideoIds.clear();
-    const btn = document.getElementById('btn-home-select-mode');
-    const bar = document.getElementById('home-selection-bar');
-    if (btn) { btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner'; btn.style.background = ''; }
-    if (bar) bar.classList.add('hidden');
-    renderVideoGrid();
-}
-
-async function downloadSelectedHome() {
-    if (homeSelectedVideoIds.size === 0) { alert("Aucune vidéo"); return; }
-    const videos = allVideos.filter(v => homeSelectedVideoIds.has(v.id));
-    for (const v of videos) {
-        try { await downloadVideo(getCdnUrl(v.videoUrl), v.title + '.mp4', v.id); } 
-        catch(e) { window.open(getCdnUrl(v.videoUrl), '_blank'); }
-        await new Promise(r => setTimeout(r, 500));
-    }
-    cancelSelectionHome();
-}
-
-function startLongPress(videoId) {
-    if (homeSelectionMode) return;
-    longPressTimer = setTimeout(() => {
-        const v = allVideos.find(x => x.id === videoId);
-        if (v) { currentPlayingVideo = v; showDownloadOptions(); longPressTimer = null; }
-    }, 600);
-}
-
-function cancelLongPress() {
-    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-}
-
-function handleVideoClick(videoId, event) {
-    if (homeSelectionMode) {
-        if (event) event.stopPropagation();
-        toggleHomeVideoSelection(videoId);
-        return;
-    }
-    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-    const video = allVideos.find(x => x.id === videoId);
-    if (!video) return;
-    openVideoPlayer(getCdnUrl(video.videoUrl), video.title, video.speaker, video.id);
-}
-
-function openVideoPlayer(url, title, speaker, videoId) {
-    if (!url) return;
-    currentPlayingVideo = allVideos.find(v => v.id === videoId) || { videoUrl: url, title, speaker, id: videoId };
-    document.getElementById('video-player-title').innerText = title;
-    document.getElementById('video-player-speaker').innerText = speaker;
-    const video = document.getElementById('native-video');
-    const source = document.getElementById('video-source');
-    video.pause();
-    document.getElementById('video-overlay-player').classList.remove('hidden');
-    source.src = url;
-    source.type = 'video/mp4';
-    video.load();
-    video.play().catch(() => {});
-    if (videoId) {
-        db.collection('videos').doc(videoId).update({ views: firebase.firestore.FieldValue.increment(1) }).catch(() => {});
-    }
-}
-
-function closeVideoPlayer() {
-    const video = document.getElementById('native-video');
-    video.pause();
-    document.getElementById('video-source').src = '';
-    document.getElementById('video-overlay-player').classList.add('hidden');
-    currentPlayingVideo = null;
-}
-
+// ============================================
+// 📋 MES VIDÉOS
+// ============================================
 function renderMyVideos() {
     const container = document.getElementById('my-videos-list');
     if (!container || !currentUser) return;
@@ -2173,64 +1818,340 @@ async function deleteMyVideo(videoId) {
     } catch(e) { alert("Erreur: " + e.message); }
 }
 
-function renderDownloads() {
-    const activeList = document.getElementById('active-downloads-list');
-    const completedList = document.getElementById('completed-downloads-list');
-    const badge = document.getElementById('download-count-badge');
-    if (badge) badge.innerText = `${activeDownloads.length}`;
-    if (!activeList) return;
-    if (activeDownloads.length === 0) {
-        activeList.innerHTML = '<div class="text-center text-zinc-500 py-8 text-xs">Aucun</div>';
+// ============================================
+// 🔔 NOTIFICATIONS
+// ============================================
+async function toggleNotifications() {
+    if (!('Notification' in window)) {
+        alert("❌ Notifications non supportées");
+        return;
+    }
+    
+    if (Notification.permission === 'granted') {
+        sendNotification('🔔 Test', 'Les notifications fonctionnent !');
+        return;
+    }
+    
+    if (Notification.permission === 'denied') {
+        alert("❌ Notifications bloquées. Allez dans les paramètres.");
+        return;
+    }
+    
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+        sendNotification('🔔 Notifications activées !', 'Vous recevrez des notifications.');
+        updateProfileUI();
+    }
+}
+
+function sendNotification(title, body) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    
+    try {
+        const notif = new Notification(title, {
+            body: body,
+            vibrate: [200, 100, 200],
+            tag: 'mimbar-' + Date.now()
+        });
+        
+        playNotificationSound();
+        
+        if ('vibrate' in navigator) {
+            navigator.vibrate([200, 100, 200, 100, 200]);
+        }
+        
+        notif.onclick = () => { window.focus(); notif.close(); };
+        setTimeout(() => notif.close(), 5000);
+    } catch (e) {
+        console.error('Notification error:', e);
+    }
+}
+
+function playNotificationSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+    } catch (e) {
+        console.error('Sound error:', e);
+    }
+}
+
+// ============================================
+// 📨 INVITATION D'AMI
+// ============================================
+async function inviteFriend() {
+    const shareData = {
+        title: 'أهل السنة والجماعة',
+        text: '🕌 Rejoignez l\'application "Ahlu Sunna wal Jama\'a" !',
+        url: window.location.href
+    };
+    
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+        } catch (e) {
+            if (e.name !== 'AbortError') copyToClipboard(shareData);
+        }
     } else {
-        activeList.innerHTML = activeDownloads.map(d => `
-            <div class="bg-zinc-900 p-3 rounded-xl space-y-2">
-                <div class="flex justify-between items-center">
-                    <p class="text-xs font-bold text-white truncate">📹 ${escapeAttr(d.title)}</p>
-                    <button onclick="cancelDownload('${d.id}')" class="w-6 h-6 bg-red-900/30 text-red-400 rounded flex items-center justify-center">
-                        <i class="fa-solid fa-xmark text-xs"></i>
-                    </button>
-                </div>
-                <div class="relative h-1.5 bg-zinc-700 rounded-full overflow-hidden">
-                    <div class="absolute inset-y-0 left-0" style="width: ${d.progress}%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
-                </div>
-                <p class="text-[10px] text-zinc-400 text-right">${Math.round(d.progress)}%</p>
-            </div>
-        `).join('');
-    }
-    if (completedList) {
-        completedList.innerHTML = completedDownloads.length ? completedDownloads.map(d => `
-            <div class="bg-zinc-900 p-3 rounded-xl text-white">
-                <p class="text-xs font-bold">📹 ${escapeAttr(d.title)}</p>
-                <p class="text-[9px] text-zinc-500">📅 ${escapeAttr(d.date)}</p>
-            </div>
-        `).join('') : '<div class="text-center text-zinc-500 py-8">Aucun</div>';
+        copyToClipboard(shareData);
     }
 }
 
-function cancelDownload(id) {
-    activeDownloads = activeDownloads.filter(d => d.id !== id);
-    localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-    renderDownloads();
+function copyToClipboard(shareData) {
+    const text = `${shareData.text}\n\n${shareData.url}`;
+    
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('✅ Lien copié !');
+            sendNotification('📨 Invitation', 'Lien copié !');
+        }).catch(() => fallbackCopy(text));
+    } else {
+        fallbackCopy(text);
+    }
 }
 
-function toggleDlSubTab(sub) {
-    document.getElementById('dl-active-container').classList.toggle('hidden', sub !== 'active');
-    document.getElementById('dl-completed-container').classList.toggle('hidden', sub !== 'completed');
-    document.getElementById('btn-sub-active').className = sub === 'active' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
-    document.getElementById('btn-sub-completed').className = sub === 'completed' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
+function fallbackCopy(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        alert('✅ Lien copié !');
+    } catch (e) {
+        alert('Lien : ' + window.location.href);
+    }
+    document.body.removeChild(textarea);
 }
 
-function handleSearch(val) { searchQuery = val; renderVideoGrid(); }
+// ============================================
+// 🆘 SUPPORT
+// ============================================
+function handleSupportImages(input) {
+    supportImages = Array.from(input.files);
+    const preview = document.getElementById('support-images-preview');
+    preview.innerHTML = '';
+    
+    supportImages.forEach((img, i) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const div = document.createElement('div');
+            div.className = 'relative';
+            div.innerHTML = `
+                <img src="${e.target.result}" class="w-16 h-16 rounded object-cover border border-zinc-700">
+                <button onclick="removeSupportImage(${i})" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-600 text-white text-[10px]">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+            preview.appendChild(div);
+        };
+        reader.readAsDataURL(img);
+    });
+}
 
+function removeSupportImage(index) {
+    supportImages.splice(index, 1);
+    handleSupportImagesRefresh();
+}
+
+function handleSupportImagesRefresh() {
+    const preview = document.getElementById('support-images-preview');
+    preview.innerHTML = '';
+    supportImages.forEach((img, i) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const div = document.createElement('div');
+            div.className = 'relative';
+            div.innerHTML = `
+                <img src="${e.target.result}" class="w-16 h-16 rounded object-cover border border-zinc-700">
+                <button onclick="removeSupportImage(${i})" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-600 text-white text-[10px]">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+            preview.appendChild(div);
+        };
+        reader.readAsDataURL(img);
+    });
+}
+
+async function toggleRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        return;
+    }
+    
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        recordingChunks = [];
+        
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) recordingChunks.push(e.data);
+        };
+        
+        mediaRecorder.onstop = () => {
+            supportVoiceBlob = new Blob(recordingChunks, { type: 'audio/webm' });
+            document.getElementById('voice-preview').classList.remove('hidden');
+            document.getElementById('btn-record').innerHTML = '<i class="fa-solid fa-microphone mr-1" style="color:#ef4444"></i>Enregistrer';
+            document.getElementById('recording-timer').classList.add('hidden');
+            clearInterval(recordingInterval);
+            stream.getTracks().forEach(t => t.stop());
+        };
+        
+        mediaRecorder.start();
+        recordingStartTime = Date.now();
+        
+        document.getElementById('btn-record').innerHTML = '<i class="fa-solid fa-stop mr-1" style="color:#ef4444"></i>Arrêter';
+        document.getElementById('recording-timer').classList.remove('hidden');
+        
+        recordingInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+            const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const s = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('rec-time').innerText = `${m}:${s}`;
+        }, 1000);
+        
+    } catch (e) {
+        alert('❌ Microphone : ' + e.message);
+    }
+}
+
+function removeVoice() {
+    supportVoiceBlob = null;
+    document.getElementById('voice-preview').classList.add('hidden');
+}
+
+async function submitSupport() {
+    if (!currentUser) {
+        alert("Connectez-vous pour envoyer un message");
+        return;
+    }
+    
+    const subject = document.getElementById('supportSubject').value;
+    const message = document.getElementById('supportMessage').value.trim();
+    
+    if (!message) {
+        alert("Veuillez écrire un message");
+        return;
+    }
+    
+    const btn = document.getElementById('btn-submit-support');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Envoi...';
+    
+    try {
+        const imageUrls = [];
+        let voiceUrl = '';
+        
+        if (supportImages.length > 0) {
+            for (let i = 0; i < supportImages.length; i++) {
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Image ${i+1}/${supportImages.length}...`;
+                const url = await uploadSupportFile(supportImages[i], 'support-images');
+                imageUrls.push(url);
+            }
+        }
+        
+        if (supportVoiceBlob) {
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Note vocale...';
+            voiceUrl = await uploadSupportFile(supportVoiceBlob, 'support-voices', 'audio.webm');
+        }
+        
+        await db.collection('support').add({
+            userId: currentUser.uid,
+            userEmail: currentUser.email,
+            subject: subject,
+            message: message,
+            images: imageUrls,
+            voice: voiceUrl,
+            status: 'new',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        document.getElementById('support-success').classList.remove('hidden');
+        document.getElementById('supportMessage').value = '';
+        supportImages = [];
+        supportVoiceBlob = null;
+        document.getElementById('support-images-preview').innerHTML = '';
+        document.getElementById('voice-preview').classList.add('hidden');
+        
+        sendNotification('✅ Message envoyé', 'Nous vous répondrons bientôt.');
+        
+        setTimeout(() => {
+            document.getElementById('support-success').classList.add('hidden');
+            showTab('profile');
+        }, 3000);
+        
+    } catch (error) {
+        console.error('Erreur support:', error);
+        alert('❌ Erreur : ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>Envoyer';
+    }
+}
+
+async function uploadSupportFile(file, folder, customName = null) {
+    const response = await fetch('/api/upload-support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
+    
+    const { uploadUrl, authorizationToken, downloadUrl } = await response.json();
+    
+    const fileName = `${folder}/${Date.now()}_${customName || file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', uploadUrl, true);
+        xhr.setRequestHeader('Authorization', authorizationToken);
+        xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
+        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+        xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
+        
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                resolve(downloadUrl + encodeURIComponent(fileName));
+            } else {
+                reject(new Error(`Upload failed: ${xhr.status}`));
+            }
+        };
+        xhr.onerror = () => reject(new Error('Erreur réseau'));
+        xhr.timeout = 120000;
+        xhr.send(file);
+    });
+}
+
+// ============================================
+// 🎨 AZKAR
+// ============================================
 function showAzkarTab(tabName) {
     ['phonetic1','traduction1','phonetic2','traduction2'].forEach(id => {
-        document.getElementById(id)?.classList.add('hidden');
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
     });
     ['btn-phonetic1','btn-traduction1','btn-phonetic2','btn-traduction2'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.className = 'pb-2 text-xs font-bold text-zinc-500';
     });
-    document.getElementById(tabName)?.classList.remove('hidden');
+    const target = document.getElementById(tabName);
+    if (target) target.classList.remove('hidden');
     const btn = document.getElementById('btn-' + tabName);
     if (btn) {
         const color = tabName.includes('1') ? 'emerald' : 'amber';
@@ -2238,6 +2159,9 @@ function showAzkarTab(tabName) {
     }
 }
 
+// ============================================
+// 🧭 NAVIGATION
+// ============================================
 function showTab(tab) {
     ['home','downloads','azkar','profile','create','myalbum','support','privacy'].forEach(t => {
         const el = document.getElementById(`tab-${t}`);
@@ -2258,6 +2182,14 @@ function showTab(tab) {
     if (tab !== 'home') cancelSelectionHome();
 }
 
+function renderAll() {
+    renderTypeChips();
+    renderAlbumChips();
+    renderVideoGrid();
+    renderDownloads();
+}
+
+// ✅ APPEL INITIAL À LA FIN
 showTab('home');
 </script>
 </body>
