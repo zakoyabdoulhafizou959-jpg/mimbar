@@ -21,29 +21,14 @@
         .arabic-text { font-family: 'Amiri', serif; direction: rtl; line-height: 2.2; }
         .azkar-card { background: linear-gradient(135deg, #18181b 0%, #27272a 100%); }
         .duration-badge {
-            position: absolute;
-            bottom: 8px;
-            right: 8px;
-            background: rgba(0, 0, 0, 0.85);
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            position: absolute; bottom: 8px; right: 8px;
+            background: rgba(0, 0, 0, 0.85); color: white;
+            padding: 2px 6px; border-radius: 4px;
+            font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
         }
-        @keyframes pulse-speed {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
+        @keyframes pulse-speed { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         .speed-pulse { animation: pulse-speed 1.5s infinite; }
-        .type-badge {
-            font-size: 9px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
+        .type-badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
         .type-coran { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
         .type-hadith { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
         .type-tafsir { background: rgba(59, 130, 246, 0.2); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
@@ -77,11 +62,7 @@
                 <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher Imam, titre, ville..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
             </div>
-            
-            <!-- ✅ FILTRES PAR TYPE D'ALBUM (IMAMS) -->
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="type-chips"></div>
-            
-            <!-- ✅ FILTRES PAR ALBUMS -->
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="album-chips"></div>
             
             <div class="flex justify-between items-center mb-2">
@@ -224,7 +205,6 @@
                         </div>
                         <input type="text" id="videoTitle" placeholder="Titre de la vidéo" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
                         
-                        <!-- CHAMP TYPE DE VIDÉO -->
                         <div>
                             <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Type de vidéo *</label>
                             <select id="videoType" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
@@ -240,7 +220,6 @@
                             <i class="fa-solid fa-upload mr-1"></i>Publier
                         </button>
                         
-                        <!-- PROGRESSION CHUNKING -->
                         <div id="uploadProgress" class="hidden space-y-2">
                             <div class="h-2 bg-zinc-700 rounded-full overflow-hidden">
                                 <div id="progressBar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
@@ -483,7 +462,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Labels des types de vidéo
 const VIDEO_TYPE_LABELS = {
     'coran': { label: '🕌 Coran', class: 'type-coran' },
     'hadith': { label: '📜 Hadith', class: 'type-hadith' },
@@ -491,14 +469,15 @@ const VIDEO_TYPE_LABELS = {
     'preche': { label: '📢 Prêche', class: 'type-preche' }
 };
 
+const CHUNK_SIZE = 2 * 1024 * 1024; // 2 Mo
+const MAX_RETRY = 3;
+
 function getCdnUrl(originalUrl) {
     if (!originalUrl) return '';
     if (originalUrl.includes('kitabwasunna.b-cdn.net')) return originalUrl;
     const b2Domain = 'f005.backblazeb2.com'; 
     const bunnyDomain = 'kitabwasunna.b-cdn.net';
-    if (originalUrl.includes(b2Domain)) {
-        return originalUrl.replace(b2Domain, bunnyDomain);
-    }
+    if (originalUrl.includes(b2Domain)) return originalUrl.replace(b2Domain, bunnyDomain);
     return originalUrl;
 }
 
@@ -512,18 +491,8 @@ function formatDuration(seconds) {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = Math.floor(seconds % 60);
-    if (h > 0) {
-        return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    }
+    if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-}
-
-function formatBytes(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'Ko', 'Mo', 'Go'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
 
 let currentUser = null;
@@ -542,12 +511,7 @@ let activeDownloads = JSON.parse(localStorage.getItem('activeDownloads') || '[]'
 let longPressTimer = null;
 let homeSelectionMode = false;
 let homeSelectedVideoIds = new Set();
-let currentXhr = null;
 let uploadAborted = false;
-
-// ✅ CONFIGURATION CHUNKING
-const CHUNK_SIZE = 2 * 1024 * 1024; // 2 Mo par chunk
-const MAX_RETRY = 3; // Nombre de tentatives max par chunk
 
 auth.onAuthStateChanged(async (user) => {
     currentUser = user;
@@ -855,7 +819,6 @@ async function generateThumbnail(file) {
         video.preload = 'metadata';
         video.muted = true;
         video.playsInline = true;
-        video.crossOrigin = 'anonymous';
         
         let duration = 0;
         
@@ -866,9 +829,7 @@ async function generateThumbnail(file) {
         };
         
         video.onloadeddata = () => {
-            if (duration === 0) {
-                video.currentTime = Math.min(2, (video.duration || 10) / 2);
-            }
+            if (duration === 0) video.currentTime = Math.min(2, (video.duration || 10) / 2);
         };
         
         video.onseeked = () => {
@@ -878,29 +839,21 @@ async function generateThumbnail(file) {
                 canvas.height = 270;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const thumbnail = canvas.toDataURL('image/jpeg', 0.7);
-                console.log('✅ Miniature générée');
-                resolve({ thumbnail, duration: formatDuration(duration) });
+                resolve({ thumbnail: canvas.toDataURL('image/jpeg', 0.7), duration: formatDuration(duration) });
             } catch (e) {
-                console.error('❌ Erreur génération miniature:', e);
                 resolve({ thumbnail: '', duration: formatDuration(duration) });
             }
         };
         
-        video.onerror = (e) => {
-            console.error('❌ Erreur chargement vidéo pour miniature:', e);
-            resolve({ thumbnail: '', duration: '00:00' });
-        };
+        video.onerror = () => resolve({ thumbnail: '', duration: '00:00' });
         
-        setTimeout(() => {
-            resolve({ thumbnail: '', duration: '00:00' });
-        }, 10000);
+        setTimeout(() => resolve({ thumbnail: '', duration: '00:00' }), 10000);
         
         video.src = URL.createObjectURL(file);
     });
 }
 
-// ✅ FONCTION DE CHUNKING COMPLÈTE
+// ✅ FONCTION CHUNKING CORRIGÉE
 async function uploadVideoWithChunking() {
     if (!currentSelectedFile) return;
     const title = document.getElementById('videoTitle').value.trim();
@@ -909,9 +862,9 @@ async function uploadVideoWithChunking() {
     if (!title) { alert("Titre requis"); return; }
     if (!videoType) { alert("Veuillez sélectionner le type de vidéo"); return; }
     
-    const maxSize = 2 * 1024 * 1024 * 1024; // 2 Go max
+    const maxSize = 2 * 1024 * 1024 * 1024;
     if (currentSelectedFile.size > maxSize) {
-        alert(`❌ Fichier trop volumineux (${(currentSelectedFile.size / 1024 / 1024 / 1024).toFixed(2)} Go). Maximum : 2 Go`);
+        alert(`❌ Fichier trop volumineux. Maximum : 2 Go`);
         return;
     }
     
@@ -936,9 +889,8 @@ async function uploadVideoWithChunking() {
         progressText.innerText = 'Génération miniature...';
         const { thumbnail, duration } = await generateThumbnail(currentSelectedFile);
         
-        // Étape 2: Initialiser l'upload chunké via API
+        // Étape 2: Initialiser l'upload
         progressText.innerText = 'Initialisation upload...';
-        
         const fileName = `videos/${Date.now()}_${currentSelectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         
         const initResponse = await fetch('/api/upload-b2-chunked', {
@@ -947,20 +899,22 @@ async function uploadVideoWithChunking() {
             body: JSON.stringify({
                 fileName: fileName,
                 fileSize: currentSelectedFile.size,
-                contentType: currentSelectedFile.type
+                contentType: currentSelectedFile.type || 'video/mp4'
             })
         });
         
         if (!initResponse.ok) {
-            throw new Error(`Erreur initialisation: ${initResponse.status}`);
+            const errText = await initResponse.text();
+            throw new Error(`Erreur initialisation: ${initResponse.status} - ${errText}`);
         }
         
-        const { uploadUrl, authorizationToken, fileId, downloadUrl } = await initResponse.json();
+        const initData = await initResponse.json();
+        const { fileId, authorizationToken } = initData;
         
-        // Calculer nombre de chunks
         const totalChunks = Math.ceil(currentSelectedFile.size / CHUNK_SIZE);
         console.log(`📦 Fichier: ${(currentSelectedFile.size / 1024 / 1024).toFixed(2)} Mo`);
         console.log(`📦 Chunks: ${totalChunks} x 2 Mo`);
+        console.log(`📦 File ID: ${fileId}`);
         
         // Étape 3: Upload des chunks
         const partShas = [];
@@ -970,9 +924,7 @@ async function uploadVideoWithChunking() {
         let speeds = [];
         
         for (let partNumber = 1; partNumber <= totalChunks; partNumber++) {
-            if (uploadAborted) {
-                throw new Error('Upload annulé par l\'utilisateur');
-            }
+            if (uploadAborted) throw new Error('Upload annulé par l\'utilisateur');
             
             const start = (partNumber - 1) * CHUNK_SIZE;
             const end = Math.min(start + CHUNK_SIZE, currentSelectedFile.size);
@@ -981,17 +933,34 @@ async function uploadVideoWithChunking() {
             currentChunkEl.innerText = `${partNumber}/${totalChunks}`;
             progressDetail.innerText = `Chunk ${partNumber}/${totalChunks}`;
             
-            // Upload du chunk avec retry
             let retryCount = 0;
             let success = false;
             
             while (retryCount < MAX_RETRY && !success) {
                 try {
+                    // ✅ OBTENIR UNE NOUVELLE URL POUR CE CHUNK
+                    const partUrlResponse = await fetch('/api/get-upload-part-url', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            fileId: fileId,
+                            authorizationToken: authorizationToken
+                        })
+                    });
+                    
+                    if (!partUrlResponse.ok) {
+                        throw new Error(`Erreur get part URL: ${partUrlResponse.status}`);
+                    }
+                    
+                    const partUrlData = await partUrlResponse.json();
+                    
+                    // Calculer SHA1 du chunk
                     const sha1 = await calculateSHA1(chunk);
                     
-                    const chunkResponse = await uploadChunk(
-                        uploadUrl,
-                        authorizationToken,
+                    // Upload du chunk
+                    const uploadResult = await uploadChunk(
+                        partUrlData.uploadUrl,
+                        partUrlData.authorizationToken,
                         chunk,
                         partNumber,
                         sha1
@@ -999,7 +968,7 @@ async function uploadVideoWithChunking() {
                     
                     partShas.push({
                         partNumber: partNumber,
-                        sha1: sha1,
+                        sha1: uploadResult.contentSha1 || sha1,
                         contentLength: chunk.size
                     });
                     
@@ -1027,7 +996,6 @@ async function uploadVideoWithChunking() {
                             speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${(avgSpeed * 1024).toFixed(0)} Ko/s`;
                         }
                         
-                        // Temps restant
                         if (avgSpeed > 0) {
                             const remainingChunks = totalChunks - uploadedChunks;
                             const remainingSeconds = (remainingChunks * CHUNK_SIZE) / (avgSpeed * 1024 * 1024);
@@ -1042,15 +1010,16 @@ async function uploadVideoWithChunking() {
                         lastLoaded = uploadedChunks * CHUNK_SIZE;
                     }
                     
+                    console.log(`✅ Chunk ${partNumber}/${totalChunks} uploadé`);
+                    
                 } catch (error) {
                     retryCount++;
-                    console.warn(`⚠️ Chunk ${partNumber} échoué (tentative ${retryCount}/${MAX_RETRY})`);
+                    console.warn(`⚠️ Chunk ${partNumber} échoué (tentative ${retryCount}/${MAX_RETRY}): ${error.message}`);
                     
                     if (retryCount >= MAX_RETRY) {
-                        throw new Error(`Échec upload chunk ${partNumber} après ${MAX_RETRY} tentatives`);
+                        throw new Error(`Échec upload chunk ${partNumber} après ${MAX_RETRY} tentatives: ${error.message}`);
                     }
                     
-                    // Attendre avant retry
                     await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
                 }
             }
@@ -1065,18 +1034,23 @@ async function uploadVideoWithChunking() {
             body: JSON.stringify({
                 fileId: fileId,
                 authorizationToken: authorizationToken,
-                partShas: partShas
+                partShas: partShas,
+                fileName: fileName
             })
         });
         
         if (!finalizeResponse.ok) {
-            throw new Error(`Erreur finalisation: ${finalizeResponse.status}`);
+            const errText = await finalizeResponse.text();
+            throw new Error(`Erreur finalisation: ${finalizeResponse.status} - ${errText}`);
         }
+        
+        const finalizeData = await finalizeResponse.json();
         
         // Étape 5: Sauvegarder dans Firestore
         progressText.innerText = 'Sauvegarde...';
         
-        const finalVideoUrl = downloadUrl + encodeURIComponent(fileName);
+        const finalVideoUrl = finalizeData.downloadUrl || 
+            ('https://f005.backblazeb2.com/file/minbar-media/' + encodeURIComponent(fileName));
         
         await db.collection('videos').add({
             userId: currentUser.uid,
@@ -1135,16 +1109,13 @@ async function uploadVideoWithChunking() {
     }
 }
 
-// ✅ Fonction pour calculer SHA1 d'un chunk
 async function calculateSHA1(blob) {
     const arrayBuffer = await blob.arrayBuffer();
     const hashBuffer = await crypto.subtle.digest('SHA-1', arrayBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return hashHex;
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// ✅ Fonction pour uploader un chunk
 async function uploadChunk(uploadUrl, authorizationToken, chunk, partNumber, sha1) {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
@@ -1153,19 +1124,31 @@ async function uploadChunk(uploadUrl, authorizationToken, chunk, partNumber, sha
         xhr.setRequestHeader('Authorization', authorizationToken);
         xhr.setRequestHeader('X-Bz-Part-Number', partNumber.toString());
         xhr.setRequestHeader('X-Bz-Content-Sha1', sha1);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
         
         xhr.onload = () => {
             if (xhr.status === 200) {
-                resolve(JSON.parse(xhr.responseText));
+                try {
+                    resolve(JSON.parse(xhr.responseText));
+                } catch (e) {
+                    resolve({ contentSha1: sha1 });
+                }
             } else {
-                reject(new Error(`HTTP ${xhr.status}`));
+                let errorMsg = `HTTP ${xhr.status}`;
+                try {
+                    const errData = JSON.parse(xhr.responseText);
+                    errorMsg += ` - ${errData.code}: ${errData.message}`;
+                } catch (e) {
+                    errorMsg += ` - ${xhr.responseText.substring(0, 100)}`;
+                }
+                reject(new Error(errorMsg));
             }
         };
         
         xhr.onerror = () => reject(new Error('Erreur réseau'));
         xhr.ontimeout = () => reject(new Error('Timeout'));
         
-        xhr.timeout = 60000; // 60 secondes par chunk
+        xhr.timeout = 120000;
         xhr.send(chunk);
     });
 }
@@ -1410,11 +1393,8 @@ function toggleHomeSelectionMode() {
 }
 
 function toggleHomeVideoSelection(videoId) {
-    if (homeSelectedVideoIds.has(videoId)) {
-        homeSelectedVideoIds.delete(videoId);
-    } else {
-        homeSelectedVideoIds.add(videoId);
-    }
+    if (homeSelectedVideoIds.has(videoId)) homeSelectedVideoIds.delete(videoId);
+    else homeSelectedVideoIds.add(videoId);
     updateHomeSelectionUI();
     renderVideoGrid();
 }
@@ -1423,19 +1403,15 @@ function toggleSelectAllHome() {
     const visibleVideos = getFilteredVideos();
     const allSelected = visibleVideos.length > 0 && visibleVideos.every(v => homeSelectedVideoIds.has(v.id));
     
-    if (allSelected) {
-        visibleVideos.forEach(v => homeSelectedVideoIds.delete(v.id));
-    } else {
-        visibleVideos.forEach(v => homeSelectedVideoIds.add(v.id));
-    }
+    if (allSelected) visibleVideos.forEach(v => homeSelectedVideoIds.delete(v.id));
+    else visibleVideos.forEach(v => homeSelectedVideoIds.add(v.id));
     
     updateHomeSelectionUI();
     renderVideoGrid();
 }
 
 function updateHomeSelectionUI() {
-    const count = homeSelectedVideoIds.size;
-    document.getElementById('home-selected-count').innerText = count;
+    document.getElementById('home-selected-count').innerText = homeSelectedVideoIds.size;
 }
 
 function cancelSelectionHome() {
@@ -1449,9 +1425,7 @@ function cancelSelectionHome() {
         btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner';
         btn.style.background = '';
     }
-    if (bar) {
-        bar.classList.add('hidden');
-    }
+    if (bar) bar.classList.add('hidden');
     
     renderVideoGrid();
 }
