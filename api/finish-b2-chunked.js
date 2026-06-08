@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     
     console.log(`✅ Finalisation: ${fileId}, ${partShas.length} parts`);
     
-    // 1. Autorisation B2 pour obtenir le token GLOBAL
+    // ✅ CORRECTION : Obtenir un NOUVEAU token global
     const authResponse = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
       headers: {
         'Authorization': 'Basic ' + Buffer.from(`${KEY_ID}:${APP_KEY}`).toString('base64')
@@ -28,14 +28,13 @@ export default async function handler(req, res) {
     if (!authResponse.ok) throw new Error(`Auth failed: ${authResponse.status}`);
     const authData = await authResponse.json();
     
-    // 2. Préparer la liste des SHA1
     const parts = partShas.map(p => p.sha1);
     
-    // 3. ✅ UTILISER LE TOKEN GLOBAL (authData.authorizationToken)
+    // ✅ CORRECTION : Utiliser le token global (authData.authorizationToken)
     const finishResponse = await fetch(`${authData.apiUrl}/b2api/v2/b2_finish_large_file`, {
       method: 'POST',
       headers: {
-        'Authorization': authData.authorizationToken,  // ← Token GLOBAL, pas celui du large file
+        'Authorization': authData.authorizationToken,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
