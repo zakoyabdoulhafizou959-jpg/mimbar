@@ -77,7 +77,11 @@
                 <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher Imam, titre, ville..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
             </div>
+            
+            <!-- ✅ FILTRES PAR TYPE D'ALBUM (IMAMS) -->
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="type-chips"></div>
+            
+            <!-- ✅ FILTRES PAR ALBUMS -->
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="album-chips"></div>
             
             <div class="flex justify-between items-center mb-2">
@@ -220,7 +224,7 @@
                         </div>
                         <input type="text" id="videoTitle" placeholder="Titre de la vidéo" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
                         
-                        <!-- ✅ NOUVEAU CHAMP TYPE DE VIDÉO -->
+                        <!-- CHAMP TYPE DE VIDÉO -->
                         <div>
                             <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Type de vidéo *</label>
                             <select id="videoType" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
@@ -232,10 +236,11 @@
                             </select>
                         </div>
                         
-                        <button onclick="uploadVideoToB2()" id="btn-upload" class="w-full py-2 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
+                        <button onclick="uploadVideoWithChunking()" id="btn-upload" class="w-full py-2 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
                             <i class="fa-solid fa-upload mr-1"></i>Publier
                         </button>
                         
+                        <!-- PROGRESSION CHUNKING -->
                         <div id="uploadProgress" class="hidden space-y-2">
                             <div class="h-2 bg-zinc-700 rounded-full overflow-hidden">
                                 <div id="progressBar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
@@ -247,8 +252,18 @@
                                 </span>
                             </div>
                             <div class="flex justify-between text-[9px] text-zinc-500">
-                                <span id="progressDetail">0 Mo / 0 Mo</span>
+                                <span id="progressDetail">Chunk 0/0</span>
                                 <span id="timeRemaining">Temps restant: calcul...</span>
+                            </div>
+                            <div class="bg-zinc-800 rounded-lg p-2 text-[10px]">
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-zinc-400">Chunk actuel:</span>
+                                    <span id="currentChunk" class="text-white font-bold">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-zinc-400">Taille chunk:</span>
+                                    <span class="text-white">2 Mo</span>
+                                </div>
                             </div>
                             <button onclick="cancelUpload()" id="btn-cancel-upload" class="w-full py-2 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors">
                                 <i class="fa-solid fa-stop-circle mr-1"></i>Annuler l'upload
@@ -503,13 +518,20 @@ function formatDuration(seconds) {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'Ko', 'Mo', 'Go'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
 let currentUser = null;
 let userAlbum = null;
 let allVideos = [];
 let allAlbums = [];
 let selectedTypeFilter = null;
 let selectedAlbumFilter = null;
-let selectedVideoTypeFilter = null; // ✅ NOUVEAU : Filtre par type de vidéo
 let searchQuery = '';
 let selectionMode = false;
 let selectedVideoIds = new Set();
@@ -521,7 +543,11 @@ let longPressTimer = null;
 let homeSelectionMode = false;
 let homeSelectedVideoIds = new Set();
 let currentXhr = null;
-let uploadStuckCheck = null;
+let uploadAborted = false;
+
+// ✅ CONFIGURATION CHUNKING
+const CHUNK_SIZE = 2 * 1024 * 1024; // 2 Mo par chunk
+const MAX_RETRY = 3; // Nombre de tentatives max par chunk
 
 auth.onAuthStateChanged(async (user) => {
     currentUser = user;
@@ -674,7 +700,7 @@ async function loadAllVideos() {
                 videoUrl: getCdnUrl(v.downloadURL),
                 thumbnail: v.thumbnail || '',
                 size: v.size || 0,
-                videoType: v.videoType || '' // ✅ NOUVEAU : Type de vidéo
+                videoType: v.videoType || ''
             });
         });
     } catch(e) { 
@@ -874,7 +900,8 @@ async function generateThumbnail(file) {
     });
 }
 
-async function uploadVideoToB2() {
+// ✅ FONCTION DE CHUNKING COMPLÈTE
+async function uploadVideoWithChunking() {
     if (!currentSelectedFile) return;
     const title = document.getElementById('videoTitle').value.trim();
     const videoType = document.getElementById('videoType').value;
@@ -882,9 +909,9 @@ async function uploadVideoToB2() {
     if (!title) { alert("Titre requis"); return; }
     if (!videoType) { alert("Veuillez sélectionner le type de vidéo"); return; }
     
-    const maxSize = 600 * 1024 * 1024;
+    const maxSize = 2 * 1024 * 1024 * 1024; // 2 Go max
     if (currentSelectedFile.size > maxSize) {
-        alert(`❌ Fichier trop volumineux (${(currentSelectedFile.size / 1024 / 1024).toFixed(2)} Mo). Maximum : 600 Mo`);
+        alert(`❌ Fichier trop volumineux (${(currentSelectedFile.size / 1024 / 1024 / 1024).toFixed(2)} Go). Maximum : 2 Go`);
         return;
     }
     
@@ -894,95 +921,105 @@ async function uploadVideoToB2() {
     const speedText = document.getElementById('speedText');
     const progressDetail = document.getElementById('progressDetail');
     const timeRemaining = document.getElementById('timeRemaining');
+    const currentChunkEl = document.getElementById('currentChunk');
     const uploadBtn = document.getElementById('btn-upload');
     const cancelBtn = document.getElementById('btn-cancel-upload');
     
     uploadBtn.disabled = true;
     uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Upload en cours...';
     cancelBtn.classList.remove('hidden');
-    
     progressDiv.classList.remove('hidden');
-    progressBar.style.width = '0%';
-    progressText.innerText = '0%';
-    speedText.innerHTML = '<i class="fa-solid fa-bolt mr-1"></i>0 Mo/s';
-    progressDetail.innerText = '0 Mo / ' + (currentSelectedFile.size / 1024 / 1024).toFixed(1) + ' Mo';
-    timeRemaining.innerText = 'Temps restant: calcul...';
-    
-    let lastLoaded = 0;
-    let lastTime = Date.now();
-    let speeds = [];
-    let lastProgressTime = Date.now();
-    let stuckCounter = 0;
+    uploadAborted = false;
     
     try {
-        progressText.innerText = '5% - Obtention des droits...';
-        
-        const urlResponse = await fetch('/api/upload-b2', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        if (!urlResponse.ok) {
-            const errText = await urlResponse.text();
-            throw new Error(`API erreur ${urlResponse.status}: ${errText}`);
-        }
-        
-        const { uploadUrl, authorizationToken, downloadUrl } = await urlResponse.json();
-        
-        console.log('📡 Upload URL:', uploadUrl.substring(0, 50) + '...');
-        console.log('📡 File size:', (currentSelectedFile.size / 1024 / 1024).toFixed(2), 'Mo');
-        
-        progressText.innerText = '8% - Génération miniature...';
+        // Étape 1: Générer miniature
+        progressText.innerText = 'Génération miniature...';
         const { thumbnail, duration } = await generateThumbnail(currentSelectedFile);
         
-        progressText.innerText = '10% - Envoi vers B2...';
+        // Étape 2: Initialiser l'upload chunké via API
+        progressText.innerText = 'Initialisation upload...';
         
         const fileName = `videos/${Date.now()}_${currentSelectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         
-        uploadStuckCheck = setInterval(() => {
-            const now = Date.now();
-            const timeSinceLastProgress = (now - lastProgressTime) / 1000;
-            
-            if (timeSinceLastProgress > 20) {
-                stuckCounter++;
-                console.warn(`⚠️ Upload bloqué depuis ${timeSinceLastProgress.toFixed(1)}s (tentative ${stuckCounter}/3)`);
-                
-                if (stuckCounter >= 3) {
-                    clearInterval(uploadStuckCheck);
-                    if (currentXhr) {
-                        currentXhr.abort();
-                    }
-                    throw new Error('Upload bloqué - Connexion interrompue depuis 60s');
-                }
-                
-                timeRemaining.innerHTML = `<span class="text-yellow-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Connexion lente... ${stuckCounter}/3</span>`;
-            }
-        }, 5000);
+        const initResponse = await fetch('/api/upload-b2-chunked', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fileName: fileName,
+                fileSize: currentSelectedFile.size,
+                contentType: currentSelectedFile.type
+            })
+        });
         
-        await new Promise((resolve, reject) => {
-            currentXhr = new XMLHttpRequest();
+        if (!initResponse.ok) {
+            throw new Error(`Erreur initialisation: ${initResponse.status}`);
+        }
+        
+        const { uploadUrl, authorizationToken, fileId, downloadUrl } = await initResponse.json();
+        
+        // Calculer nombre de chunks
+        const totalChunks = Math.ceil(currentSelectedFile.size / CHUNK_SIZE);
+        console.log(`📦 Fichier: ${(currentSelectedFile.size / 1024 / 1024).toFixed(2)} Mo`);
+        console.log(`📦 Chunks: ${totalChunks} x 2 Mo`);
+        
+        // Étape 3: Upload des chunks
+        const partShas = [];
+        let uploadedChunks = 0;
+        let lastTime = Date.now();
+        let lastLoaded = 0;
+        let speeds = [];
+        
+        for (let partNumber = 1; partNumber <= totalChunks; partNumber++) {
+            if (uploadAborted) {
+                throw new Error('Upload annulé par l\'utilisateur');
+            }
             
-            currentXhr.upload.addEventListener('progress', (e) => {
-                if (e.lengthComputable) {
-                    lastProgressTime = Date.now();
-                    stuckCounter = 0;
+            const start = (partNumber - 1) * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, currentSelectedFile.size);
+            const chunk = currentSelectedFile.slice(start, end);
+            
+            currentChunkEl.innerText = `${partNumber}/${totalChunks}`;
+            progressDetail.innerText = `Chunk ${partNumber}/${totalChunks}`;
+            
+            // Upload du chunk avec retry
+            let retryCount = 0;
+            let success = false;
+            
+            while (retryCount < MAX_RETRY && !success) {
+                try {
+                    const sha1 = await calculateSHA1(chunk);
                     
+                    const chunkResponse = await uploadChunk(
+                        uploadUrl,
+                        authorizationToken,
+                        chunk,
+                        partNumber,
+                        sha1
+                    );
+                    
+                    partShas.push({
+                        partNumber: partNumber,
+                        sha1: sha1,
+                        contentLength: chunk.size
+                    });
+                    
+                    uploadedChunks++;
+                    success = true;
+                    
+                    // Mise à jour progression
+                    const percent = (uploadedChunks / totalChunks) * 100;
+                    progressBar.style.width = `${percent}%`;
+                    progressText.innerText = `${Math.round(percent)}%`;
+                    
+                    // Calcul vitesse
                     const now = Date.now();
                     const timeDiff = (now - lastTime) / 1000;
-                    
-                    if (timeDiff >= 0.5) {
-                        const loadedDiff = e.loaded - lastLoaded;
+                    if (timeDiff >= 1) {
+                        const loadedDiff = uploadedChunks * CHUNK_SIZE - lastLoaded;
                         const speedMBps = (loadedDiff / 1024 / 1024) / timeDiff;
-                        
                         speeds.push(speedMBps);
                         if (speeds.length > 5) speeds.shift();
                         const avgSpeed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
-                        
-                        const uploadPercent = (e.loaded / e.total) * 100;
-                        const totalPercent = 10 + (uploadPercent * 0.85);
-                        
-                        progressBar.style.width = `${totalPercent}%`;
-                        progressText.innerText = `${Math.round(totalPercent)}%`;
                         
                         if (avgSpeed >= 1) {
                             speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${avgSpeed.toFixed(2)} Mo/s`;
@@ -990,73 +1027,54 @@ async function uploadVideoToB2() {
                             speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${(avgSpeed * 1024).toFixed(0)} Ko/s`;
                         }
                         
-                        const loadedMB = (e.loaded / 1024 / 1024).toFixed(1);
-                        const totalMB = (e.total / 1024 / 1024).toFixed(1);
-                        progressDetail.innerText = `${loadedMB} Mo / ${totalMB} Mo`;
-                        
+                        // Temps restant
                         if (avgSpeed > 0) {
-                            const remainingBytes = e.total - e.loaded;
-                            const remainingSeconds = remainingBytes / (avgSpeed * 1024 * 1024);
+                            const remainingChunks = totalChunks - uploadedChunks;
+                            const remainingSeconds = (remainingChunks * CHUNK_SIZE) / (avgSpeed * 1024 * 1024);
                             if (remainingSeconds < 60) {
                                 timeRemaining.innerText = `Restant: ${Math.ceil(remainingSeconds)}s`;
-                            } else if (remainingSeconds < 3600) {
-                                timeRemaining.innerText = `Restant: ${Math.floor(remainingSeconds / 60)}m ${Math.ceil(remainingSeconds % 60)}s`;
                             } else {
-                                timeRemaining.innerText = `Restant: ${(remainingSeconds / 3600).toFixed(1)}h`;
+                                timeRemaining.innerText = `Restant: ${Math.floor(remainingSeconds / 60)}m`;
                             }
                         }
                         
-                        lastLoaded = e.loaded;
                         lastTime = now;
+                        lastLoaded = uploadedChunks * CHUNK_SIZE;
                     }
-                }
-            });
-            
-            currentXhr.onload = () => {
-                clearInterval(uploadStuckCheck);
-                console.log('📥 Réponse B2 - Status:', currentXhr.status);
-                
-                if (currentXhr.status === 200) {
-                    resolve(JSON.parse(currentXhr.responseText));
-                } else {
-                    let errorMsg = `Upload B2 échoué: ${currentXhr.status}`;
-                    try {
-                        const errorData = JSON.parse(currentXhr.responseText);
-                        errorMsg += ` - ${errorData.code || ''}: ${errorData.message || currentXhr.responseText}`;
-                    } catch (e) {
-                        errorMsg += ` - ${currentXhr.responseText.substring(0, 200)}`;
+                    
+                } catch (error) {
+                    retryCount++;
+                    console.warn(`⚠️ Chunk ${partNumber} échoué (tentative ${retryCount}/${MAX_RETRY})`);
+                    
+                    if (retryCount >= MAX_RETRY) {
+                        throw new Error(`Échec upload chunk ${partNumber} après ${MAX_RETRY} tentatives`);
                     }
-                    reject(new Error(errorMsg));
+                    
+                    // Attendre avant retry
+                    await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
                 }
-            };
-            
-            currentXhr.onerror = () => {
-                clearInterval(uploadStuckCheck);
-                console.error('❌ Erreur réseau XHR');
-                reject(new Error('Erreur réseau pendant l\'upload. Vérifiez votre connexion.'));
-            };
-            
-            currentXhr.ontimeout = () => {
-                clearInterval(uploadStuckCheck);
-                console.error('⏱️ Timeout XHR');
-                reject(new Error('Timeout - L\'upload a pris trop de temps (30 min max)'));
-            };
-            
-            currentXhr.open('POST', uploadUrl, true);
-            currentXhr.setRequestHeader('Authorization', authorizationToken);
-            currentXhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
-            currentXhr.setRequestHeader('Content-Type', 'video/mp4');
-            currentXhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
-            currentXhr.setRequestHeader('X-Bz-Info-Author', 'mimbar-app');
-            currentXhr.timeout = 1800000;
-            
-            console.log('🚀 Début upload...');
-            currentXhr.send(currentSelectedFile);
+            }
+        }
+        
+        // Étape 4: Finaliser l'upload
+        progressText.innerText = 'Finalisation...';
+        
+        const finalizeResponse = await fetch('/api/finish-b2-chunked', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fileId: fileId,
+                authorizationToken: authorizationToken,
+                partShas: partShas
+            })
         });
         
-        progressBar.style.width = '97%';
-        progressText.innerText = '97% - Sauvegarde...';
-        speedText.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Terminé';
+        if (!finalizeResponse.ok) {
+            throw new Error(`Erreur finalisation: ${finalizeResponse.status}`);
+        }
+        
+        // Étape 5: Sauvegarder dans Firestore
+        progressText.innerText = 'Sauvegarde...';
         
         const finalVideoUrl = downloadUrl + encodeURIComponent(fileName);
         
@@ -1076,12 +1094,14 @@ async function uploadVideoToB2() {
             size: currentSelectedFile.size,
             storage: 'backblaze_b2',
             cdn: 'bunny_net',
-            videoType: videoType // ✅ NOUVEAU : Type de vidéo sauvegardé
+            videoType: videoType,
+            uploadMethod: 'chunked'
         });
         
         progressBar.style.width = '100%';
         progressText.innerText = '100%';
-        timeRemaining.innerText = '✅ Terminé !';
+        speedText.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Terminé';
+        timeRemaining.innerText = '✅ Upload terminé !';
         
         setTimeout(() => {
             progressDiv.classList.add('hidden');
@@ -1097,14 +1117,13 @@ async function uploadVideoToB2() {
         await loadAllVideos();
         updateProfileUI();
         renderAll();
-        alert("✅ Vidéo publiée avec succès !");
+        alert(`✅ Vidéo publiée avec succès !\n${totalChunks} chunks uploadés.`);
         
     } catch(error) {
-        clearInterval(uploadStuckCheck);
-        console.error("❌ Erreur upload:", error);
+        console.error("❌ Erreur upload chunké:", error);
         
-        if (error.name === 'AbortError') {
-            alert("⚠️ Upload annulé par l'utilisateur");
+        if (error.message.includes('annulé')) {
+            alert("⚠️ Upload annulé");
         } else {
             alert("Erreur: " + error.message);
         }
@@ -1113,16 +1132,48 @@ async function uploadVideoToB2() {
         uploadBtn.disabled = false;
         uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
         cancelBtn.classList.add('hidden');
-        currentXhr = null;
     }
 }
 
+// ✅ Fonction pour calculer SHA1 d'un chunk
+async function calculateSHA1(blob) {
+    const arrayBuffer = await blob.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-1', arrayBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+}
+
+// ✅ Fonction pour uploader un chunk
+async function uploadChunk(uploadUrl, authorizationToken, chunk, partNumber, sha1) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        
+        xhr.open('POST', uploadUrl, true);
+        xhr.setRequestHeader('Authorization', authorizationToken);
+        xhr.setRequestHeader('X-Bz-Part-Number', partNumber.toString());
+        xhr.setRequestHeader('X-Bz-Content-Sha1', sha1);
+        
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                resolve(JSON.parse(xhr.responseText));
+            } else {
+                reject(new Error(`HTTP ${xhr.status}`));
+            }
+        };
+        
+        xhr.onerror = () => reject(new Error('Erreur réseau'));
+        xhr.ontimeout = () => reject(new Error('Timeout'));
+        
+        xhr.timeout = 60000; // 60 secondes par chunk
+        xhr.send(chunk);
+    });
+}
+
 function cancelUpload() {
-    if (currentXhr) {
-        if (confirm("Êtes-vous sûr de vouloir annuler l'upload ?")) {
-            currentXhr.abort();
-            console.log('🛑 Upload annulé par l\'utilisateur');
-        }
+    if (confirm("Êtes-vous sûr de vouloir annuler l'upload ?")) {
+        uploadAborted = true;
+        console.log('🛑 Upload annulé par l\'utilisateur');
     }
 }
 
@@ -1211,7 +1262,6 @@ async function downloadVideo(url, filename, videoId) {
 
 function renderAll() {
     renderTypeChips();
-    renderVideoTypeChips(); // ✅ NOUVEAU
     renderAlbumChips();
     renderVideoGrid();
     renderDownloads();
@@ -1235,53 +1285,13 @@ function renderTypeChips() {
     `).join('');
 }
 
-// ✅ NOUVEAU : Chips pour filtrer par type de vidéo
-function renderVideoTypeChips() {
+function renderAlbumChips() {
     const container = document.getElementById('album-chips');
     const chips = [
         { id: null, name: '👥 Tous les Imams' },
         ...allAlbums.map(a => ({ id: a.id, name: a.imamName || 'Album' }))
     ];
-    
-    // Ajouter les types de vidéo en premier
-    const videoTypes = [
-        { id: 'all', name: '🎬 Tous types', isVideoType: true },
-        { id: 'coran', name: '🕌 Coran', isVideoType: true },
-        { id: 'hadith', name: '📜 Hadith', isVideoType: true },
-        { id: 'tafsir', name: '📖 Tafsir', isVideoType: true },
-        { id: 'preche', name: '📢 Prêche', isVideoType: true }
-    ];
-    
-    const typeContainer = document.createElement('div');
-    typeContainer.className = 'flex gap-2 overflow-x-auto no-scrollbar py-1';
-    typeContainer.innerHTML = videoTypes.map(t => `
-        <button onclick="filterByVideoType(${t.id === 'all' ? 'null' : `'${t.id}'`})" 
-            class="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap ${selectedVideoTypeFilter === t.id ? 'text-white' : 'bg-zinc-800 text-zinc-400'}"
-            ${selectedVideoTypeFilter === t.id ? 'style="background:#ff5722"' : ''}>
-            ${t.name}
-        </button>
-    `).join('');
-    
-    // Remplacer le container par le nouveau
-    container.parentNode.insertBefore(typeContainer, container);
-    container.remove();
-}
-
-function renderAlbumChips() {
-    // Créer un nouveau container pour les albums
-    let albumContainer = document.getElementById('album-chips-container');
-    if (!albumContainer) {
-        albumContainer = document.createElement('div');
-        albumContainer.id = 'album-chips-container';
-        albumContainer.className = 'flex gap-2 overflow-x-auto no-scrollbar py-1';
-        document.getElementById('album-chips')?.parentNode?.insertBefore(albumContainer, document.getElementById('album-chips'));
-    }
-    
-    const chips = [
-        { id: null, name: '👥 Tous les Imams' },
-        ...allAlbums.map(a => ({ id: a.id, name: a.imamName || 'Album' }))
-    ];
-    albumContainer.innerHTML = chips.map(c => `
+    container.innerHTML = chips.map(c => `
         <button onclick="filterByAlbum(${c.id ? `'${c.id}'` : 'null'})" 
             class="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap ${selectedAlbumFilter === c.id ? 'text-white' : 'bg-zinc-800 text-zinc-400'}"
             ${selectedAlbumFilter === c.id ? 'style="background:#ff5722"' : ''}>
@@ -1293,15 +1303,9 @@ function renderAlbumChips() {
 function getFilteredVideos() {
     let filtered = [...allVideos];
     
-    // Filtre par type d'album (prêche, tafsir, etc.)
     if (selectedTypeFilter) {
         const albumIds = allAlbums.filter(a => a.type === selectedTypeFilter).map(a => a.id);
         filtered = filtered.filter(v => albumIds.includes(v.albumId));
-    }
-    
-    // ✅ NOUVEAU : Filtre par type de vidéo
-    if (selectedVideoTypeFilter) {
-        filtered = filtered.filter(v => v.videoType === selectedVideoTypeFilter);
     }
     
     if (selectedAlbumFilter) filtered = filtered.filter(v => v.albumId === selectedAlbumFilter);
@@ -1739,7 +1743,6 @@ function toggleDlSubTab(sub) {
 
 function filterByType(typeId) { selectedTypeFilter = typeId; renderTypeChips(); renderVideoGrid(); }
 function filterByAlbum(albumId) { selectedAlbumFilter = albumId; renderAlbumChips(); renderVideoGrid(); }
-function filterByVideoType(typeId) { selectedVideoTypeFilter = typeId; renderVideoTypeChips(); renderVideoGrid(); }
 function handleSearch(val) { searchQuery = val; renderVideoGrid(); }
 
 function showAzkarTab(tabName) {
