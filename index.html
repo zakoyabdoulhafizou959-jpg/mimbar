@@ -469,7 +469,7 @@ const VIDEO_TYPE_LABELS = {
     'preche': { label: '📢 Prêche', class: 'type-preche' }
 };
 
-const CHUNK_SIZE = 2 * 1024 * 1024; // 2 Mo
+const CHUNK_SIZE = 2 * 1024 * 1024;
 const MAX_RETRY = 3;
 
 function getCdnUrl(originalUrl) {
@@ -846,9 +846,7 @@ async function generateThumbnail(file) {
         };
         
         video.onerror = () => resolve({ thumbnail: '', duration: '00:00' });
-        
         setTimeout(() => resolve({ thumbnail: '', duration: '00:00' }), 10000);
-        
         video.src = URL.createObjectURL(file);
     });
 }
@@ -885,11 +883,9 @@ async function uploadVideoWithChunking() {
     uploadAborted = false;
     
     try {
-        // Étape 1: Générer miniature
         progressText.innerText = 'Génération miniature...';
         const { thumbnail, duration } = await generateThumbnail(currentSelectedFile);
         
-        // Étape 2: Initialiser l'upload
         progressText.innerText = 'Initialisation upload...';
         const fileName = `videos/${Date.now()}_${currentSelectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         
@@ -904,8 +900,7 @@ async function uploadVideoWithChunking() {
         });
         
         if (!initResponse.ok) {
-            const errText = await initResponse.text();
-            throw new Error(`Erreur initialisation: ${initResponse.status} - ${errText}`);
+            throw new Error(`Erreur initialisation: ${initResponse.status}`);
         }
         
         const initData = await initResponse.json();
@@ -916,7 +911,6 @@ async function uploadVideoWithChunking() {
         console.log(`📦 Chunks: ${totalChunks} x 2 Mo`);
         console.log(`📦 File ID: ${fileId}`);
         
-        // Étape 3: Upload des chunks
         const partShas = [];
         let uploadedChunks = 0;
         let lastTime = Date.now();
@@ -933,34 +927,38 @@ async function uploadVideoWithChunking() {
             currentChunkEl.innerText = `${partNumber}/${totalChunks}`;
             progressDetail.innerText = `Chunk ${partNumber}/${totalChunks}`;
             
+            // ✅ OBTENIR UNE NOUVELLE URL UNE SEULE FOIS PAR CHUNK
+            progressText.innerText = `Préparation chunk ${partNumber}...`;
+            
+            const partUrlResponse = await fetch('/api/get-upload-part-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fileId: fileId,
+                    authorizationToken: authorizationToken
+                })
+            });
+            
+            if (!partUrlResponse.ok) {
+                throw new Error(`Erreur get part URL: ${partUrlResponse.status}`);
+            }
+            
+            const partUrlData = await partUrlResponse.json();
+            const chunkUploadUrl = partUrlData.uploadUrl;
+            const chunkAuthToken = partUrlData.authorizationToken;
+            
+            // ✅ CALCULER LE SHA1 UNE SEULE FOIS
+            const sha1 = await calculateSHA1(chunk);
+            
+            // ✅ RETRY LOGIC : Réutiliser la MÊME URL pour les retries
             let retryCount = 0;
             let success = false;
             
             while (retryCount < MAX_RETRY && !success) {
                 try {
-                    // ✅ OBTENIR UNE NOUVELLE URL POUR CE CHUNK
-                    const partUrlResponse = await fetch('/api/get-upload-part-url', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            fileId: fileId,
-                            authorizationToken: authorizationToken
-                        })
-                    });
-                    
-                    if (!partUrlResponse.ok) {
-                        throw new Error(`Erreur get part URL: ${partUrlResponse.status}`);
-                    }
-                    
-                    const partUrlData = await partUrlResponse.json();
-                    
-                    // Calculer SHA1 du chunk
-                    const sha1 = await calculateSHA1(chunk);
-                    
-                    // Upload du chunk
                     const uploadResult = await uploadChunk(
-                        partUrlData.uploadUrl,
-                        partUrlData.authorizationToken,
+                        chunkUploadUrl,
+                        chunkAuthToken,
                         chunk,
                         partNumber,
                         sha1
@@ -975,12 +973,10 @@ async function uploadVideoWithChunking() {
                     uploadedChunks++;
                     success = true;
                     
-                    // Mise à jour progression
                     const percent = (uploadedChunks / totalChunks) * 100;
                     progressBar.style.width = `${percent}%`;
                     progressText.innerText = `${Math.round(percent)}%`;
                     
-                    // Calcul vitesse
                     const now = Date.now();
                     const timeDiff = (now - lastTime) / 1000;
                     if (timeDiff >= 1) {
@@ -1002,7 +998,7 @@ async function uploadVideoWithChunking() {
                             if (remainingSeconds < 60) {
                                 timeRemaining.innerText = `Restant: ${Math.ceil(remainingSeconds)}s`;
                             } else {
-                                timeRemaining.innerText = `Restant: ${Math.floor(remainingSeconds / 60)}m`;
+                                timeRemaining.innerText = `Restant: ${Math.floor(remainingSeconds / 60)}m ${Math.ceil(remainingSeconds % 60)}s`;
                             }
                         }
                         
@@ -1017,15 +1013,54 @@ async function uploadVideoWithChunking() {
                     console.warn(`⚠️ Chunk ${partNumber} échoué (tentative ${retryCount}/${MAX_RETRY}): ${error.message}`);
                     
                     if (retryCount >= MAX_RETRY) {
-                        throw new Error(`Échec upload chunk ${partNumber} après ${MAX_RETRY} tentatives: ${error.message}`);
+                        // ✅ SI TOUS LES RETRIES ÉCHOUENT, OBTENIR UNE NOUVELLE URL
+                        console.log('🔄 Dernière tentative avec nouvelle URL...');
+                        
+                        try {
+                            const retryUrlResponse = await fetch('/api/get-upload-part-url', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    fileId: fileId,
+                                    authorizationToken: authorizationToken
+                                })
+                            });
+                            
+                            if (retryUrlResponse.ok) {
+                                const retryUrlData = await retryUrlResponse.json();
+                                const retryResult = await uploadChunk(
+                                    retryUrlData.uploadUrl,
+                                    retryUrlData.authorizationToken,
+                                    chunk,
+                                    partNumber,
+                                    sha1
+                                );
+                                
+                                partShas.push({
+                                    partNumber: partNumber,
+                                    sha1: retryResult.contentSha1 || sha1,
+                                    contentLength: chunk.size
+                                });
+                                
+                                uploadedChunks++;
+                                success = true;
+                                console.log(`✅ Chunk ${partNumber}/${totalChunks} récupéré avec nouvelle URL`);
+                            } else {
+                                throw new Error('Impossible d\'obtenir une nouvelle URL');
+                            }
+                        } catch (finalError) {
+                            throw new Error(`Échec upload chunk ${partNumber} après toutes les tentatives`);
+                        }
                     }
                     
-                    await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+                    if (!success) {
+                        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+                    }
                 }
             }
         }
         
-        // Étape 4: Finaliser l'upload
+        // Finalisation
         progressText.innerText = 'Finalisation...';
         
         const finalizeResponse = await fetch('/api/finish-b2-chunked', {
@@ -1033,7 +1068,6 @@ async function uploadVideoWithChunking() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 fileId: fileId,
-                authorizationToken: authorizationToken,
                 partShas: partShas,
                 fileName: fileName
             })
@@ -1046,7 +1080,6 @@ async function uploadVideoWithChunking() {
         
         const finalizeData = await finalizeResponse.json();
         
-        // Étape 5: Sauvegarder dans Firestore
         progressText.innerText = 'Sauvegarde...';
         
         const finalVideoUrl = finalizeData.downloadUrl || 
@@ -1095,12 +1128,7 @@ async function uploadVideoWithChunking() {
         
     } catch(error) {
         console.error("❌ Erreur upload chunké:", error);
-        
-        if (error.message.includes('annulé')) {
-            alert("⚠️ Upload annulé");
-        } else {
-            alert("Erreur: " + error.message);
-        }
+        alert("Erreur: " + error.message);
         
         progressDiv.classList.add('hidden');
         uploadBtn.disabled = false;
