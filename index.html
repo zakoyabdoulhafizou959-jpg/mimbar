@@ -241,7 +241,7 @@
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-zinc-400">Taille chunk:</span>
-                                    <span class="text-white">2 Mo</span>
+                                    <span class="text-white">5 Mo</span>
                                 </div>
                             </div>
                             <button onclick="cancelUpload()" id="btn-cancel-upload" class="w-full py-2 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors">
@@ -469,7 +469,7 @@ const VIDEO_TYPE_LABELS = {
     'preche': { label: '📢 Prêche', class: 'type-preche' }
 };
 
-const CHUNK_SIZE = 2 * 1024 * 1024;
+const CHUNK_SIZE = 5 * 1024 * 1024;
 const MAX_RETRY = 3;
 
 function getCdnUrl(originalUrl) {
