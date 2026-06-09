@@ -10,6 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <!-- FFmpeg désactivé pour l'upload, gardé uniquement pour conversion audio -->
     <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/umd/ffmpeg.js"></script>
     <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
     <style>
@@ -33,19 +34,16 @@
         .recording-pulse { animation: rec-pulse 1s infinite; }
         @keyframes rec-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         
-        /* Elegant Profile Styles */
         .profile-gradient { background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%); }
         .stat-card { background: linear-gradient(135deg, rgba(255,87,34,0.1) 0%, rgba(255,152,0,0.05) 100%); border: 1px solid rgba(255,87,34,0.2); }
         .menu-item { transition: all 0.2s ease; }
         .menu-item:hover { background: rgba(255,87,34,0.1); transform: translateX(4px); }
         
-        /* Azkar Styles */
         .dua-card { background: linear-gradient(135deg, #18181b 0%, #27272a 100%); transition: all 0.3s ease; }
         .dua-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .category-chip { transition: all 0.2s ease; }
         .category-chip.active { transform: scale(1.05); }
         
-        /* Support & Privacy Styles */
         .info-card { background: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.05) 100%); border: 1px solid rgba(59,130,246,0.2); }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
         .accordion-content.open { max-height: 500px; }
@@ -267,10 +265,8 @@
                 <p class="text-xs text-zinc-400">Azkar & Invocations</p>
             </div>
             
-            <!-- Category Navigation -->
             <div class="flex gap-2 overflow-x-auto no-scrollbar py-2" id="azkar-categories"></div>
             
-            <!-- Duas List -->
             <div id="azkar-duas-list" class="space-y-4"></div>
         </div>
 
@@ -292,7 +288,6 @@
         </div>
 
         <div id="tab-profile" class="hidden">
-            <!-- Elegant Profile Header -->
             <div id="profile-unauth" class="p-4 space-y-4">
                 <div class="text-center py-8 px-4 bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl border border-zinc-700">
                     <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center mb-4 shadow-lg">
@@ -320,7 +315,6 @@
             </div>
             
             <div id="profile-auth" class="hidden">
-                <!-- Profile Header with Gradient -->
                 <div class="profile-gradient p-6 pb-12 relative">
                     <div class="flex items-center gap-4">
                         <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-2xl text-white border-2 border-white/30 shadow-lg" id="userAvatar">U</div>
@@ -334,7 +328,6 @@
                     </div>
                 </div>
                 
-                <!-- Stats Cards -->
                 <div class="px-4 -mt-8 relative z-10">
                     <div class="grid grid-cols-3 gap-3">
                         <div class="stat-card rounded-xl p-3 text-center backdrop-blur-sm">
@@ -361,7 +354,6 @@
                     </div>
                 </div>
                 
-                <!-- Menu Items -->
                 <div class="p-4 space-y-2">
                     <h3 class="text-xs font-bold text-zinc-500 uppercase mb-3">Mon contenu</h3>
                     <button onclick="showTab('myalbum')" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
@@ -420,7 +412,6 @@
                 <h2 class="text-lg font-bold text-white">Aide & Support</h2>
             </div>
             
-            <!-- FAQ Section -->
             <div class="bg-gradient-to-br from-blue-900/20 to-purple-900/10 rounded-2xl p-4 border border-blue-500/20">
                 <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
                     <i class="fa-solid fa-circle-question text-blue-400"></i>Questions fréquentes
@@ -456,7 +447,6 @@
                 </div>
             </div>
             
-            <!-- Contact Form -->
             <div class="bg-zinc-900 rounded-2xl p-5 space-y-4 border border-zinc-800">
                 <h3 class="text-sm font-bold text-white flex items-center gap-2">
                     <i class="fa-solid fa-envelope text-orange-400"></i>Envoyer un message
@@ -670,7 +660,6 @@
         </div>
     </div>
     
-    <!-- Audio Conversion Progress Modal -->
     <div id="audio-conversion-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-zinc-900 rounded-2xl p-5 w-full max-w-sm space-y-4 border border-zinc-800">
             <div class="text-center">
@@ -690,7 +679,7 @@
 
 <script>
 // ============================================
-// 🔥 FIREBASE INIT
+// 🔥 FIREBASE INIT - AVEC PERSISTANCE
 // ============================================
 const firebaseConfig = {
     apiKey: "AIzaSyC3ybM8gMQZ-IjVLLXqs0MZLPEzqGmyREA",
@@ -700,8 +689,19 @@ const firebaseConfig = {
     messagingSenderId: "287190157826",
     appId: "1:287190157826:web:c1fd927c6cf0ea0ecdb51b"
 };
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+
+// ✅ CONFIGURATION CRITIQUE POUR MEDIAN/APK
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    .then(() => {
+        console.log('✅ Firebase persistence LOCAL configurée');
+    })
+    .catch((error) => {
+        console.error('❌ Erreur persistence:', error);
+    });
+
 const db = firebase.firestore();
 
 // ============================================
@@ -734,6 +734,7 @@ let longPressTimer = null;
 let homeSelectionMode = false;
 let homeSelectedVideoIds = new Set();
 let uploadAborted = false;
+let wakeLock = null; // ✅ WAKE LOCK POUR ANDROID
 
 // Support
 let supportImages = [];
@@ -743,7 +744,7 @@ let recordingChunks = [];
 let recordingInterval = null;
 let recordingStartTime = 0;
 
-// FFmpeg
+// FFmpeg (désactivé pour l'upload, gardé pour conversion audio)
 let ffmpeg = null;
 let ffmpegLoaded = false;
 
@@ -829,201 +830,10 @@ const AZKAR_DATA = [
 let currentAzkarCategory = 0;
 
 // ============================================
-// 🔧 FONCTIONS UTILITAIRES
-// ============================================
-function getCdnUrl(originalUrl) {
-    if (!originalUrl) return '';
-    if (originalUrl.includes('kitabwasunna.b-cdn.net')) return originalUrl;
-    const b2Domain = 'f005.backblazeb2.com'; 
-    const bunnyDomain = 'kitabwasunna.b-cdn.net';
-    if (originalUrl.includes(b2Domain)) return originalUrl.replace(b2Domain, bunnyDomain);
-    return originalUrl;
-}
-
-function escapeAttr(str) {
-    if (!str) return '';
-    return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ').replace(/\r/g, '');
-}
-
-function formatDuration(seconds) {
-    if (!seconds || isNaN(seconds)) return '00:00';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-}
-
-// ============================================
-// 🎵 AUDIO CONVERSION (FFmpeg.wasm)
-// ============================================
-async function loadFFmpeg() {
-    if (ffmpegLoaded) return;
-    
-    try {
-        const { FFmpeg } = FFmpegWASM;
-        ffmpeg = new FFmpeg();
-        
-        ffmpeg.on('log', ({ message }) => {
-            console.log('[FFmpeg]', message);
-        });
-        
-        ffmpeg.on('progress', ({ progress, time }) => {
-            const percent = Math.round(progress * 100);
-            document.getElementById('conversion-progress').style.width = `${percent}%`;
-            document.getElementById('conversion-status').innerText = `Conversion: ${percent}%`;
-        });
-        
-        await ffmpeg.load({
-            coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
-        });
-        
-        ffmpegLoaded = true;
-        console.log('✅ FFmpeg loaded');
-    } catch (error) {
-        console.error('❌ FFmpeg load error:', error);
-        throw new Error('Impossible de charger le convertisseur audio');
-    }
-}
-
-async function convertVideoToAudio(videoUrl, title) {
-    const modal = document.getElementById('audio-conversion-modal');
-    modal.classList.remove('hidden');
-    document.getElementById('conversion-progress').style.width = '0%';
-    document.getElementById('conversion-status').innerText = 'Téléchargement de la vidéo...';
-    
-    try {
-        // Load FFmpeg if not already loaded
-        await loadFFmpeg();
-        
-        document.getElementById('conversion-status').innerText = 'Téléchargement de la vidéo...';
-        
-        // Fetch video
-        const response = await fetch(videoUrl);
-        const videoBlob = await response.blob();
-        const videoData = await videoBlob.arrayBuffer();
-        
-        document.getElementById('conversion-status').innerText = 'Écriture du fichier...';
-        await ffmpeg.writeFile('input.mp4', new Uint8Array(videoData));
-        
-        document.getElementById('conversion-status').innerText = 'Conversion en MP3...';
-        
-        // Convert to MP3
-        await ffmpeg.exec([
-            '-i', 'input.mp4',
-            '-vn',
-            '-acodec', 'libmp3lame',
-            '-q:a', '2',
-            '-y',
-            'output.mp3'
-        ]);
-        
-        document.getElementById('conversion-status').innerText = 'Finalisation...';
-        
-        // Read output
-        const data = await ffmpeg.readFile('output.mp3');
-        const audioBlob = new Blob([data.buffer], { type: 'audio/mp3' });
-        
-        // Download
-        const url = URL.createObjectURL(audioBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = title.replace(/\.[^/.]+$/, '') + '.mp3';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-        
-        // Cleanup
-        await ffmpeg.deleteFile('input.mp4');
-        await ffmpeg.deleteFile('output.mp3');
-        
-        modal.classList.add('hidden');
-        sendNotification('✅ Conversion terminée', title + '.mp3');
-        
-    } catch (error) {
-        console.error('Conversion error:', error);
-        modal.classList.add('hidden');
-        
-        // Fallback: try Web Audio API approach
-        try {
-            await fallbackAudioConversion(videoUrl, title);
-        } catch (fallbackError) {
-            alert('❌ Erreur de conversion: ' + error.message + '\n\nFallback échoué: ' + fallbackError.message);
-        }
-    }
-}
-
-async function fallbackAudioConversion(videoUrl, title) {
-    const modal = document.getElementById('audio-conversion-modal');
-    modal.classList.remove('hidden');
-    document.getElementById('conversion-progress').style.width = '0%';
-    document.getElementById('conversion-status').innerText = 'Méthode alternative...';
-    
-    // Create video element
-    const video = document.createElement('video');
-    video.crossOrigin = 'anonymous';
-    video.src = videoUrl;
-    video.muted = false;
-    video.playsInline = true;
-    
-    await new Promise((resolve, reject) => {
-        video.onloadeddata = resolve;
-        video.onerror = reject;
-        video.load();
-    });
-    
-    // Capture stream
-    const stream = video.captureStream();
-    const audioTracks = stream.getAudioTracks();
-    
-    if (audioTracks.length === 0) {
-        throw new Error('Aucune piste audio trouvée');
-    }
-    
-    const audioStream = new MediaStream(audioTracks);
-    const mediaRecorder = new MediaRecorder(audioStream, {
-        mimeType: 'audio/webm;codecs=opus'
-    });
-    
-    const chunks = [];
-    mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
-    };
-    
-    return new Promise((resolve, reject) => {
-        mediaRecorder.onstop = () => {
-            const blob = new Blob(chunks, { type: 'audio/webm' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = title.replace(/\.[^/.]+$/, '') + '.webm';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 100);
-            
-            modal.classList.add('hidden');
-            sendNotification('✅ Conversion terminée', title + '.webm');
-            resolve();
-        };
-        
-        mediaRecorder.start();
-        video.play();
-        
-        video.onended = () => {
-            mediaRecorder.stop();
-            video.pause();
-        };
-        
-        video.onerror = reject;
-    });
-}
-
-// ============================================
-// 🔐 AUTH
+// 🔐 AUTH - OPTIMISÉ POUR MEDIAN/APK
 // ============================================
 auth.onAuthStateChanged(async (user) => {
+    console.log('🔔 onAuthStateChanged:', user ? user.email : 'null');
     currentUser = user;
     if (user) {
         document.getElementById('header-user-status').textContent = user.email?.split('@')[0] || 'Connecté';
@@ -1038,35 +848,65 @@ auth.onAuthStateChanged(async (user) => {
     renderAll();
 });
 
+// ✅ WAKE LOCK - Empêche la mise en veille sur Android
+async function requestWakeLock() {
+    try {
+        if ('wakeLock' in navigator) {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log('✅ Wake Lock activé');
+            wakeLock.addEventListener('release', () => {
+                console.log('⚠️ Wake Lock relâché');
+            });
+        }
+    } catch (err) {
+        console.error(`❌ Wake Lock error: ${err.name}, ${err.message}`);
+    }
+}
+
+async function releaseWakeLock() {
+    if (wakeLock !== null) {
+        try {
+            await wakeLock.release();
+            wakeLock = null;
+            console.log('✅ Wake Lock désactivé');
+        } catch (err) {
+            console.error('❌ Release wake lock error:', err);
+        }
+    }
+}
+
+// ✅ GOOGLE SIGN-IN - OPTIMISÉ POUR WEBVIEW
 async function handleGoogleSignIn() {
     try {
         showAuthLoading(true);
+        console.log('🔄 Démarrage Google Sign-In...');
+        
         const provider = new firebase.auth.GoogleAuthProvider();
         
-        const isWebView = navigator.userAgent.includes('wv') || 
-                         navigator.userAgent.includes('Median') ||
-                         window.AndroidBridge !== undefined;
+        // ✅ TOUJOURS UTILISER signInWithPopup (même dans WebView)
+        // signInWithRedirect pose des problèmes de persistance dans Median
+        console.log('📱 Utilisation de signInWithPopup (optimisé WebView)');
+        await auth.signInWithPopup(provider);
         
-        if (isWebView) {
-            console.log('📱 WebView détecté → signInWithRedirect');
-            await auth.signInWithRedirect(provider);
-        } else {
-            console.log('🌐 Navigateur → signInWithPopup');
-            await auth.signInWithPopup(provider);
-        }
-        
+        console.log('✅ Connexion Google réussie');
         showAuthError('');
         showTab('home');
+        
     } catch(e) {
         showAuthLoading(false);
-        console.error('Google Sign-In error:', e);
+        console.error('❌ Google Sign-In error:', e);
+        console.error('❌ Error code:', e.code);
+        console.error('❌ Error message:', e.message);
         
+        // Si popup bloqué, essayer redirect en dernier recours
         if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request') {
+            console.log('⚠️ Popup bloqué, tentative avec redirect...');
             try {
                 const provider = new firebase.auth.GoogleAuthProvider();
                 await auth.signInWithRedirect(provider);
                 return;
             } catch (e2) {
+                console.error('❌ Redirect also failed:', e2);
                 showAuthError(`❌ ${e2.message}`);
                 return;
             }
@@ -1082,7 +922,7 @@ auth.getRedirectResult().then((result) => {
         showTab('home');
     }
 }).catch((error) => {
-    console.error('Redirect result error:', error);
+    console.error('❌ Redirect result error:', error);
 });
 
 async function handleLogin() {
@@ -1632,7 +1472,6 @@ async function downloadWithQuality(quality) {
     const v = currentPlayingVideo;
     
     if (quality === 'audio') {
-        // Convert video to audio
         try {
             await convertVideoToAudio(getCdnUrl(v.videoUrl), v.title);
         } catch(e) {
@@ -1640,7 +1479,6 @@ async function downloadWithQuality(quality) {
             alert('❌ Conversion audio échouée: ' + e.message);
         }
     } else {
-        // Download video
         try {
             await downloadVideo(getCdnUrl(v.videoUrl), v.title + '.mp4', v.id);
         } catch(e) {
@@ -1754,7 +1592,7 @@ function toggleDlSubTab(sub) {
 }
 
 // ============================================
-// 📤 UPLOAD VIDÉO
+// 📤 UPLOAD VIDÉO - OPTIMISÉ ANDROID (SANS FFMPEG)
 // ============================================
 function handleFileSelected(input) {
     if (!input.files?.length) return;
@@ -1776,6 +1614,7 @@ function cancelFileSelection() {
     document.getElementById('upload-form').classList.add('hidden');
 }
 
+// ✅ GÉNÉRATION MINIATURE SANS FFMPEG
 async function generateThumbnail(file) {
     return new Promise((resolve) => {
         const video = document.createElement('video');
@@ -1837,6 +1676,9 @@ async function uploadVideoWithChunking() {
     progressDiv.classList.remove('hidden');
     uploadAborted = false;
     
+    // ✅ ACTIVATION WAKE LOCK POUR ANDROID
+    await requestWakeLock();
+    
     try {
         progressText.innerText = 'Génération miniature...';
         const { thumbnail, duration } = await generateThumbnail(currentSelectedFile);
@@ -1862,6 +1704,9 @@ async function uploadVideoWithChunking() {
         uploadBtn.disabled = false;
         uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
         cancelBtn.classList.add('hidden');
+    } finally {
+        // ✅ RELÂCHEMENT WAKE LOCK
+        await releaseWakeLock();
     }
 }
 
@@ -2579,6 +2424,163 @@ async function uploadSupportFile(file, folder, customName = null) {
 }
 
 // ============================================
+// 🎵 CONVERSION AUDIO (FFmpeg.wasm - uniquement pour téléchargement)
+// ============================================
+async function loadFFmpeg() {
+    if (ffmpegLoaded) return;
+    
+    try {
+        const { FFmpeg } = FFmpegWASM;
+        ffmpeg = new FFmpeg();
+        
+        ffmpeg.on('log', ({ message }) => {
+            console.log('[FFmpeg]', message);
+        });
+        
+        ffmpeg.on('progress', ({ progress, time }) => {
+            const percent = Math.round(progress * 100);
+            document.getElementById('conversion-progress').style.width = `${percent}%`;
+            document.getElementById('conversion-status').innerText = `Conversion: ${percent}%`;
+        });
+        
+        await ffmpeg.load({
+            coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
+        });
+        
+        ffmpegLoaded = true;
+        console.log('✅ FFmpeg loaded');
+    } catch (error) {
+        console.error('❌ FFmpeg load error:', error);
+        throw new Error('Impossible de charger le convertisseur audio');
+    }
+}
+
+async function convertVideoToAudio(videoUrl, title) {
+    const modal = document.getElementById('audio-conversion-modal');
+    modal.classList.remove('hidden');
+    document.getElementById('conversion-progress').style.width = '0%';
+    document.getElementById('conversion-status').innerText = 'Téléchargement de la vidéo...';
+    
+    try {
+        await loadFFmpeg();
+        
+        document.getElementById('conversion-status').innerText = 'Téléchargement de la vidéo...';
+        
+        const response = await fetch(videoUrl);
+        const videoBlob = await response.blob();
+        const videoData = await videoBlob.arrayBuffer();
+        
+        document.getElementById('conversion-status').innerText = 'Écriture du fichier...';
+        await ffmpeg.writeFile('input.mp4', new Uint8Array(videoData));
+        
+        document.getElementById('conversion-status').innerText = 'Conversion en MP3...';
+        
+        await ffmpeg.exec([
+            '-i', 'input.mp4',
+            '-vn',
+            '-acodec', 'libmp3lame',
+            '-q:a', '2',
+            '-y',
+            'output.mp3'
+        ]);
+        
+        document.getElementById('conversion-status').innerText = 'Finalisation...';
+        
+        const data = await ffmpeg.readFile('output.mp3');
+        const audioBlob = new Blob([data.buffer], { type: 'audio/mp3' });
+        
+        const url = URL.createObjectURL(audioBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = title.replace(/\.[^/.]+$/, '') + '.mp3';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        
+        await ffmpeg.deleteFile('input.mp4');
+        await ffmpeg.deleteFile('output.mp3');
+        
+        modal.classList.add('hidden');
+        sendNotification('✅ Conversion terminée', title + '.mp3');
+        
+    } catch (error) {
+        console.error('Conversion error:', error);
+        modal.classList.add('hidden');
+        
+        try {
+            await fallbackAudioConversion(videoUrl, title);
+        } catch (fallbackError) {
+            alert('❌ Erreur de conversion: ' + error.message + '\n\nFallback échoué: ' + fallbackError.message);
+        }
+    }
+}
+
+async function fallbackAudioConversion(videoUrl, title) {
+    const modal = document.getElementById('audio-conversion-modal');
+    modal.classList.remove('hidden');
+    document.getElementById('conversion-progress').style.width = '0%';
+    document.getElementById('conversion-status').innerText = 'Méthode alternative...';
+    
+    const video = document.createElement('video');
+    video.crossOrigin = 'anonymous';
+    video.src = videoUrl;
+    video.muted = false;
+    video.playsInline = true;
+    
+    await new Promise((resolve, reject) => {
+        video.onloadeddata = resolve;
+        video.onerror = reject;
+        video.load();
+    });
+    
+    const stream = video.captureStream();
+    const audioTracks = stream.getAudioTracks();
+    
+    if (audioTracks.length === 0) {
+        throw new Error('Aucune piste audio trouvée');
+    }
+    
+    const audioStream = new MediaStream(audioTracks);
+    const mediaRecorder = new MediaRecorder(audioStream, {
+        mimeType: 'audio/webm;codecs=opus'
+    });
+    
+    const chunks = [];
+    mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+    };
+    
+    return new Promise((resolve, reject) => {
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'audio/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = title.replace(/\.[^/.]+$/, '') + '.webm';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+            
+            modal.classList.add('hidden');
+            sendNotification('✅ Conversion terminée', title + '.webm');
+            resolve();
+        };
+        
+        mediaRecorder.start();
+        video.play();
+        
+        video.onended = () => {
+            mediaRecorder.stop();
+            video.pause();
+        };
+        
+        video.onerror = reject;
+    });
+}
+
+// ============================================
 // 🎨 AZKAR
 // ============================================
 function renderAzkarCategories() {
@@ -2714,4 +2716,4 @@ function renderAll() {
 showTab('home');
 </script>
 </body>
-      </html>
+</html>
