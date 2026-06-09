@@ -46,6 +46,20 @@
             0%, 100% { border-color: rgba(245,158,11,0.4); }
             50% { border-color: rgba(245,158,11,0.8); }
         }
+        /* ✅ STYLE POUR L'UPLOAD EN COURS */
+        .upload-active-indicator {
+            animation: upload-pulse 2s infinite;
+        }
+        @keyframes upload-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); }
+        }
+        /* ✅ RECAPTCHA INVISIBLE */
+        #recaptcha-container {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body class="h-full bg-slate-900 flex justify-center items-center overflow-hidden font-sans">
@@ -94,7 +108,7 @@
                 </div>
                 <div class="flex gap-2">
                     <button onclick="downloadSelectedHome()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold text-white" style="background:#ff5722">
-                        <i class="fa-solid fa-download mr-1"></i>Télécharger
+                        <i class="fa-solid fa-download mr-1"></i>DL
                     </button>
                     <button onclick="cancelSelectionHome()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-zinc-800 text-white">
                         <i class="fa-solid fa-xmark mr-1"></i>Annuler
@@ -138,10 +152,6 @@
                             <option value="coran">🕌 Coran</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Description</label>
-                        <textarea id="imamDesc" placeholder="Brève description..." rows="2" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none"></textarea>
-                    </div>
                     <button onclick="submitAlbumRequest()" id="btn-submit-album" class="w-full py-3 rounded-xl text-sm font-bold text-white" style="background:#ff5722">
                         <i class="fa-solid fa-paper-plane mr-2"></i>Soumettre
                     </button>
@@ -178,10 +188,6 @@
                             <span class="text-zinc-400">Progression:</span>
                             <span class="text-yellow-400 font-bold" id="interrupted-progress">0/0 chunks</span>
                         </div>
-                        <div class="flex justify-between text-[10px]">
-                            <span class="text-zinc-400">Pourcentage:</span>
-                            <span class="text-yellow-400 font-bold" id="interrupted-percent">0%</span>
-                        </div>
                         <div class="h-2 bg-zinc-700 rounded-full overflow-hidden">
                             <div id="interrupted-progress-bar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#f59e0b,#ef4444)"></div>
                         </div>
@@ -205,10 +211,6 @@
                     <p class="text-[10px] text-zinc-400 mt-1">
                         <span id="my-album-imam"></span> · <span id="my-album-location"></span>
                     </p>
-                    <div class="flex gap-4 mt-2 text-[10px] text-zinc-400">
-                        <span><i class="fa-solid fa-video"></i> <span id="my-videos-count">0</span> vidéos</span>
-                        <span><i class="fa-regular fa-eye"></i> <span id="my-album-views">0</span> vues</span>
-                    </div>
                 </div>
                 
                 <div id="upload-section" class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed" style="border-color:rgba(255,87,34,0.5)">
@@ -237,28 +239,58 @@
                         <button onclick="uploadVideoWithChunking()" id="btn-upload" class="w-full py-2 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
                             <i class="fa-solid fa-upload mr-1"></i>Publier
                         </button>
+                        
+                        <!-- ✅ PROGRESSION DÉTAILLÉE -->
                         <div id="uploadProgress" class="hidden space-y-2">
-                            <div class="h-2 bg-zinc-700 rounded-full overflow-hidden">
-                                <div id="progressBar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
+                            <!-- Barre de progression principale -->
+                            <div class="bg-zinc-800 rounded-xl p-3 space-y-2 upload-active-indicator">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] font-bold text-white">
+                                        <i class="fa-solid fa-cloud-arrow-up text-orange-400 mr-1"></i>Upload en cours...
+                                    </span>
+                                    <span id="progressPercent" class="text-sm font-black text-orange-400">0%</span>
+                                </div>
+                                <div class="h-3 bg-zinc-700 rounded-full overflow-hidden">
+                                    <div id="progressBar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
+                                </div>
                             </div>
-                            <div class="flex justify-between items-center text-[10px]">
-                                <span id="progressText" class="text-zinc-400">0%</span>
-                                <span id="speedText" class="text-emerald-400 font-bold speed-pulse">
-                                    <i class="fa-solid fa-bolt mr-1"></i>0 Mo/s
-                                </span>
+                            
+                            <!-- Stats détaillées -->
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="bg-zinc-800 rounded-lg p-2 text-center">
+                                    <p class="text-[9px] text-zinc-500 uppercase">Vitesse</p>
+                                    <p id="speedText" class="text-sm font-black text-emerald-400 speed-pulse">
+                                        <i class="fa-solid fa-bolt mr-1"></i>0 Mo/s
+                                    </p>
+                                </div>
+                                <div class="bg-zinc-800 rounded-lg p-2 text-center">
+                                    <p class="text-[9px] text-zinc-500 uppercase">Temps restant</p>
+                                    <p id="timeRemaining" class="text-sm font-black text-blue-400">Calcul...</p>
+                                </div>
                             </div>
-                            <div class="flex justify-between text-[9px] text-zinc-500">
-                                <span id="progressDetail">Chunk 0/0</span>
-                                <span id="timeRemaining">Calcul...</span>
+                            
+                            <!-- Mo uploadés / Total -->
+                            <div class="bg-zinc-800 rounded-lg p-3">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-[10px] text-zinc-400">
+                                        <i class="fa-solid fa-database mr-1"></i>Données transférées
+                                    </span>
+                                    <span id="progressDetail" class="text-xs font-bold text-white">0 Mo / 0 Mo</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] text-zinc-400">
+                                        <i class="fa-solid fa-puzzle-piece mr-1"></i>Chunks
+                                    </span>
+                                    <span id="currentChunk" class="text-xs font-bold text-white">0/0</span>
+                                </div>
                             </div>
-                            <div class="flex justify-between text-[9px] text-zinc-500">
-                                <span>Chunk actuel:</span>
-                                <span id="currentChunk" class="text-white font-bold">-</span>
-                            </div>
+                            
+                            <!-- Sauvegarde auto -->
                             <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-2 text-[10px] text-yellow-300">
                                 <i class="fa-solid fa-floppy-disk mr-1"></i>
                                 <span id="autosave-status">Sauvegarde auto: inactive</span>
                             </div>
+                            
                             <button onclick="cancelUpload()" id="btn-cancel-upload" class="w-full py-2 rounded-lg text-xs font-bold bg-red-600 text-white">
                                 <i class="fa-solid fa-stop-circle mr-1"></i>Annuler
                             </button>
@@ -306,22 +338,93 @@
                         <i class="fa-solid fa-user-circle text-4xl text-white"></i>
                     </div>
                     <h3 class="text-lg font-bold text-white">Bienvenue</h3>
-                    <p class="text-xs text-zinc-400 mt-1">Connectez-vous</p>
+                    <p class="text-xs text-zinc-400 mt-1">Connectez-vous avec votre téléphone</p>
                 </div>
                 <div id="auth-error" class="hidden text-xs text-center px-3 py-2 rounded-lg"></div>
+                
+                <!-- ✅ AUTHENTIFICATION PAR TÉLÉPHONE -->
                 <div class="bg-zinc-900 rounded-2xl p-5 space-y-3 border border-zinc-800">
-                    <button onclick="handleGoogleSignIn()" class="w-full py-3 bg-white text-zinc-950 rounded-xl text-sm font-bold flex items-center justify-center gap-2">
-                        <i class="fa-brands fa-google text-red-500"></i> Google
-                    </button>
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                            <i class="fa-solid fa-phone text-green-400"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Connexion par téléphone</h3>
+                            <p class="text-[10px] text-zinc-400">Recevez un code SMS</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Étape 1 : Numéro de téléphone -->
+                    <div id="phone-step" class="space-y-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Numéro de téléphone *</label>
+                            <div class="flex gap-2">
+                                <select id="phoneCountry" class="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-3 text-xs text-white focus:border-orange-500 focus:outline-none">
+                                    <option value="+227">🇳🇪 +227</option>
+                                    <option value="+33">🇫🇷 +33</option>
+                                    <option value="+1">🇺🇸 +1</option>
+                                    <option value="+44">🇬🇧 +44</option>
+                                    <option value="+223">🇲🇱 +223</option>
+                                    <option value="+226">🇧🇫 +226</option>
+                                    <option value="+228">🇹🇬 +228</option>
+                                    <option value="+229">🇧🇯 +229</option>
+                                    <option value="+225">🇨🇮 +225</option>
+                                    <option value="+237">🇨🇲 +237</option>
+                                    <option value="+221">🇸🇳 +221</option>
+                                    <option value="+212">🇲🇦 +212</option>
+                                    <option value="+213">🇩🇿 +213</option>
+                                    <option value="+216">🇹🇳 +216</option>
+                                    <option value="+20">🇪🇬 +20</option>
+                                    <option value="+966">🇸🇦 +966</option>
+                                    <option value="+971">🇦🇪 +971</option>
+                                </select>
+                                <input type="tel" id="phoneNumber" placeholder="90 00 00 00" class="flex-1 bg-zinc-800 rounded-lg px-3 py-3 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
+                            </div>
+                            <p class="text-[9px] text-zinc-500 mt-1">
+                                <i class="fa-solid fa-circle-info mr-1"></i>Format international sans le 0 initial
+                            </p>
+                        </div>
+                        
+                        <!-- Conteneur reCAPTCHA -->
+                        <div id="recaptcha-container"></div>
+                        
+                        <button onclick="sendPhoneCode()" id="btn-send-code" class="w-full py-3 rounded-xl text-sm font-bold text-white transition hover:opacity-90" style="background:#ff5722">
+                            <i class="fa-solid fa-paper-plane mr-2"></i>Envoyer le code SMS
+                        </button>
+                    </div>
+                    
+                    <!-- Étape 2 : Code de vérification -->
+                    <div id="verify-step" class="hidden space-y-3">
+                        <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 text-xs text-blue-300">
+                            <i class="fa-solid fa-circle-info mr-1"></i>
+                            Code envoyé à <span id="sent-to-number" class="font-bold text-white"></span>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Code à 6 chiffres *</label>
+                            <input type="text" id="verificationCode" placeholder="123456" maxlength="6" class="w-full bg-zinc-800 rounded-lg px-3 py-3 text-center text-2xl font-bold text-white border border-zinc-700 focus:border-orange-500 focus:outline-none tracking-widest">
+                        </div>
+                        <button onclick="verifyPhoneCode()" id="btn-verify-code" class="w-full py-3 rounded-xl text-sm font-bold text-white transition hover:opacity-90" style="background:#ff5722">
+                            <i class="fa-solid fa-check-circle mr-2"></i>Vérifier et se connecter
+                        </button>
+                        <button onclick="resetPhoneAuth()" class="w-full py-2 text-xs text-zinc-400 underline hover:text-orange-400 transition">
+                            <i class="fa-solid fa-arrow-left mr-1"></i>Changer de numéro
+                        </button>
+                    </div>
+                    
                     <div class="relative flex py-2 items-center">
                         <div class="flex-grow border-t border-zinc-800"></div>
                         <span class="flex-shrink mx-3 text-[10px] text-zinc-500 font-bold">OU</span>
                         <div class="flex-grow border-t border-zinc-800"></div>
                     </div>
-                    <input type="email" id="loginEmail" placeholder="📧 Email" class="w-full bg-zinc-800 rounded-xl px-4 py-3 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
-                    <input type="password" id="loginPassword" placeholder="🔒 Mot de passe" class="w-full bg-zinc-800 rounded-xl px-4 py-3 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
-                    <button onclick="handleLogin()" id="btn-login" class="w-full py-3 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Se connecter</button>
-                    <button onclick="handleSignup()" id="btn-signup" class="w-full py-3 bg-zinc-800 rounded-xl text-sm text-white">Créer un compte</button>
+                    
+                    <!-- Connexion email/password de secours -->
+                    <div class="space-y-2">
+                        <input type="email" id="loginEmail" placeholder="📧 Email (optionnel)" class="w-full bg-zinc-800 rounded-xl px-4 py-3 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
+                        <input type="password" id="loginPassword" placeholder="🔒 Mot de passe" class="w-full bg-zinc-800 rounded-xl px-4 py-3 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
+                        <button onclick="handleLogin()" id="btn-login" class="w-full py-3 rounded-xl text-sm font-bold text-white transition hover:opacity-90 bg-zinc-700">
+                            <i class="fa-solid fa-envelope mr-2"></i>Connexion Email
+                        </button>
+                    </div>
                 </div>
             </div>
             
@@ -467,7 +570,7 @@ db.settings({
 // ============================================
 // ✅ VARIABLES GLOBALES
 // ============================================
-const CHUNK_SIZE = 5 * 1024 * 1024; // ✅ 5 Mo au lieu de 1 Mo
+const CHUNK_SIZE = 5 * 1024 * 1024; // 5 Mo
 const MAX_RETRY = 3;
 
 let currentUser = null;
@@ -480,7 +583,10 @@ let searchQuery = '';
 let homeSelectionMode = false;
 let homeSelectedVideoIds = new Set();
 let uploadAborted = false;
+
+// ✅ WAKE LOCK AMÉLIORÉ
 let wakeLock = null;
+let wakeLockRenewInterval = null;
 
 // ✅ FICHIER EN MÉMOIRE
 let currentFileBlob = null;
@@ -491,6 +597,10 @@ let currentFileType = '';
 // ✅ UPLOAD INTERROMPU
 let interruptedUploadData = null;
 let isResumingUpload = false;
+
+// ✅ AUTH TÉLÉPHONE
+let confirmationResult = null;
+let recaptchaVerifier = null;
 
 // ============================================
 // 🔧 FONCTIONS UTILITAIRES - EN PREMIER !
@@ -519,95 +629,180 @@ function formatDuration(seconds) {
 }
 
 // ============================================
-// 📿 AZKAR DATA - 31 Dou'as
+// 🔐 AUTH PAR TÉLÉPHONE - COMPATIBLE MEDIAN
 // ============================================
-const AZKAR_DATA = [
-    {
-        category: '💧 Ablutions & Prière',
-        color: 'cyan',
-        duas: [
-            { title: 'Au nom d\'Allah', arabic: 'بِسْمِ اللَّهِ', phonetic: 'Bismillâh.', translation: 'Au nom d\'Allah.' },
-            { title: 'Après les ablutions', arabic: 'أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ. اللَّهُمَّ اجْعَلْنِي مِنَ التَّوَّابِينَ، وَاجْعَلْنِي مِنَ الْمُتَطَهِّرِينَ', phonetic: 'Ashhadu an lâ ilâha illâ-llâhu wahdahu lâ sharîka lahu, wa ashhadu anna Muhammadan \'abduhu wa rasûluhu. Allâhumma-j\'alnî mina-t-tawwâbîna wa-j\'alnî mina-l-mutatahhirîn.', translation: 'Je témoigne qu\'il n\'y a de divinité qu\'Allah, l\'Unique, sans associé, et je témoigne que Muhammad est Son serviteur et Messager. Ô Allah, place-moi parmi ceux qui se repentent et parmi ceux qui se purifient.' },
-            { title: 'Invocation pour la lumière', arabic: 'اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا، وَفِي بَصَرِي نُورًا، وَفِي سَمْعِي نُورًا، وَعَنْ يَمِينِي نُورًا، وَعَنْ شِمَالِي نُورًا، وَمِنْ فَوْقِي نُورًا، وَمِنْ تَحْتِي نُورًا، وَأَمَامِي نُورًا، وَخَلْفِي نُورًا، وَاجْعَلْ لِي نُورًا', phonetic: 'Allâhumma-j\'al fî qalbî nûran, wa fî baṣarî nûran, wa fî sam\'î nûran, wa \'an yamînî nûran, wa \'an shimālî nûran, wa min fawqî nûran, wa min taḥtī nûran, wa amâmî nûran, wa khalfî nûran, waj\'al lî nûran.', translation: 'Ô Allah, mets de la lumière dans mon cœur, dans ma vue, dans mon ouïe, à ma droite, à ma gauche, au-dessus de moi, au-dessous de moi, devant moi, derrière moi, et accorde-moi une lumière.' },
-            { title: 'Ouverture de la prière', arabic: 'اللَّهُمَّ بَاعِدْ بَيْنِي وَبَيْنَ خَطَايَايَ كَمَا بَاعَدْتَ بَيْنَ الْمَشْرِقِ وَالْمَغْرِبِ، اللَّهُمَّ نَقِّنِي مِنْ خَطَايَايَ كَمَا يُنَقَّى الثَّوْبُ الْأَبْيَضُ مِنَ الدَّنَسِ، اللَّهُمَّ اغْسِلْنِي مِنْ خَطَايَايَ بِالْثَّلْجِ وَالْمَاءِ وَالْبَرَدِ', phonetic: 'Allâhumma bâ\'id baynî wa bayna khatâyâya kamâ bâ\'adta bayna-l-mashriqi wa-l-maghrib. Allâhumma naqqinî min khatâyâya kamâ yunaqqa-th-thawbu-l-abyadu mina-d-danas. Allâhumma-ghsilnî min khatâyâya bi-th-thalji wa-l-mâ\'i wa-l-barad.', translation: 'Ô Allah, éloigne-moi de mes péchés comme Tu as éloigné l\'Orient de l\'Occident. Ô Allah, purifie-moi de mes fautes comme on nettoie le vêtement blanc de la saleté. Ô Allah, lave-moi de mes péchés avec de la neige, de l\'eau et de la grêle.' },
-            { title: 'Inclinaison (Rukoo\')', arabic: 'سُبْحَانَ رَبِّيَ الْعَظِيمِ', phonetic: 'Subhâna Rabbiya-l-\'Adhîm.', translation: 'Gloire à mon Seigneur l\'Immense.' },
-            { title: 'Redressement', arabic: 'سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ • رَبَّنَا وَلَكَ الْحَمْدُ حَمْدًا كَثِيرًا طَيِّبًا مُبَارَكًا فِيهِ', phonetic: 'Sami\'a-llâhu liman hamidah. Rabbanâ wa laka-l-hamd, hamdan kathîran tayyiban mubârakan fîh.', translation: 'Allah entend celui qui Le loue. Ô notre Seigneur, à Toi la louange, une louange abondante, pure et bénie.' },
-            { title: 'Prosternation (Sujood)', arabic: 'سُبْحَانَ رَبِّيَ الْأَعْلَى', phonetic: 'Subhâna Rabbiya-l-A\'lâ.', translation: 'Gloire à mon Seigneur le Très-Haut.' },
-            { title: 'Pendant la prosternation', arabic: 'اللَّهُمَّ اغْفِرْ لِي ذَنْبِي كُلَّهُ، دِقَّهُ وَجِلَّهُ، وَأَوَّلَهُ وَآخِرَهُ، وَعَلَانِيَتَهُ وَسِرَّهُ', phonetic: 'Allâhumma-ghfir lî dhanbî kullahu, diqqahu wa jillahu, wa awwalahu wa âkhirahu, wa \'alâniyatahu wa sirrah.', translation: 'Ô Allah, pardonne-moi tous mes péchés : les mineurs et les majeurs, les premiers et les derniers, ceux commis publiquement et ceux commis en secret.' },
-            { title: 'Entre les prosternations', arabic: 'رَبِّ اغْفِرْ لِي، رَبِّ اغْفِرْ لِي', phonetic: 'Rabbi-ghfir lî, Rabbi-ghfir lî.', translation: 'Seigneur, pardonne-moi. Seigneur, pardonne-moi.' },
-            { title: 'Fin du Tachahoud', arabic: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ جَهَنَّمَ، وَمِنْ عَذَابِ الْقَبْرِ، وَمِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ، وَمِنْ شَرِّ فِتْنَةِ الْمَسِيحِ الدَّجَّالِ', phonetic: 'Allâhumma innî a\'ûdhu bika min \'adhâbi jahannam, wa min \'adhâbi-l-qabr, wa min fitnati-l-mahyâ wa-l-mamât, wa min sharri fitnati-l-masîhi-d-dajjâl.', translation: 'Ô Allah, je cherche refuge auprès de Toi contre le châtiment de l\'Enfer, contre le châtiment de la tombe, contre les tentations de la vie et de la mort, et contre le mal de la tentation de l\'Antéchrist.' }
-        ]
-    },
-    {
-        category: '🌙 Zakat & Jeûne',
-        color: 'indigo',
-        duas: [
-            { title: 'En donnant la Zakat', arabic: 'اللَّهُمَّ اجْعَلْهَا غُنْمًا وَلَا تَجْعَلْهَا غُرْمًا', phonetic: 'Allâhumma-j\'alhâ ghunman wa lâ taj\'alhâ ghurman.', translation: 'Ô Allah, fais de cette aumône un gain spirituel et ne la considère pas comme une perte.' },
-            { title: 'Rupture du jeûne (Iftar)', arabic: 'ذَهَبَ الظَّمَأُ وَابْتَلَّتِ الْعُرُوقُ، وَثَبَتَ الْأَجْرُ إِنْ شَاءَ اللَّهُ', phonetic: 'Dhahaba-dh-dhama\'u wa-btallati-l-\'urûqu, wa thabata-l-ajru in shâ\'a-llâh.', translation: 'La soif est étanchée, les veines sont abreuvées, et la récompense est assurée, si Allah le veut.' },
-            { title: 'Invocation Iftar classique', arabic: 'اللَّهُمَّ لَكَ صُمْتُ وَعَلَى رِزْقِكَ أَفْطَرْتُ', phonetic: 'Allâhumma laka sumtu wa \'alâ rizqika aftartu.', translation: 'Ô Allah, c\'est pour Toi que j\'ai jeûné, et c\'est avec Ta subsistance que je romps mon jeûne.' },
-            { title: 'Iftar d\'Ibn \'Omar', arabic: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ بِرَحْمَتِكَ الَّتِي وَسِعَتْ كُلَّ شَيْءٍ أَنْ تَغْفِرَ لِي', phonetic: 'Allâhumma innî as\'aluka bi-rahmatika-llatî wasi\'at kulla shay\'in an taghfira lî.', translation: 'Ô Allah, je Te demande par Ta miséricorde qui englobe toute chose, de me pardonner.' },
-            { title: 'Nuit du Destin (Laylat al-Qadr)', arabic: 'اللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي', phonetic: 'Allâhumma innaka \'afuwwun tuhibbu-l-\'afwa fa-\'fu \'annî.', translation: 'Ô Allah, Tu es Pardonneur, Tu aimes le pardon, alors pardonne-moi.' }
-        ]
-    },
-    {
-        category: '🤲 Pardon & Clémence',
-        color: 'emerald',
-        duas: [
-            { title: 'Sayyid al-Istighfar', arabic: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ لِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ', phonetic: 'Allâhumma Anta Rabbî, lâ ilâha illâ Anta, khalaqtanî wa ana \'abduka, wa ana \'alâ \'ahdika wa wa\'dika ma-stata\'tu. A\'ûdhu bika min sharri mâ sana\'tu, abû\'u laka bi-ni\'matika \'alayya, wa abû\'u bi-dhanbî faghfir lî, fa-innahu lâ yaghfiru-dh-dhunûba illâ Anta.', translation: 'Ô Allah, Tu es mon Seigneur, nul ne mérite d\'être adoré en dehors de Toi. Tu m\'as créé, je suis Ton serviteur. Je cherche refuge auprès de Toi contre le mal de mes actes. Je reconnais Tes bienfaits et je confesse mon péché. Pardonne-moi, car nul ne pardonne les péchés si ce n\'est Toi.' },
-            { title: 'Pardon suprême', arabic: 'أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ', phonetic: 'Astaghfiru-llâha-l-\'Adhîma-lladhî lâ ilâha illâ Huwa-l-Hayyu-l-Qayyûmu wa atûbu ilayh.', translation: 'Je demande pardon à Allah l\'Immense, en dehors de Qui nulle divinité ne mérite d\'être adorée, le Vivant, Celui qui subsiste par Lui-même, et je me repens à Lui.' },
-            { title: 'Nouveau musulman', arabic: 'اللَّهُمَّ اغْفِرْ لِي، وَارْحَمْنِي، وَاهْدِنِي، وَعَافِنِي، وَارْزُقْنِي', phonetic: 'Allâhumma-ghfir lî, wa-rhamnî, wa-hdinî, wa \'âfinî, wa-rzuqnî.', translation: 'Ô Allah, pardonne-moi, fais-moi miséricorde, guide-moi, accorde-moi la santé et ma subsistance.' }
-        ]
-    },
-    {
-        category: '💀 Tombe & Jugement',
-        color: 'gray',
-        duas: [
-            { title: 'Contre le châtiment de la tombe', arabic: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، وَأَعُوذُ بِكَ مِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ', phonetic: 'Allâhumma innî a\'ûdhu bika min \'adhâbi-l-qabr, wa a\'ûdhu bika min fitnati-l-mahyâ wa-l-mamât.', translation: 'Ô Allah, je cherche refuge auprès de Toi contre le châtiment de la tombe et contre les épreuves de la vie et de la mort.' },
-            { title: 'Après l\'enterrement', arabic: 'اللَّهُمَّ ثَبِّتْهُ عِنْدَ السُّؤَالِ • اللَّهُمَّ اغْفِرْ لَهُ وَثَبِّتْهُ', phonetic: 'Allâhumma thabbithu \'inda-s-su\'âl. Allâhumma-ghfir lahu wa thabbithu.', translation: 'Ô Allah, affermis-le lors de l\'interrogatoire. Ô Allah, pardonne-lui et donne-lui la fermeté.' },
-            { title: 'Matin ou soir', arabic: 'اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ', phonetic: 'Allâhumma qinî \'adhâbaka yawma tab\'athu \'ibâdak.', translation: 'Ô Allah, protège-moi de Ton châtiment le Jour où Tu ressusciteras Tes serviteurs.' },
-            { title: 'Jugement facile', arabic: 'اللَّهُمَّ حَاسِبْنِي حِسَابًا يَسِيرًا', phonetic: 'Allâhumma hâsibnî hisâban yasîran.', translation: 'Ô Allah, fais-moi un jugement facile.' }
-        ]
-    },
-    {
-        category: '💍 Mariage & Couple',
-        color: 'pink',
-        duas: [
-            { title: 'Féliciter les mariés', arabic: 'بَارَكَ اللَّهُ لَكَ، وَبَارَكَ عَلَيْكَ، وَجَمَعَ بَيْنَكُمَا فِي خَيْرٍ', phonetic: 'Bâraka-llâhu laka, wa bâraka \'alayka, wa jama\'a baynakumâ fî khayr.', translation: 'Qu\'Allah te bénisse, qu\'Il déverse Sa bénédiction sur toi et qu\'Il vous unisse dans le bien.' },
-            { title: 'Première nuit de noces', arabic: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَهَا وَخَيْرَ مَا جَبَلْتَهَا عَلَيْهِ، وَأَعُوذُ بِكَ مِنْ شَرِّهَا وَمِنْ شَرِّ مَا جَبَلْتَهَا عَلَيْهِ', phonetic: 'Allâhumma innî as\'aluka khayrahâ wa khayra mâ jabaltahâ \'alayh, wa a\'ûdhu bika min sharrihâ wa min sharri mâ jabaltahâ \'alayh.', translation: 'Ô Allah, je Te demande son bien et le bien sur lequel Tu l\'as créée, et je cherche refuge contre son mal.' },
-            { title: 'Avant rapport intime', arabic: 'بِسْمِ اللَّهِ، اللَّهُمَّ جَنِّبْنَا الشَّيْطَانَ، وَجَنِّبِ الشَّيْطَانَ مَا رَزَقْتَنَا', phonetic: 'Bismillâhi. Allâhumma jannibnâ-sh-shaytâna wa jannibi-sh-shaytana mâ razaqtanâ.', translation: 'Au nom d\'Allah. Ô Allah, éloigne le Diable de nous et éloigne le Diable du fruit de notre union.' },
-            { title: 'Harmonie familiale (Coran 25:74)', arabic: 'رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ وَاجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا', phonetic: 'Rabbanâ hab lanâ min azwâjinâ wa dhurriyyâtinâ qurrata a\'yunin wa-j\'alnâ lil-muttaqîna imâmâ.', translation: 'Notre Seigneur, accorde-nous en nos épouses et nos descendants la joie des yeux, et fais de nous des guides pour les pieux.' }
-        ]
-    },
-    {
-        category: '🛡️ Protection & Matin',
-        color: 'amber',
-        duas: [
-            { title: 'Protection matin et soir (3x)', arabic: 'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ', phonetic: 'Bismillâhi-lladhî lâ yadurru ma\'a-smihi shay\'un fî-l-ardi wa lâ fî-s-samâ\'i wa Huwa-s-Samî\'u-l-\'Alîm.', translation: 'Au nom d\'Allah, tel qu\'en compagnie de Son Nom rien ne peut nuire sur terre ni dans les cieux, et Il est l\'Audient, l\'Omniscient.' },
-            { title: 'Protection contre le mal', arabic: 'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ', phonetic: 'A\'ûdhu bi-kalimâti-llâhi-t-tâmmâti min sharri mâ khalaq.', translation: 'Je cherche refuge auprès des paroles parfaites d\'Allah contre le mal de Ses créatures.' },
-            { title: 'Santé (3x)', arabic: 'اللَّهُمَّ عافِني في بَدَني، اللَّهُمَّ عافِني في سَمْعي، اللَّهُمَّ عافِني في بَصَري، لا إلهَ إلَّا أنتَ', phonetic: 'Allâhumma \'âfinî fî badanî, Allâhumma \'âfinî fî sam\'î, Allâhumma \'âfinî fî baṣarî, lâ ilâha illâ Anta.', translation: 'Ô Allah, préserve mon corps, mon ouïe, ma vue. Nul ne mérite d\'être adoré en dehors de Toi.' }
-        ]
-    },
-    {
-        category: '❤️ Détresse & Guérison',
-        color: 'rose',
-        duas: [
-            { title: 'Invocation de Jonas', arabic: 'لَّا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ', phonetic: 'Lâ ilâha illâ Anta subhânaka innî kuntu mina-dh-dhâlimîn.', translation: 'Nulle divinité d\'autre que Toi ! Gloire à Toi ! J\'ai été du nombre des injustes.' },
-            { title: 'Guérison d\'un malade', arabic: 'اللَّهُمَّ رَبَّ النَّاسِ أَذْهِبِ الْبَاسَ، اشْفِهِ وَأَنْتَ الشَّافِي، لَا شِفَاءَ إِلَّا شِفَاؤُكَ، شِفَاءً لَا يُغَادِرُ سَقَمًا', phonetic: 'Allâhumma Rabba-n-nâsi, adhhibi-l-ba\'sa, ishfihi wa Anta-sh-shâfî, lâ shifâ\'a illâ shifâ\'uka, shifâ\'an lâ yughâdiru saqamâ.', translation: 'Ô Allah, Seigneur des hommes, fais disparaître le mal. Guéris-le, car Tu es le Guérisseur. Il n\'y a de guérison que la Tienne.' }
-        ]
+
+// ✅ INITIALISER RECAPTCHA
+function initRecaptcha() {
+    if (recaptchaVerifier) {
+        try { recaptchaVerifier.clear(); } catch(e) {}
     }
-];
+    
+    try {
+        recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+            'size': 'normal',
+            'callback': (response) => {
+                console.log('✅ reCAPTCHA validé');
+            },
+            'expired-callback': () => {
+                console.warn('⚠️ reCAPTCHA expiré');
+                showAuthError('⚠️ reCAPTCHA expiré, veuillez réessayer');
+            }
+        });
+        recaptchaVerifier.render();
+        console.log('✅ reCAPTCHA initialisé');
+    } catch (error) {
+        console.error('❌ Erreur reCAPTCHA:', error);
+        showAuthError('❌ Erreur reCAPTCHA: ' + error.message);
+    }
+}
 
-let currentAzkarCategory = 0;
+// ✅ ENVOYER LE CODE SMS
+async function sendPhoneCode() {
+    const countryCode = document.getElementById('phoneCountry').value;
+    const phoneNumber = document.getElementById('phoneNumber').value.trim();
+    
+    if (!phoneNumber) {
+        showAuthError('❌ Entrez votre numéro de téléphone');
+        return;
+    }
+    
+    // Nettoyer le numéro (enlever espaces, tirets, zéros initiaux)
+    const cleanNumber = phoneNumber.replace(/[\s\-]/g, '').replace(/^0+/, '');
+    const fullPhoneNumber = countryCode + cleanNumber;
+    
+    console.log('📱 Envoi SMS à:', fullPhoneNumber);
+    
+    const btn = document.getElementById('btn-send-code');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Envoi en cours...';
+    
+    try {
+        // Initialiser reCAPTCHA si nécessaire
+        if (!recaptchaVerifier) {
+            initRecaptcha();
+            await new Promise(r => setTimeout(r, 1000));
+        }
+        
+        confirmationResult = await auth.signInWithPhoneNumber(fullPhoneNumber, recaptchaVerifier);
+        
+        console.log('✅ Code SMS envoyé');
+        
+        // Afficher l'étape de vérification
+        document.getElementById('phone-step').classList.add('hidden');
+        document.getElementById('verify-step').classList.remove('hidden');
+        document.getElementById('sent-to-number').innerText = fullPhoneNumber;
+        
+        showAuthError('');
+        
+    } catch (error) {
+        console.error('❌ Erreur envoi SMS:', error);
+        showAuthError('❌ ' + error.message);
+        
+        // Réinitialiser reCAPTCHA
+        if (recaptchaVerifier) {
+            try { recaptchaVerifier.clear(); } catch(e) {}
+            recaptchaVerifier = null;
+        }
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>Envoyer le code SMS';
+    }
+}
+
+// ✅ VÉRIFIER LE CODE SMS
+async function verifyPhoneCode() {
+    const code = document.getElementById('verificationCode').value.trim();
+    
+    if (!code || code.length !== 6) {
+        showAuthError('❌ Entrez le code à 6 chiffres');
+        return;
+    }
+    
+    if (!confirmationResult) {
+        showAuthError('❌ Session expirée, recommencez');
+        return;
+    }
+    
+    const btn = document.getElementById('btn-verify-code');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Vérification...';
+    
+    try {
+        const result = await confirmationResult.confirm(code);
+        console.log('✅ Connexion réussie:', result.user.phoneNumber);
+        
+        showAuthError('');
+        showTab('home');
+        
+        // Nettoyer
+        confirmationResult = null;
+        if (recaptchaVerifier) {
+            try { recaptchaVerifier.clear(); } catch(e) {}
+            recaptchaVerifier = null;
+        }
+        
+    } catch (error) {
+        console.error('❌ Erreur vérification:', error);
+        showAuthError('❌ Code invalide. Veuillez réessayer.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-check-circle mr-2"></i>Vérifier et se connecter';
+    }
+}
+
+// ✅ RÉINITIALISER L'AUTH
+function resetPhoneAuth() {
+    document.getElementById('phone-step').classList.remove('hidden');
+    document.getElementById('verify-step').classList.add('hidden');
+    document.getElementById('phoneNumber').value = '';
+    document.getElementById('verificationCode').value = '';
+    showAuthError('');
+    
+    if (recaptchaVerifier) {
+        try { recaptchaVerifier.clear(); } catch(e) {}
+        recaptchaVerifier = null;
+    }
+    confirmationResult = null;
+}
+
+// ✅ CONNEXION EMAIL (SECOURS)
+async function handleLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pwd = document.getElementById('loginPassword').value;
+    if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
+    if (pwd.length < 6) { showAuthError("Mot de passe min 6 caractères"); return; }
+    try {
+        await auth.signInWithEmailAndPassword(email, pwd);
+        showTab('home');
+    } catch(e) {
+        showAuthError(`❌ ${e.message}`);
+    }
+}
+
+function handleLogout() { auth.signOut(); showTab('profile'); }
+
+function showAuthError(msg) {
+    let errorDiv = document.getElementById('auth-error');
+    if (!errorDiv) return;
+    if (!msg) { errorDiv.classList.add('hidden'); return; }
+    errorDiv.classList.remove('hidden');
+    errorDiv.innerText = msg;
+    errorDiv.style.background = 'rgba(239,68,68,0.2)';
+    errorDiv.style.color = '#ef4444';
+}
 
 // ============================================
-// 🔐 AUTH
+// 🔐 AUTH STATE
 // ============================================
 auth.onAuthStateChanged(async (user) => {
-    console.log('🔔 onAuthStateChanged:', user ? user.email : 'null');
+    console.log('🔔 onAuthStateChanged:', user ? (user.phoneNumber || user.email) : 'null');
     currentUser = user;
     
     if (user) {
-        document.getElementById('header-user-status').textContent = user.email?.split('@')[0] || 'Connecté';
+        const displayId = user.phoneNumber || user.email?.split('@')[0] || 'Connecté';
+        document.getElementById('header-user-status').textContent = displayId;
+        
         try {
             const token = await user.getIdToken();
             console.log('✅ Token valide obtenu');
@@ -615,8 +810,8 @@ auth.onAuthStateChanged(async (user) => {
                 localStorage.setItem('firebaseToken', token);
                 localStorage.setItem('firebaseUser', JSON.stringify({
                     uid: user.uid,
-                    email: user.email,
-                    displayName: user.displayName
+                    phoneNumber: user.phoneNumber,
+                    email: user.email
                 }));
                 console.log('💾 Token sauvegardé');
             } catch (storageError) {
@@ -643,79 +838,6 @@ auth.onAuthStateChanged(async (user) => {
     
     checkForInterruptedUpload();
 });
-
-async function handleGoogleSignIn() {
-    try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        const isWebView = navigator.userAgent.includes('wv') || navigator.userAgent.includes('Median');
-        
-        if (isWebView) {
-            console.log('📱 WebView → signInWithRedirect');
-            await auth.signInWithRedirect(provider);
-        } else {
-            console.log('🌐 Navigateur → signInWithPopup');
-            await auth.signInWithPopup(provider);
-        }
-        showTab('home');
-    } catch(e) {
-        console.error('❌ Google error:', e);
-        if (e.code === 'auth/popup-blocked') {
-            try {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                await auth.signInWithRedirect(provider);
-            } catch (e2) {
-                showAuthError(`❌ ${e2.message}`);
-            }
-        } else {
-            showAuthError(`❌ ${e.message}`);
-        }
-    }
-}
-
-auth.getRedirectResult().then((result) => {
-    if (result && result.user) {
-        console.log('✅ Redirect réussi');
-        showTab('home');
-    }
-}).catch((error) => console.error('❌ Redirect error:', error));
-
-async function handleLogin() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const pwd = document.getElementById('loginPassword').value;
-    if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
-    if (pwd.length < 6) { showAuthError("Mot de passe min 6 caractères"); return; }
-    try {
-        await auth.signInWithEmailAndPassword(email, pwd);
-        showTab('home');
-    } catch(e) {
-        showAuthError(`❌ ${e.message}`);
-    }
-}
-
-async function handleSignup() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const pwd = document.getElementById('loginPassword').value;
-    if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
-    if (pwd.length < 6) { showAuthError("Mot de passe min 6 caractères"); return; }
-    try {
-        await auth.createUserWithEmailAndPassword(email, pwd);
-        showTab('home');
-    } catch(e) {
-        showAuthError(`❌ ${e.message}`);
-    }
-}
-
-function handleLogout() { auth.signOut(); showTab('profile'); }
-
-function showAuthError(msg) {
-    let errorDiv = document.getElementById('auth-error');
-    if (!errorDiv) return;
-    if (!msg) { errorDiv.classList.add('hidden'); return; }
-    errorDiv.classList.remove('hidden');
-    errorDiv.innerText = msg;
-    errorDiv.style.background = 'rgba(239,68,68,0.2)';
-    errorDiv.style.color = '#ef4444';
-}
 
 // ============================================
 // 📚 DONNÉES
@@ -774,9 +896,10 @@ function updateProfileUI() {
     unauth.classList.add('hidden');
     authDiv.classList.remove('hidden');
     
-    document.getElementById('userName').innerText = currentUser.email?.split('@')[0] || 'User';
-    document.getElementById('userEmail').innerText = currentUser.email || '';
-    document.getElementById('userAvatar').innerText = (currentUser.email?.charAt(0) || 'U').toUpperCase();
+    const displayId = currentUser.phoneNumber || currentUser.email?.split('@')[0] || 'User';
+    document.getElementById('userName').innerText = displayId;
+    document.getElementById('userEmail').innerText = currentUser.phoneNumber || currentUser.email || '';
+    document.getElementById('userAvatar').innerText = (displayId.charAt(0) || 'U').toUpperCase();
     
     const myVids = allVideos.filter(v => v.userId === currentUser.uid);
     document.getElementById('statVideos').innerText = myVids.length;
@@ -960,16 +1083,7 @@ function closeDownloadModal() {
 async function downloadWithQuality(quality) {
     closeDownloadModal();
     if (!currentPlayingVideo) return;
-    
-    const url = getCdnUrl(currentPlayingVideo.videoUrl);
-    const title = currentPlayingVideo.title;
-    
-    if (quality === 'audio') {
-        alert('Conversion audio en cours...');
-        window.open(url, '_blank');
-    } else {
-        window.open(url, '_blank');
-    }
+    window.open(getCdnUrl(currentPlayingVideo.videoUrl), '_blank');
 }
 
 // ============================================
@@ -994,7 +1108,6 @@ function loadUploadProgress() {
         const data = localStorage.getItem('interruptedUpload');
         return data ? JSON.parse(data) : null;
     } catch (e) {
-        console.error('❌ Erreur chargement:', e);
         return null;
     }
 }
@@ -1003,9 +1116,7 @@ function clearUploadProgress() {
     try {
         localStorage.removeItem('interruptedUpload');
         console.log('🗑️ Progression effacée');
-    } catch (e) {
-        console.error('❌ Erreur effacement:', e);
-    }
+    } catch (e) {}
 }
 
 function checkForInterruptedUpload() {
@@ -1015,23 +1126,19 @@ function checkForInterruptedUpload() {
     
     if (savedData && savedData.userId === currentUser.uid && savedData.status === 'processing') {
         console.log('⚠️ Upload interrompu détecté:', savedData);
-        
         interruptedUploadData = savedData;
         
         const banner = document.getElementById('interrupted-upload-banner');
         if (banner) {
             banner.classList.remove('hidden');
-            
             document.getElementById('interrupted-file-name').innerText = savedData.fileName || 'Fichier inconnu';
             document.getElementById('interrupted-progress').innerText = `${savedData.currentChunk}/${savedData.totalChunks} chunks`;
             
             const percent = Math.round((savedData.currentChunk / savedData.totalChunks) * 100);
-            document.getElementById('interrupted-percent').innerText = `${percent}%`;
             document.getElementById('interrupted-progress-bar').style.width = `${percent}%`;
             
             const timeAgo = getTimeAgo(savedData.lastUpdate);
-            document.getElementById('interrupted-upload-info').innerText = 
-                `Dernière sauvegarde: ${timeAgo}`;
+            document.getElementById('interrupted-upload-info').innerText = `Dernière sauvegarde: ${timeAgo}`;
         }
     }
 }
@@ -1057,7 +1164,6 @@ async function resumeInterruptedUpload() {
     }
     
     console.log('🔄 Reprise depuis le chunk', interruptedUploadData.currentChunk);
-    
     isResumingUpload = true;
     document.getElementById('interrupted-upload-banner').classList.add('hidden');
     document.getElementById('upload-form').classList.remove('hidden');
@@ -1082,7 +1188,7 @@ async function resumeInterruptedUpload() {
         );
     } catch (error) {
         console.error('❌ Erreur reprise:', error);
-        alert('❌ Erreur lors de la reprise: ' + error.message);
+        alert('❌ Erreur: ' + error.message);
         isResumingUpload = false;
     }
 }
@@ -1092,7 +1198,73 @@ function cancelInterruptedUpload() {
         clearUploadProgress();
         interruptedUploadData = null;
         document.getElementById('interrupted-upload-banner').classList.add('hidden');
-        console.log('✅ Upload interrompu annulé');
+    }
+}
+
+// ============================================
+// 🔆 WAKE LOCK AMÉLIORÉ - GARDE L'ÉCRAN ALLUMÉ
+// ============================================
+async function requestWakeLock() {
+    try {
+        if ('wakeLock' in navigator) {
+            // Libérer l'ancien si existe
+            if (wakeLock) {
+                try { await wakeLock.release(); } catch(e) {}
+            }
+            
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log('✅ Wake Lock activé - Écran restera allumé');
+            
+            // ✅ RENOUVELER AUTOMATIQUEMENT le Wake Lock toutes les 30 secondes
+            if (wakeLockRenewInterval) clearInterval(wakeLockRenewInterval);
+            wakeLockRenewInterval = setInterval(async () => {
+                try {
+                    if (wakeLock) {
+                        await wakeLock.release();
+                        wakeLock = await navigator.wakeLock.request('screen');
+                        console.log('🔄 Wake Lock renouvelé');
+                    }
+                } catch (e) {
+                    console.warn('⚠️ Erreur renouvellement Wake Lock:', e);
+                }
+            }, 30000);
+            
+            // Réécouter si le système relâche le lock
+            wakeLock.addEventListener('release', () => {
+                console.log('⚠️ Wake Lock relâché par le système');
+            });
+            
+            // Réacquérir quand la page redevient visible
+            document.addEventListener('visibilitychange', async () => {
+                if (document.visibilityState === 'visible' && wakeLock === null) {
+                    try {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                        console.log('✅ Wake Lock réactivé (page visible)');
+                    } catch (e) {}
+                }
+            });
+            
+        } else {
+            console.warn('⚠️ Wake Lock non supporté');
+        }
+    } catch (err) {
+        console.error(`❌ Wake Lock error: ${err.message}`);
+    }
+}
+
+async function releaseWakeLock() {
+    // Arrêter le renouvellement
+    if (wakeLockRenewInterval) {
+        clearInterval(wakeLockRenewInterval);
+        wakeLockRenewInterval = null;
+    }
+    
+    if (wakeLock !== null) {
+        try {
+            await wakeLock.release();
+            wakeLock = null;
+            console.log('✅ Wake Lock désactivé');
+        } catch (err) {}
     }
 }
 
@@ -1138,13 +1310,6 @@ function handleFileSelected(input) {
         input.value = '';
     };
     
-    reader.onprogress = (e) => {
-        if (e.lengthComputable) {
-            const percent = (e.loaded / e.total) * 100;
-            console.log(`📖 Lecture: ${Math.round(percent)}%`);
-        }
-    };
-    
     reader.readAsArrayBuffer(file);
 }
 
@@ -1168,7 +1333,7 @@ async function uploadVideoWithChunking() {
     
     const progressDiv = document.getElementById('uploadProgress');
     const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
+    const progressText = document.getElementById('progressPercent');
     const uploadBtn = document.getElementById('btn-upload');
     const cancelBtn = document.getElementById('btn-cancel-upload');
     
@@ -1178,8 +1343,11 @@ async function uploadVideoWithChunking() {
     progressDiv.classList.remove('hidden');
     uploadAborted = false;
     
+    // ✅ ACTIVATION WAKE LOCK
+    await requestWakeLock();
+    
     try {
-        progressText.innerText = 'Génération miniature...';
+        progressText.innerText = 'Miniature...';
         const { thumbnail, duration } = await generateThumbnailFromBlob(currentFileBlob);
         
         const fileName = `videos/${Date.now()}_${currentFileName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
@@ -1198,12 +1366,13 @@ async function uploadVideoWithChunking() {
         uploadBtn.disabled = false;
         uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
         cancelBtn.classList.add('hidden');
+        await releaseWakeLock();
     }
 }
 
 async function startChunkedUpload(fileName, fileBlob, thumbnail, duration, title, videoType) {
-    const progressText = document.getElementById('progressText');
-    progressText.innerText = 'Initialisation...';
+    const progressText = document.getElementById('progressPercent');
+    progressText.innerText = 'Init...';
     
     const initResponse = await fetch('/api/upload-b2-chunked', {
         method: 'POST',
@@ -1256,10 +1425,8 @@ async function startChunkedUpload(fileName, fileBlob, thumbnail, duration, title
 }
 
 async function resumeChunkedUpload(fileName, fileId, authorizationToken, partShas, lastChunk, totalChunks, title, videoType, thumbnail, duration) {
-    const progressText = document.getElementById('progressText');
+    const progressText = document.getElementById('progressPercent');
     progressText.innerText = 'Reprise...';
-    
-    console.log('🔄 Reprise depuis le chunk', lastChunk, 'sur', totalChunks);
     
     await uploadChunks(
         fileName,
@@ -1278,17 +1445,31 @@ async function resumeChunkedUpload(fileName, fileId, authorizationToken, partSha
 
 async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, startChunk, totalChunks, partShas, title, videoType, thumbnail, duration) {
     const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
+    const progressPercent = document.getElementById('progressPercent');
     const progressDetail = document.getElementById('progressDetail');
     const currentChunkEl = document.getElementById('currentChunk');
+    const speedText = document.getElementById('speedText');
+    const timeRemaining = document.getElementById('timeRemaining');
     const uploadBtn = document.getElementById('btn-upload');
     const cancelBtn = document.getElementById('btn-cancel-upload');
     
     let uploadedChunks = startChunk - 1;
+    let lastLoaded = uploadedChunks * CHUNK_SIZE;
+    let lastTime = Date.now();
+    let speeds = [];
+    
+    const totalSizeMB = (fileBlob.size / 1024 / 1024).toFixed(1);
+    
+    // ✅ AFFICHAGE INITIAL
+    progressDetail.innerText = `${(lastLoaded / 1024 / 1024).toFixed(1)} Mo / ${totalSizeMB} Mo`;
+    currentChunkEl.innerText = `${uploadedChunks}/${totalChunks}`;
+    const initialPercent = (uploadedChunks / totalChunks) * 100;
+    progressBar.style.width = `${initialPercent}%`;
+    progressPercent.innerText = `${Math.round(initialPercent)}%`;
     
     for (let partNumber = startChunk; partNumber <= totalChunks; partNumber++) {
         if (uploadAborted) {
-            console.log('⚠️ Upload annulé par l\'utilisateur');
+            console.log('⚠️ Upload annulé');
             saveUploadProgress({
                 userId: currentUser.uid,
                 fileName: fileName,
@@ -1305,6 +1486,7 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
                 status: 'processing',
                 lastUpdate: Date.now()
             });
+            await releaseWakeLock();
             throw new Error('Upload annulé');
         }
         
@@ -1313,7 +1495,6 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
         const chunk = fileBlob.slice(start, end);
         
         currentChunkEl.innerText = `${partNumber}/${totalChunks}`;
-        progressDetail.innerText = `Chunk ${partNumber}/${totalChunks}`;
         
         const partUrlResponse = await fetch('/api/get-upload-part-url', {
             method: 'POST',
@@ -1331,14 +1512,47 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
         
         while (retryCount < MAX_RETRY && !success) {
             try {
-                const result = await uploadChunk(chunkUploadUrl, chunkAuthToken, chunk, partNumber, sha1);
+                const chunkStartTime = Date.now();
+                const result = await uploadChunkWithProgress(chunkUploadUrl, chunkAuthToken, chunk, partNumber, sha1, (loaded) => {
+                    // ✅ MISE À JOUR EN TEMPS RÉEL PENDANT L'ENVOI DU CHUNK
+                    const currentTotalLoaded = (uploadedChunks * CHUNK_SIZE) + loaded;
+                    const percent = (currentTotalLoaded / fileBlob.size) * 100;
+                    
+                    progressBar.style.width = `${percent}%`;
+                    progressPercent.innerText = `${Math.round(percent)}%`;
+                    progressDetail.innerText = `${(currentTotalLoaded / 1024 / 1024).toFixed(1)} Mo / ${totalSizeMB} Mo`;
+                    
+                    // Calcul vitesse
+                    const now = Date.now();
+                    const timeDiff = (now - lastTime) / 1000;
+                    if (timeDiff >= 0.5) {
+                        const speedMBps = (currentTotalLoaded - lastLoaded) / 1024 / 1024 / timeDiff;
+                        speeds.push(speedMBps);
+                        if (speeds.length > 5) speeds.shift();
+                        const avg = speeds.reduce((a, b) => a + b, 0) / speeds.length;
+                        
+                        speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${avg >= 1 ? avg.toFixed(2) + ' Mo/s' : (avg*1024).toFixed(0) + ' Ko/s'}`;
+                        
+                        if (avg > 0) {
+                            const remainingBytes = fileBlob.size - currentTotalLoaded;
+                            const rem = remainingBytes / (avg * 1024 * 1024);
+                            if (rem < 60) {
+                                timeRemaining.innerText = `${Math.ceil(rem)}s`;
+                            } else if (rem < 3600) {
+                                timeRemaining.innerText = `${Math.floor(rem/60)}m ${Math.ceil(rem%60)}s`;
+                            } else {
+                                timeRemaining.innerText = `${Math.floor(rem/3600)}h`;
+                            }
+                        }
+                        
+                        lastTime = now;
+                        lastLoaded = currentTotalLoaded;
+                    }
+                });
+                
                 partShas.push({ partNumber, sha1: result.contentSha1 || sha1, contentLength: chunk.size });
                 uploadedChunks++;
                 success = true;
-                
-                const percent = (uploadedChunks / totalChunks) * 100;
-                progressBar.style.width = `${percent}%`;
-                progressText.innerText = `${Math.round(percent)}%`;
                 
                 console.log(`✅ Chunk ${partNumber}/${totalChunks} terminé`);
                 
@@ -1380,7 +1594,8 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
                         status: 'processing',
                         lastUpdate: Date.now()
                     });
-                    throw new Error(`Échec chunk ${partNumber} après ${MAX_RETRY} tentatives`);
+                    await releaseWakeLock();
+                    throw new Error(`Échec chunk ${partNumber}`);
                 }
                 
                 await new Promise(r => setTimeout(r, 2000 * retryCount));
@@ -1388,7 +1603,7 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
         }
     }
     
-    progressText.innerText = 'Finalisation...';
+    progressPercent.innerText = 'Finalisation...';
     
     const finalizeResponse = await fetch('/api/finish-b2-chunked', {
         method: 'POST',
@@ -1400,7 +1615,8 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
     if (!finalizeResponse.ok) {
         const errorText = await finalizeResponse.text();
         console.error('❌ Erreur finalisation:', errorText);
-        throw new Error(`Finalisation: ${finalizeResponse.status} - ${errorText}`);
+        await releaseWakeLock();
+        throw new Error(`Finalisation: ${finalizeResponse.status}`);
     }
     
     const finalizeData = await finalizeResponse.json();
@@ -1412,7 +1628,7 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
         albumId: userAlbum.id,
         fileName: currentFileName,
         title: title,
-        speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
+        speaker: userAlbum.imamName || currentUser.phoneNumber || currentUser.email?.split('@')[0],
         duration: duration,
         date: new Date().toISOString().split('T')[0],
         views: 0, downloads: 0,
@@ -1429,7 +1645,12 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
     clearUploadProgress();
     
     progressBar.style.width = '100%';
-    progressText.innerText = '100%';
+    progressPercent.innerText = '100%';
+    speedText.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Terminé';
+    timeRemaining.innerText = '✅ Terminé';
+    
+    // ✅ LIBÉRATION WAKE LOCK
+    await releaseWakeLock();
     
     setTimeout(() => {
         document.getElementById('uploadProgress').classList.add('hidden');
@@ -1451,9 +1672,45 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
     isResumingUpload = false;
 }
 
+// ✅ UPLOAD CHUNK AVEC PROGRESSION EN TEMPS RÉEL
+function uploadChunkWithProgress(uploadUrl, authorizationToken, chunk, partNumber, sha1, onProgress) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.timeout = 300000;
+        
+        // ✅ PROGRESSION EN TEMPS RÉEL
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable && onProgress) {
+                onProgress(e.loaded);
+            }
+        });
+        
+        xhr.open('POST', uploadUrl, true);
+        xhr.setRequestHeader('Authorization', authorizationToken);
+        xhr.setRequestHeader('X-Bz-Part-Number', partNumber.toString());
+        xhr.setRequestHeader('X-Bz-Content-Sha1', sha1);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+        
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                try { resolve(JSON.parse(xhr.responseText)); } 
+                catch (e) { resolve({ contentSha1: sha1 }); }
+            } else reject(new Error(`HTTP ${xhr.status}`));
+        };
+        xhr.onerror = () => reject(new Error('Erreur réseau'));
+        xhr.ontimeout = () => reject(new Error('Timeout'));
+        xhr.send(chunk);
+    });
+}
+
 async function uploadSimpleFile(fileName, fileBlob, thumbnail, duration, title, videoType) {
-    const progressText = document.getElementById('progressText');
-    progressText.innerText = 'Initialisation...';
+    const progressPercent = document.getElementById('progressPercent');
+    const progressBar = document.getElementById('progressBar');
+    const progressDetail = document.getElementById('progressDetail');
+    const speedText = document.getElementById('speedText');
+    const timeRemaining = document.getElementById('timeRemaining');
+    
+    progressPercent.innerText = 'Init...';
     
     const initResponse = await fetch('/api/upload-b2', {
         method: 'POST',
@@ -1465,6 +1722,9 @@ async function uploadSimpleFile(fileName, fileBlob, thumbnail, duration, title, 
     
     const { uploadUrl, authorizationToken, downloadUrl } = await initResponse.json();
     
+    const totalSizeMB = (fileBlob.size / 1024 / 1024).toFixed(1);
+    let lastLoaded = 0, lastTime = Date.now(), speeds = [];
+    
     await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.timeout = 900000;
@@ -1472,8 +1732,28 @@ async function uploadSimpleFile(fileName, fileBlob, thumbnail, duration, title, 
         xhr.upload.addEventListener('progress', (e) => {
             if (e.lengthComputable) {
                 const percent = (e.loaded / e.total) * 100;
-                document.getElementById('progressBar').style.width = `${percent}%`;
-                document.getElementById('progressText').innerText = `${Math.round(percent)}%`;
+                progressBar.style.width = `${percent}%`;
+                progressPercent.innerText = `${Math.round(percent)}%`;
+                progressDetail.innerText = `${(e.loaded / 1024 / 1024).toFixed(1)} Mo / ${totalSizeMB} Mo`;
+                
+                const now = Date.now();
+                const timeDiff = (now - lastTime) / 1000;
+                if (timeDiff >= 0.5) {
+                    const speedMBps = (e.loaded - lastLoaded) / 1024 / 1024 / timeDiff;
+                    speeds.push(speedMBps);
+                    if (speeds.length > 5) speeds.shift();
+                    const avg = speeds.reduce((a, b) => a + b, 0) / speeds.length;
+                    
+                    speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${avg >= 1 ? avg.toFixed(2) + ' Mo/s' : (avg*1024).toFixed(0) + ' Ko/s'}`;
+                    
+                    if (avg > 0) {
+                        const rem = (e.total - e.loaded) / (avg * 1024 * 1024);
+                        timeRemaining.innerText = rem < 60 ? `${Math.ceil(rem)}s` : `${Math.floor(rem/60)}m`;
+                    }
+                    
+                    lastLoaded = e.loaded;
+                    lastTime = now;
+                }
             }
         });
         
@@ -1497,7 +1777,7 @@ async function uploadSimpleFile(fileName, fileBlob, thumbnail, duration, title, 
         albumId: userAlbum.id,
         fileName: currentFileName,
         title: title,
-        speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
+        speaker: userAlbum.imamName || currentUser.phoneNumber || currentUser.email?.split('@')[0],
         duration: duration,
         date: new Date().toISOString().split('T')[0],
         views: 0, downloads: 0,
@@ -1511,8 +1791,12 @@ async function uploadSimpleFile(fileName, fileBlob, thumbnail, duration, title, 
         uploadMethod: 'simple'
     });
     
-    document.getElementById('progressBar').style.width = '100%';
-    document.getElementById('progressText').innerText = '100%';
+    progressBar.style.width = '100%';
+    progressPercent.innerText = '100%';
+    speedText.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Terminé';
+    timeRemaining.innerText = '✅ Terminé';
+    
+    await releaseWakeLock();
     
     setTimeout(() => {
         document.getElementById('uploadProgress').classList.add('hidden');
@@ -1561,27 +1845,6 @@ async function generateThumbnailFromBlob(fileBlob) {
     });
 }
 
-async function uploadChunk(uploadUrl, authorizationToken, chunk, partNumber, sha1) {
-    return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.timeout = 300000;
-        xhr.open('POST', uploadUrl, true);
-        xhr.setRequestHeader('Authorization', authorizationToken);
-        xhr.setRequestHeader('X-Bz-Part-Number', partNumber.toString());
-        xhr.setRequestHeader('X-Bz-Content-Sha1', sha1);
-        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-        xhr.onload = () => {
-            if (xhr.status === 200) {
-                try { resolve(JSON.parse(xhr.responseText)); } 
-                catch (e) { resolve({ contentSha1: sha1 }); }
-            } else reject(new Error(`HTTP ${xhr.status}`));
-        };
-        xhr.onerror = () => reject(new Error('Erreur réseau'));
-        xhr.ontimeout = () => reject(new Error('Timeout'));
-        xhr.send(chunk);
-    });
-}
-
 async function calculateSHA1(blob) {
     const arrayBuffer = await blob.arrayBuffer();
     const hashBuffer = await crypto.subtle.digest('SHA-1', arrayBuffer);
@@ -1590,7 +1853,7 @@ async function calculateSHA1(blob) {
 }
 
 function cancelUpload() {
-    if (confirm("Annuler l'upload ?\n\nLa progression sera sauvegardée et vous pourrez reprendre plus tard.")) {
+    if (confirm("Annuler l'upload ?\n\nLa progression sera sauvegardée.")) {
         uploadAborted = true;
     }
 }
@@ -1652,6 +1915,7 @@ async function submitSupport() {
     try {
         await db.collection('support').add({
             userId: currentUser.uid,
+            userPhone: currentUser.phoneNumber,
             userEmail: currentUser.email,
             message: message,
             status: 'new',
@@ -1667,6 +1931,36 @@ async function submitSupport() {
 // ============================================
 // 🎨 AZKAR
 // ============================================
+const AZKAR_DATA = [
+    {
+        category: '💧 Ablutions & Prière',
+        color: 'cyan',
+        duas: [
+            { title: 'Au nom d\'Allah', arabic: 'بِسْمِ اللَّهِ', phonetic: 'Bismillâh.', translation: 'Au nom d\'Allah.' },
+            { title: 'Après les ablutions', arabic: 'أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ. اللَّهُمَّ اجْعَلْنِي مِنَ التَّوَّابِينَ، وَاجْعَلْنِي مِنَ الْمُتَطَهِّرِينَ', phonetic: 'Ashhadu an lâ ilâha illâ-llâhu wahdahu lâ sharîka lahu, wa ashhadu anna Muhammadan \'abduhu wa rasûluhu. Allâhumma-j\'alnî mina-t-tawwâbîna wa-j\'alnî mina-l-mutatahhirîn.', translation: 'Je témoigne qu\'il n\'y a de divinité qu\'Allah, l\'Unique, sans associé, et je témoigne que Muhammad est Son serviteur et Messager.' },
+            { title: 'Invocation pour la lumière', arabic: 'اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا، وَفِي بَصَرِي نُورًا، وَفِي سَمْعِي نُورًا، وَعَنْ يَمِينِي نُورًا، وَعَنْ شِمَالِي نُورًا، وَمِنْ فَوْقِي نُورًا، وَمِنْ تَحْتِي نُورًا، وَأَمَامِي نُورًا، وَخَلْفِي نُورًا، وَاجْعَلْ لِي نُورًا', phonetic: 'Allâhumma-j\'al fî qalbî nûran, wa fî baṣarî nûran, wa fî sam\'î nûran, wa \'an yamînî nûran, wa \'an shimālî nûran, wa min fawqî nûran, wa min taḥtī nûran, wa amâmî nûran, wa khalfî nûran, waj\'al lî nûran.', translation: 'Ô Allah, mets de la lumière dans mon cœur, dans ma vue, dans mon ouïe, à ma droite, à ma gauche, au-dessus de moi, au-dessous de moi, devant moi, derrière moi, et accorde-moi une lumière.' }
+        ]
+    },
+    {
+        category: '🤲 Pardon & Clémence',
+        color: 'emerald',
+        duas: [
+            { title: 'Sayyid al-Istighfar', arabic: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ لِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ', phonetic: 'Allâhumma Anta Rabbî, lâ ilâha illâ Anta, khalaqtanî wa ana \'abduka, wa ana \'alâ \'ahdika wa wa\'dika ma-stata\'tu. A\'ûdhu bika min sharri mâ sana\'tu, abû\'u laka bi-ni\'matika \'alayya, wa abû\'u bi-dhanbî faghfir lî, fa-innahu lâ yaghfiru-dh-dhunûba illâ Anta.', translation: 'Ô Allah, Tu es mon Seigneur, nul ne mérite d\'être adoré en dehors de Toi. Tu m\'as créé, je suis Ton serviteur. Pardonne-moi, car nul ne pardonne les péchés si ce n\'est Toi.' },
+            { title: 'Pardon suprême', arabic: 'أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ', phonetic: 'Astaghfiru-llâha-l-\'Adhîma-lladhî lâ ilâha illâ Huwa-l-Hayyu-l-Qayyûmu wa atûbu ilayh.', translation: 'Je demande pardon à Allah l\'Immense, en dehors de Qui nulle divinité ne mérite d\'être adorée, et je me repens à Lui.' }
+        ]
+    },
+    {
+        category: '❤️ Détresse & Guérison',
+        color: 'rose',
+        duas: [
+            { title: 'Invocation de Jonas', arabic: 'لَّا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ', phonetic: 'Lâ ilâha illâ Anta subhânaka innî kuntu mina-dh-dhâlimîn.', translation: 'Nulle divinité d\'autre que Toi ! Gloire à Toi ! J\'ai été du nombre des injustes.' },
+            { title: 'Guérison d\'un malade', arabic: 'اللَّهُمَّ رَبَّ النَّاسِ أَذْهِبِ الْبَاسَ، اشْفِهِ وَأَنْتَ الشَّافِي، لَا شِفَاءَ إِلَّا شِفَاؤُكَ، شِفَاءً لَا يُغَادِرُ سَقَمًا', phonetic: 'Allâhumma Rabba-n-nâsi, adhhibi-l-ba\'sa, ishfihi wa Anta-sh-shâfî, lâ shifâ\'a illâ shifâ\'uka, shifâ\'an lâ yughâdiru saqamâ.', translation: 'Ô Allah, Seigneur des hommes, fais disparaître le mal. Guéris-le, car Tu es le Guérisseur.' }
+        ]
+    }
+];
+
+let currentAzkarCategory = 0;
+
 function renderAzkarCategories() {
     const container = document.getElementById('azkar-categories');
     container.innerHTML = AZKAR_DATA.map((cat, idx) => `
@@ -1741,15 +2035,6 @@ function toggleDuaTab(id) {
     }
 }
 
-function toggleAccordion(id) {
-    const el = document.getElementById(id);
-    const icon = document.getElementById(id + '-icon');
-    if (el) {
-        el.classList.toggle('open');
-        if (icon) icon.style.transform = el.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0)';
-    }
-}
-
 // ============================================
 // 🧭 NAVIGATION
 // ============================================
@@ -1769,6 +2054,11 @@ function showTab(tab) {
     if (tab === 'azkar') { renderAzkarCategories(); renderAzkarDuas(); }
     if (tab === 'myalbum' && currentUser) { updateProfileUI(); renderMyVideos(); checkForInterruptedUpload(); }
     if (tab === 'profile' && currentUser) updateProfileUI();
+    
+    // ✅ INITIALISER RECAPTCHA QUAND ON VA SUR PROFIL
+    if (tab === 'profile' && !currentUser) {
+        setTimeout(() => initRecaptcha(), 500);
+    }
 }
 
 function renderAll() {
