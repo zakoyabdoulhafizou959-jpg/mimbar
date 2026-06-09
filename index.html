@@ -7,7 +7,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
@@ -54,40 +53,12 @@
             0%, 100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.7); }
             50% { box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); }
         }
-        /* ✅ NOTIFICATION TOAST */
-        .toast-notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
-            z-index: 9999;
-            box-shadow: 0 10px 25px rgba(255, 87, 34, 0.4);
-            animation: toastSlide 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            max-width: 90%;
+        .recording-pulse {
+            animation: rec-pulse 1s infinite;
         }
-        @keyframes toastSlide {
-            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-        /* ✅ GOOGLE BUTTON */
-        .google-btn {
-            background: white;
-            color: #333;
-            border: 1px solid #dadce0;
-            transition: all 0.2s;
-        }
-        .google-btn:hover {
-            background: #f8f9fa;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        @keyframes rec-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
     </style>
 </head>
@@ -196,7 +167,6 @@
             </div>
             <div id="myalbum-content" class="hidden space-y-4">
                 
-                <!-- BANNIÈRE UPLOAD INTERROMPU -->
                 <div id="interrupted-upload-banner" class="hidden interrupted-upload-banner rounded-2xl p-4 space-y-3">
                     <div class="flex items-start gap-3">
                         <div class="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0">
@@ -207,7 +177,6 @@
                             <p class="text-[11px] text-zinc-400 mt-1" id="interrupted-upload-info">Chargement...</p>
                         </div>
                     </div>
-                    
                     <div class="bg-zinc-900/50 rounded-xl p-3 space-y-2">
                         <div class="flex justify-between text-[10px]">
                             <span class="text-zinc-400">Fichier:</span>
@@ -221,7 +190,6 @@
                             <div id="interrupted-progress-bar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#f59e0b,#ef4444)"></div>
                         </div>
                     </div>
-                    
                     <div class="flex gap-2">
                         <button onclick="resumeInterruptedUpload()" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-white" style="background:#ff5722">
                             <i class="fa-solid fa-play mr-1"></i>Reprendre
@@ -355,73 +323,6 @@
             </div>
         </div>
 
-        <!-- ✅ NOUVEAU : TAB INVITATION D'AMI -->
-        <div id="tab-invite" class="hidden p-4 space-y-4">
-            <div class="flex items-center gap-2 mb-2">
-                <button onclick="showTab('profile')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
-                    <i class="fa-solid fa-arrow-left text-white text-xs"></i>
-                </button>
-                <h2 class="text-lg font-bold text-white">Inviter un ami</h2>
-            </div>
-            
-            <div class="bg-gradient-to-br from-orange-950 to-zinc-900 rounded-2xl p-5 border border-orange-500/30 text-center">
-                <div class="w-16 h-16 mx-auto rounded-full bg-orange-500/20 flex items-center justify-center mb-3">
-                    <i class="fa-solid fa-user-plus text-3xl text-orange-400"></i>
-                </div>
-                <h3 class="text-base font-bold text-white mb-1">Partagez l'application</h3>
-                <p class="text-xs text-zinc-400">Invitez vos proches à découvrir أهل السنة والجماعة</p>
-            </div>
-            
-            <div class="bg-zinc-900 rounded-2xl p-4 border border-zinc-800 space-y-3">
-                <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Votre lien d'invitation</label>
-                <div class="flex gap-2">
-                    <input type="text" id="invite-link" readonly class="flex-1 bg-zinc-800 rounded-lg px-3 py-2.5 text-xs text-white border border-zinc-700 focus:outline-none" value="">
-                    <button onclick="copyInviteLink()" class="px-3 py-2.5 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
-                        <i class="fa-solid fa-copy"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="bg-zinc-900 rounded-2xl p-4 border border-zinc-800 space-y-3">
-                <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Partager via</label>
-                <div class="grid grid-cols-4 gap-2">
-                    <button onclick="shareVia('whatsapp')" class="flex flex-col items-center gap-1 p-3 rounded-xl bg-green-600/20 hover:bg-green-600/30 transition">
-                        <i class="fa-brands fa-whatsapp text-2xl text-green-400"></i>
-                        <span class="text-[9px] text-zinc-400">WhatsApp</span>
-                    </button>
-                    <button onclick="shareVia('telegram')" class="flex flex-col items-center gap-1 p-3 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 transition">
-                        <i class="fa-brands fa-telegram text-2xl text-blue-400"></i>
-                        <span class="text-[9px] text-zinc-400">Telegram</span>
-                    </button>
-                    <button onclick="shareVia('facebook')" class="flex flex-col items-center gap-1 p-3 rounded-xl bg-blue-700/20 hover:bg-blue-700/30 transition">
-                        <i class="fa-brands fa-facebook text-2xl text-blue-500"></i>
-                        <span class="text-[9px] text-zinc-400">Facebook</span>
-                    </button>
-                    <button onclick="shareVia('sms')" class="flex flex-col items-center gap-1 p-3 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 transition">
-                        <i class="fa-solid fa-comment-sms text-2xl text-purple-400"></i>
-                        <span class="text-[9px] text-zinc-400">SMS</span>
-                    </button>
-                </div>
-                <button onclick="shareNative()" class="w-full py-3 rounded-xl text-sm font-bold text-white bg-zinc-800 hover:bg-zinc-700 transition">
-                    <i class="fa-solid fa-share-nodes mr-2"></i>Partage natif
-                </button>
-            </div>
-            
-            <div class="bg-zinc-900 rounded-2xl p-4 border border-zinc-800">
-                <h4 class="text-xs font-bold text-white mb-2"><i class="fa-solid fa-chart-line mr-1 text-orange-400"></i>Statistiques d'invitation</h4>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="bg-zinc-800 rounded-lg p-3 text-center">
-                        <p class="text-lg font-bold text-white" id="invite-sent-count">0</p>
-                        <p class="text-[9px] text-zinc-400 uppercase">Invitations</p>
-                    </div>
-                    <div class="bg-zinc-800 rounded-lg p-3 text-center">
-                        <p class="text-lg font-bold text-emerald-400" id="invite-accepted-count">0</p>
-                        <p class="text-[9px] text-zinc-400 uppercase">Acceptées</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <div id="tab-profile" class="hidden">
             <div id="profile-unauth" class="p-4 space-y-4">
                 <div class="text-center py-8 px-4 bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl border border-zinc-700">
@@ -432,45 +333,20 @@
                     <p class="text-xs text-zinc-400 mt-1">Connectez-vous pour accéder à toutes les fonctionnalités</p>
                 </div>
                 <div id="auth-error" class="hidden text-xs text-center px-3 py-2 rounded-lg"></div>
-                
-                <!-- ✅ AUTHENTIFICATION EMAIL + GOOGLE -->
                 <div class="bg-zinc-900 rounded-2xl p-5 space-y-3 border border-zinc-800">
-                    
-                    <!-- ✅ GOOGLE SIGN IN -->
-                    <button onclick="signInWithGoogle()" id="btn-google" class="w-full google-btn py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-3">
-                        <svg width="18" height="18" viewBox="0 0 48 48">
-                            <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
-                            <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
-                            <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
-                            <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
-                        </svg>
-                        Continuer avec Google
+                    <button onclick="handleGoogleSignIn()" class="w-full py-3 bg-white text-zinc-950 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-zinc-100 transition">
+                        <i class="fa-brands fa-google text-red-500"></i> Continuer avec Google
                     </button>
-                    
                     <div class="relative flex py-2 items-center">
                         <div class="flex-grow border-t border-zinc-800"></div>
                         <span class="flex-shrink mx-3 text-[10px] text-zinc-500 font-bold">OU</span>
                         <div class="flex-grow border-t border-zinc-800"></div>
                     </div>
-                    
-                    <!-- ✅ Connexion Email -->
-                    <div class="space-y-2">
-                        <div class="flex gap-2">
-                            <button onclick="toggleAuthMode('login')" id="btn-mode-login" class="flex-1 py-2 rounded-lg text-xs font-bold text-white" style="background:#ff5722">Connexion</button>
-                            <button onclick="toggleAuthMode('signup')" id="btn-mode-signup" class="flex-1 py-2 rounded-lg text-xs font-bold bg-zinc-800 text-zinc-400">Inscription</button>
-                        </div>
-                        
-                        <input type="email" id="loginEmail" placeholder="📧 Email" class="w-full bg-zinc-800 rounded-xl px-4 py-3 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
-                        <input type="password" id="loginPassword" placeholder="🔒 Mot de passe (min. 6 caractères)" class="w-full bg-zinc-800 rounded-xl px-4 py-3 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
-                        
-                        <button onclick="handleEmailAuth()" id="btn-email-auth" class="w-full py-3 rounded-xl text-sm font-bold text-white transition hover:opacity-90" style="background:#ff5722">
-                            <i class="fa-solid fa-envelope mr-2"></i><span id="btn-email-auth-text">Se connecter</span>
-                        </button>
-                        
-                        <button onclick="resetPassword()" class="w-full py-2 text-xs text-zinc-400 hover:text-orange-400 transition">
-                            <i class="fa-solid fa-key mr-1"></i>Mot de passe oublié ?
-                        </button>
-                    </div>
+                    <input type="email" id="loginEmail" placeholder="📧 Email" class="w-full bg-zinc-800 rounded-xl px-4 py-3 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
+                    <input type="password" id="loginPassword" placeholder="🔒 Mot de passe" class="w-full bg-zinc-800 rounded-xl px-4 py-3 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
+                    <button onclick="handleLogin()" id="btn-login" class="w-full py-3 rounded-xl text-sm font-bold text-white transition hover:opacity-90" style="background:#ff5722">Se connecter</button>
+                    <button onclick="handleSignup()" id="btn-signup" class="w-full py-3 bg-zinc-800 rounded-xl text-sm text-white hover:bg-zinc-700 transition">Créer un compte</button>
+                    <button onclick="resetPassword()" class="w-full py-2 text-xs text-zinc-400 underline hover:text-orange-400 transition">Mot de passe oublié ?</button>
                 </div>
             </div>
             
@@ -506,6 +382,7 @@
                 </div>
                 
                 <div class="p-4 space-y-2">
+                    <h3 class="text-xs font-bold text-zinc-500 uppercase mb-3">Mon contenu</h3>
                     <button onclick="showTab('myalbum')" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
                         <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
                             <i class="fa-solid fa-photo-film text-orange-400"></i>
@@ -520,15 +397,8 @@
                         <span class="flex-1 text-left">Créer un album</span>
                         <i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
                     </button>
-                    <!-- ✅ NOUVEAU : INVITATION D'AMI -->
-                    <button onclick="showTab('invite')" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
-                        <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                            <i class="fa-solid fa-user-plus text-purple-400"></i>
-                        </div>
-                        <span class="flex-1 text-left">Inviter un ami</span>
-                        <i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
-                    </button>
-                    <!-- ✅ NOUVEAU : AIDE & SUPPORT -->
+                    
+                    <h3 class="text-xs font-bold text-zinc-500 uppercase mb-3 mt-6">Paramètres</h3>
                     <button onclick="showTab('support')" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
                         <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
                             <i class="fa-solid fa-headset text-blue-400"></i>
@@ -536,19 +406,31 @@
                         <span class="flex-1 text-left">Aide & Support</span>
                         <i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
                     </button>
-                    <!-- ✅ NOUVEAU : CONFIDENTIALITÉ -->
-                    <button onclick="showTab('privacy')" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
-                        <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
-                            <i class="fa-solid fa-shield-halved text-cyan-400"></i>
+                    <button onclick="inviteFriend()" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
+                        <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                            <i class="fa-solid fa-user-plus text-green-400"></i>
                         </div>
-                        <span class="flex-1 text-left">Confidentialité & Politique</span>
+                        <span class="flex-1 text-left">Inviter un ami</span>
+                        <i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
+                    </button>
+                    <button onclick="toggleNotifications()" id="btn-notif" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
+                        <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                            <i class="fa-solid fa-bell text-yellow-400"></i>
+                        </div>
+                        <span class="flex-1 text-left" id="notif-status">Notifications</span>
+                        <i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
+                    </button>
+                    <button onclick="showTab('privacy')" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
+                        <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                            <i class="fa-solid fa-shield-halved text-purple-400"></i>
+                        </div>
+                        <span class="flex-1 text-left">Confidentialité</span>
                         <i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- ✅ AIDE & SUPPORT AMÉLIORÉ -->
         <div id="tab-support" class="hidden p-4 space-y-4">
             <div class="flex items-center gap-2 mb-2">
                 <button onclick="showTab('profile')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
@@ -557,248 +439,146 @@
                 <h2 class="text-lg font-bold text-white">Aide & Support</h2>
             </div>
             
+            <div class="info-card rounded-lg p-3 text-xs text-blue-300">
+                <i class="fa-solid fa-circle-info mr-1"></i>
+                Notre équipe vous répondra dans les 24-48h.
+            </div>
+            
             <div class="bg-zinc-900 rounded-2xl p-5 space-y-4 border border-zinc-800">
-                <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 text-xs text-blue-300">
-                    <i class="fa-solid fa-circle-info mr-1"></i>
-                    Décrivez votre problème. Vous pouvez joindre des images et un message vocal.
-                </div>
-                
                 <div>
-                    <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Sujet</label>
+                    <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-2">Sujet *</label>
                     <select id="supportSubject" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
-                        <option value="bug">🐛 Bug technique</option>
-                        <option value="question">❓ Question</option>
+                        <option value="bug">🐛 Signaler un bug</option>
+                        <option value="question">❓ Question générale</option>
                         <option value="suggestion">💡 Suggestion</option>
-                        <option value="album">📁 Problème album</option>
+                        <option value="album">📁 Problème avec mon album</option>
                         <option value="other">📝 Autre</option>
                     </select>
                 </div>
                 
                 <div>
-                    <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Votre message *</label>
+                    <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-2">Votre message *</label>
                     <textarea id="supportMessage" placeholder="Décrivez votre problème en détail..." rows="4" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500"></textarea>
                 </div>
                 
-                <!-- ✅ UPLOAD IMAGES -->
                 <div>
-                    <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">
-                        <i class="fa-solid fa-image mr-1 text-blue-400"></i>Images (optionnel, max 3)
-                    </label>
+                    <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-2">Images (optionnel)</label>
                     <input type="file" id="supportImages" accept="image/*" multiple class="hidden" onchange="handleSupportImages(this)">
-                    <button onclick="document.getElementById('supportImages').click()" class="w-full py-2.5 rounded-lg text-xs font-bold bg-blue-600/20 text-blue-400 border border-blue-500/30">
-                        <i class="fa-solid fa-plus mr-1"></i>Ajouter des images
+                    <button onclick="document.getElementById('supportImages').click()" class="w-full py-2.5 rounded-lg text-xs font-bold bg-zinc-800 text-white border border-zinc-700 hover:bg-zinc-700 transition">
+                        <i class="fa-solid fa-image mr-1" style="color:#3b82f6"></i>Ajouter des images
                     </button>
-                    <div id="support-images-preview" class="grid grid-cols-3 gap-2 mt-2"></div>
+                    <div id="support-images-preview" class="mt-2 flex flex-wrap gap-2"></div>
                 </div>
                 
-                <!-- ✅ ENREGISTREMENT VOCAL -->
                 <div>
-                    <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">
-                        <i class="fa-solid fa-microphone mr-1 text-red-400"></i>Note vocale (optionnel)
-                    </label>
+                    <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-2">Note vocale (optionnel)</label>
                     <div class="flex gap-2">
-                        <button onclick="toggleVoiceRecording()" id="btn-record-voice" class="flex-1 py-2.5 rounded-lg text-xs font-bold bg-red-600/20 text-red-400 border border-red-500/30">
-                            <i class="fa-solid fa-microphone mr-1"></i>Enregistrer
+                        <button onclick="toggleRecording()" id="btn-record" class="flex-1 py-2.5 rounded-lg text-xs font-bold bg-zinc-800 text-white border border-zinc-700 hover:bg-zinc-700 transition">
+                            <i class="fa-solid fa-microphone mr-1" style="color:#ef4444"></i>Enregistrer
                         </button>
-                        <button onclick="deleteVoiceRecording()" id="btn-delete-voice" class="hidden px-3 py-2.5 rounded-lg text-xs font-bold bg-zinc-800 text-zinc-400">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+                        <div id="recording-timer" class="hidden px-3 py-2.5 rounded-lg bg-red-900/30 text-red-400 text-xs font-bold recording-pulse">
+                            <i class="fa-solid fa-circle mr-1"></i><span id="rec-time">00:00</span>
+                        </div>
                     </div>
-                    <div id="voice-recording-status" class="hidden mt-2 bg-red-900/20 border border-red-500/30 rounded-lg p-2 text-center">
-                        <span class="text-xs text-red-400 animate-pulse">
-                            <i class="fa-solid fa-circle mr-1 text-red-500"></i>Enregistrement en cours... <span id="voice-timer">00:00</span>
-                        </span>
-                    </div>
-                    <div id="voice-preview" class="hidden mt-2 bg-zinc-800 rounded-lg p-2">
-                        <audio id="voice-audio-preview" controls class="w-full" style="height: 36px;"></audio>
+                    <div id="voice-preview" class="hidden mt-2 bg-zinc-800 rounded-lg p-2 flex items-center gap-2">
+                        <i class="fa-solid fa-waveform text-emerald-400"></i>
+                        <span class="text-xs text-white flex-1">Note vocale enregistrée</span>
+                        <button onclick="removeVoice()" class="text-zinc-400 hover:text-red-400 transition"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                 </div>
                 
-                <button onclick="submitSupport()" id="btn-submit-support" class="w-full py-3 rounded-xl text-sm font-bold text-white" style="background:#ff5722">
+                <button onclick="submitSupport()" id="btn-submit-support" class="w-full py-3 rounded-xl text-sm font-bold text-white transition hover:opacity-90" style="background:#ff5722">
                     <i class="fa-solid fa-paper-plane mr-2"></i>Envoyer le message
                 </button>
-                
-                <!-- ✅ PROGRESSION ENVOI -->
-                <div id="support-upload-progress" class="hidden bg-zinc-800 rounded-xl p-3 space-y-2">
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-white">
-                            <i class="fa-solid fa-cloud-arrow-up text-orange-400 mr-1"></i>Envoi en cours...
-                        </span>
-                        <span id="support-progress-percent" class="text-sm font-black text-orange-400">0%</span>
-                    </div>
-                    <div class="h-2 bg-zinc-700 rounded-full overflow-hidden">
-                        <div id="support-progress-bar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
-                    </div>
-                    <p id="support-progress-detail" class="text-[10px] text-zinc-400">Préparation...</p>
-                </div>
+            </div>
+            
+            <div id="support-success" class="hidden text-center py-8 bg-emerald-900/20 border border-emerald-500/30 rounded-2xl">
+                <i class="fa-solid fa-circle-check text-4xl text-emerald-400"></i>
+                <h3 class="text-sm font-bold text-white mt-3">Message envoyé !</h3>
+                <p class="text-xs text-zinc-400 mt-1">Nous vous répondrons bientôt.</p>
             </div>
         </div>
 
-        <!-- ✅ CONFIDENTIALITÉ ÉTOFFÉE -->
         <div id="tab-privacy" class="hidden p-4 space-y-4">
             <div class="flex items-center gap-2 mb-2">
                 <button onclick="showTab('profile')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
                     <i class="fa-solid fa-arrow-left text-white text-xs"></i>
                 </button>
-                <h2 class="text-lg font-bold text-white">Confidentialité & Politique</h2>
+                <h2 class="text-lg font-bold text-white">Confidentialité</h2>
             </div>
             
-            <div class="bg-zinc-900 rounded-2xl p-4 border border-zinc-800 space-y-4">
-                <div class="flex items-center gap-3 pb-3 border-b border-zinc-800">
-                    <div class="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
-                        <i class="fa-solid fa-shield-halved text-cyan-400"></i>
+            <div class="bg-gradient-to-br from-purple-900/20 to-pink-900/10 rounded-2xl p-5 border border-purple-500/20">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center">
+                        <i class="fa-solid fa-shield-halved text-2xl text-purple-400"></i>
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold text-white">Politique de confidentialité</h3>
+                        <h3 class="text-base font-bold text-white">Politique de confidentialité</h3>
                         <p class="text-[10px] text-zinc-400">Dernière mise à jour : Juin 2026</p>
                     </div>
                 </div>
-                
-                <!-- Section 1 -->
-                <div class="space-y-2">
-                    <button onclick="togglePrivacySection('sec1')" class="w-full flex items-center justify-between text-left">
-                        <span class="text-xs font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-1 text-orange-400"></i>Collecte des données
-                        </span>
-                        <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="sec1-icon"></i>
-                    </button>
-                    <div id="sec1" class="accordion-content">
-                        <div class="text-xs text-zinc-300 leading-relaxed space-y-2 pt-2">
-                            <p>Nous collectons uniquement les données nécessaires au fonctionnement de l'application :</p>
-                            <ul class="list-disc list-inside space-y-1 text-zinc-400 ml-2">
-                                <li><strong class="text-white">Email :</strong> pour l'authentification</li>
-                                <li><strong class="text-white">Contenu publié :</strong> vidéos, albums (prêches, tafsirs, hadiths, coran)</li>
-                                <li><strong class="text-white">Messages support :</strong> texte, images et vocaux envoyés volontairement</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Section 2 -->
-                <div class="space-y-2 border-t border-zinc-800 pt-2">
-                    <button onclick="togglePrivacySection('sec2')" class="w-full flex items-center justify-between text-left">
-                        <span class="text-xs font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-2 text-orange-400"></i>Utilisation des données
-                        </span>
-                        <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="sec2-icon"></i>
-                    </button>
-                    <div id="sec2" class="accordion-content">
-                        <div class="text-xs text-zinc-300 leading-relaxed space-y-2 pt-2">
-                            <p>Vos données sont utilisées exclusivement pour :</p>
-                            <ul class="list-disc list-inside space-y-1 text-zinc-400 ml-2">
-                                <li>Vous permettre de publier et gérer vos albums</li>
-                                <li>Améliorer la qualité du service</li>
-                                <li>Répondre à vos demandes de support</li>
-                                <li>Assurer la modération du contenu</li>
-                            </ul>
-                            <p class="text-emerald-400 font-bold">❌ Nous ne vendons JAMAIS vos données à des tiers.</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Section 3 -->
-                <div class="space-y-2 border-t border-zinc-800 pt-2">
-                    <button onclick="togglePrivacySection('sec3')" class="w-full flex items-center justify-between text-left">
-                        <span class="text-xs font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-3 text-orange-400"></i>Stockage & Sécurité
-                        </span>
-                        <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="sec3-icon"></i>
-                    </button>
-                    <div id="sec3" class="accordion-content">
-                        <div class="text-xs text-zinc-300 leading-relaxed space-y-2 pt-2">
-                            <p>Vos contenus sont stockés de manière sécurisée sur :</p>
-                            <ul class="list-disc list-inside space-y-1 text-zinc-400 ml-2">
-                                <li><strong class="text-white">Firebase :</strong> base de données et authentification</li>
-                                <li><strong class="text-white">Backblaze B2 :</strong> stockage des vidéos, images et vocaux</li>
-                                <li><strong class="text-white">Bunny CDN :</strong> diffusion rapide des vidéos</li>
-                            </ul>
-                            <p>Tous les transferts sont chiffrés (HTTPS/TLS).</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Section 4 -->
-                <div class="space-y-2 border-t border-zinc-800 pt-2">
-                    <button onclick="togglePrivacySection('sec4')" class="w-full flex items-center justify-between text-left">
-                        <span class="text-xs font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-4 text-orange-400"></i>Vos droits
-                        </span>
-                        <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="sec4-icon"></i>
-                    </button>
-                    <div id="sec4" class="accordion-content">
-                        <div class="text-xs text-zinc-300 leading-relaxed space-y-2 pt-2">
-                            <p>Conformément au RGPD, vous disposez des droits suivants :</p>
-                            <ul class="list-disc list-inside space-y-1 text-zinc-400 ml-2">
-                                <li>✅ <strong class="text-white">Accès</strong> à vos données</li>
-                                <li>✅ <strong class="text-white">Rectification</strong> des informations inexactes</li>
-                                <li>✅ <strong class="text-white">Suppression</strong> de votre compte et contenu</li>
-                                <li>✅ <strong class="text-white">Opposition</strong> au traitement</li>
-                            </ul>
-                            <p>Pour exercer ces droits, contactez-nous via l'<strong class="text-orange-400">Aide & Support</strong>.</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Section 5 -->
-                <div class="space-y-2 border-t border-zinc-800 pt-2">
-                    <button onclick="togglePrivacySection('sec5')" class="w-full flex items-center justify-between text-left">
-                        <span class="text-xs font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-5 text-orange-400"></i>Contenu religieux
-                        </span>
-                        <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="sec5-icon"></i>
-                    </button>
-                    <div id="sec5" class="accordion-content">
-                        <div class="text-xs text-zinc-300 leading-relaxed space-y-2 pt-2">
-                            <p>L'application est dédiée au partage de contenu islamique authentique :</p>
-                            <ul class="list-disc list-inside space-y-1 text-zinc-400 ml-2">
-                                <li>📢 Prêches quotidiens</li>
-                                <li>📖 Tafsir du Coran</li>
-                                <li>📜 Hadiths du Prophète ﷺ</li>
-                                <li>🕌 Récitations du Coran</li>
-                            </ul>
-                            <p>Tout contenu doit respecter les valeurs de l'Islam sunnite selon le Coran et la Sunna authentique.</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Section 6 -->
-                <div class="space-y-2 border-t border-zinc-800 pt-2">
-                    <button onclick="togglePrivacySection('sec6')" class="w-full flex items-center justify-between text-left">
-                        <span class="text-xs font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-6 text-orange-400"></i>Cookies & Traceurs
-                        </span>
-                        <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="sec6-icon"></i>
-                    </button>
-                    <div id="sec6" class="accordion-content">
-                        <div class="text-xs text-zinc-300 leading-relaxed space-y-2 pt-2">
-                            <p>Nous n'utilisons <strong class="text-emerald-400">aucun cookie publicitaire</strong>.</p>
-                            <p>Seuls les cookies techniques nécessaires au fonctionnement (authentification, préférences) sont utilisés.</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Section 7 -->
-                <div class="space-y-2 border-t border-zinc-800 pt-2">
-                    <button onclick="togglePrivacySection('sec7')" class="w-full flex items-center justify-between text-left">
-                        <span class="text-xs font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-7 text-orange-400"></i>Contact
-                        </span>
-                        <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="sec7-icon"></i>
-                    </button>
-                    <div id="sec7" class="accordion-content">
-                        <div class="text-xs text-zinc-300 leading-relaxed space-y-2 pt-2">
-                            <p>Pour toute question relative à la confidentialité :</p>
-                            <div class="bg-zinc-800 rounded-lg p-3 space-y-1">
-                                <p><i class="fa-solid fa-headset mr-2 text-orange-400"></i>Via l'onglet <strong class="text-white">Aide & Support</strong></p>
-                                <p><i class="fa-solid fa-envelope mr-2 text-orange-400"></i>zakoyabdoulhafizou959@gmail.com</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
             
-            <div class="text-center text-[10px] text-zinc-500 pt-2">
-                أهل السنة والجماعة © 2026 - Tous droits réservés
+            <div class="space-y-3">
+                <div class="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+                    <button onclick="toggleAccordion('privacy1')" class="w-full flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                                <i class="fa-solid fa-database text-blue-400 text-sm"></i>
+                            </div>
+                            <span class="text-sm font-bold text-white">1. Collecte des données</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy1-icon"></i>
+                    </button>
+                    <div id="privacy1" class="accordion-content">
+                        <p class="text-xs text-zinc-400 mt-3 leading-relaxed">Nous collectons uniquement les données nécessaires : email, vidéos uploadées, messages de support. Aucune donnée sensible n'est collectée.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+                    <button onclick="toggleAccordion('privacy2')" class="w-full flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                                <i class="fa-solid fa-lock text-emerald-400 text-sm"></i>
+                            </div>
+                            <span class="text-sm font-bold text-white">2. Sécurité</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy2-icon"></i>
+                    </button>
+                    <div id="privacy2" class="accordion-content">
+                        <p class="text-xs text-zinc-400 mt-3 leading-relaxed">Vos données sont protégées par Firebase et Backblaze B2 avec chiffrement de bout en bout.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+                    <button onclick="toggleAccordion('privacy3')" class="w-full flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                                <i class="fa-solid fa-share-nodes text-orange-400 text-sm"></i>
+                            </div>
+                            <span class="text-sm font-bold text-white">3. Partage des données</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy3-icon"></i>
+                    </button>
+                    <div id="privacy3" class="accordion-content">
+                        <p class="text-xs text-zinc-400 mt-3 leading-relaxed">Nous ne vendons ni ne partageons vos données personnelles avec des tiers.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+                    <button onclick="toggleAccordion('privacy4')" class="w-full flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center">
+                                <i class="fa-solid fa-envelope text-pink-400 text-sm"></i>
+                            </div>
+                            <span class="text-sm font-bold text-white">4. Contact</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy4-icon"></i>
+                    </button>
+                    <div id="privacy4" class="accordion-content">
+                        <p class="text-xs text-zinc-400 mt-3 leading-relaxed">Pour toute question, utilisez la section <strong class="text-orange-400">Aide & Support</strong>.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -821,6 +601,17 @@
                 <source id="video-source" src="" type="video/mp4">
             </video>
         </div>
+        <div class="bg-zinc-900 p-3 flex items-center justify-between">
+            <p id="video-player-speaker" class="text-xs text-zinc-400"></p>
+            <div class="flex gap-2">
+                <button onclick="showDownloadOptions()" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
+                    <i class="fa-solid fa-download mr-1"></i>DL
+                </button>
+                <button onclick="openVideoInNewTab()" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-zinc-700">
+                    <i class="fa-solid fa-external-link mr-1"></i>Ouvrir
+                </button>
+            </div>
+        </div>
     </div>
 
     <div id="download-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
@@ -836,9 +627,6 @@
             <button onclick="closeDownloadModal()" class="w-full py-2 bg-zinc-800 rounded-xl text-xs text-zinc-400">Annuler</button>
         </div>
     </div>
-    
-    <!-- ✅ TOAST NOTIFICATION CONTAINER -->
-    <div id="toast-container"></div>
 </div>
 
 <script>
@@ -857,7 +645,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const storage = firebase.storage(); // ✅ Firebase Storage pour images/vocaux
 
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
     .then(() => console.log('✅ Firebase persistence LOCAL'))
@@ -884,7 +671,6 @@ let searchQuery = '';
 let homeSelectionMode = false;
 let homeSelectedVideoIds = new Set();
 let uploadAborted = false;
-
 let wakeLock = null;
 let wakeLockRenewInterval = null;
 
@@ -896,66 +682,13 @@ let currentFileType = '';
 let interruptedUploadData = null;
 let isResumingUpload = false;
 
-// ✅ AUTH MODE
-let authMode = 'login';
-
-// ✅ SUPPORT FILES
+// Support
 let supportImages = [];
 let supportVoiceBlob = null;
 let mediaRecorder = null;
-let voiceRecordingChunks = [];
-let voiceRecordingInterval = null;
-let voiceRecordingStartTime = 0;
-
-// ============================================
-// 🔔 NOTIFICATIONS SON + VIBRATION
-// ============================================
-function playNotificationSound() {
-    try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-        
-        oscillator.start(audioCtx.currentTime);
-        oscillator.stop(audioCtx.currentTime + 0.5);
-    } catch(e) {
-        console.warn('⚠️ Audio notification error:', e);
-    }
-}
-
-function vibrateDevice(pattern = [100, 50, 100]) {
-    if ('vibrate' in navigator) {
-        navigator.vibrate(pattern);
-    }
-}
-
-function showToast(message, icon = 'check', duration = 3000) {
-    // ✅ Son + Vibration
-    playNotificationSound();
-    vibrateDevice([100, 50, 100]);
-    
-    const toast = document.createElement('div');
-    toast.className = 'toast-notification';
-    toast.innerHTML = `<i class="fa-solid fa-${icon}"></i><span>${message}</span>`;
-    
-    const container = document.getElementById('toast-container');
-    container.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(-50%) translateY(-20px)';
-        setTimeout(() => toast.remove(), 300);
-    }, duration);
-}
+let recordingChunks = [];
+let recordingInterval = null;
+let recordingStartTime = 0;
 
 // ============================================
 // 🔧 FONCTIONS UTILITAIRES
@@ -984,159 +717,31 @@ function formatDuration(seconds) {
 }
 
 // ============================================
-// 🔐 AUTH EMAIL + GOOGLE (PAS DE TÉLÉPHONE)
-// ============================================
-
-// ✅ GOOGLE SIGN IN
-async function signInWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    const btn = document.getElementById('btn-google');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Connexion...';
-    
-    try {
-        const result = await auth.signInWithPopup(provider);
-        console.log('✅ Google Sign In:', result.user.email);
-        showToast('Connexion réussie !', 'check-circle');
-    } catch (error) {
-        console.error('❌ Google Sign In error:', error);
-        showAuthError('❌ ' + error.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = `
-            <svg width="18" height="18" viewBox="0 0 48 48">
-                <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
-                <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
-                <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
-                <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
-            </svg>
-            Continuer avec Google
-        `;
-    }
-}
-
-// ✅ TOGGLE AUTH MODE
-function toggleAuthMode(mode) {
-    authMode = mode;
-    const loginBtn = document.getElementById('btn-mode-login');
-    const signupBtn = document.getElementById('btn-mode-signup');
-    const textEl = document.getElementById('btn-email-auth-text');
-    
-    if (mode === 'login') {
-        loginBtn.style.background = '#ff5722';
-        loginBtn.classList.remove('bg-zinc-800', 'text-zinc-400');
-        loginBtn.classList.add('text-white');
-        signupBtn.style.background = '';
-        signupBtn.classList.add('bg-zinc-800', 'text-zinc-400');
-        signupBtn.classList.remove('text-white');
-        textEl.innerText = 'Se connecter';
-    } else {
-        signupBtn.style.background = '#ff5722';
-        signupBtn.classList.remove('bg-zinc-800', 'text-zinc-400');
-        signupBtn.classList.add('text-white');
-        loginBtn.style.background = '';
-        loginBtn.classList.add('bg-zinc-800', 'text-zinc-400');
-        loginBtn.classList.remove('text-white');
-        textEl.innerText = "S'inscrire";
-    }
-}
-
-// ✅ EMAIL AUTH (LOGIN OU SIGNUP)
-async function handleEmailAuth() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const pwd = document.getElementById('loginPassword').value;
-    
-    if (!email || !email.includes('@')) { 
-        showAuthError("❌ Email invalide"); 
-        return; 
-    }
-    if (pwd.length < 6) { 
-        showAuthError("❌ Mot de passe min. 6 caractères"); 
-        return; 
-    }
-    
-    const btn = document.getElementById('btn-email-auth');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Chargement...';
-    
-    try {
-        if (authMode === 'login') {
-            await auth.signInWithEmailAndPassword(email, pwd);
-            showToast('Connexion réussie !', 'check-circle');
-        } else {
-            await auth.createUserWithEmailAndPassword(email, pwd);
-            showToast('Compte créé avec succès !', 'user-plus');
-        }
-        showTab('home');
-    } catch(e) {
-        showAuthError(`❌ ${e.message}`);
-    } finally {
-        btn.disabled = false;
-        const text = authMode === 'login' ? 'Se connecter' : "S'inscrire";
-        btn.innerHTML = `<i class="fa-solid fa-envelope mr-2"></i><span>${text}</span>`;
-    }
-}
-
-// ✅ RESET PASSWORD
-async function resetPassword() {
-    const email = document.getElementById('loginEmail').value.trim();
-    if (!email || !email.includes('@')) {
-        showAuthError("❌ Entrez votre email d'abord");
-        return;
-    }
-    
-    try {
-        await auth.sendPasswordResetEmail(email);
-        showAuthError('');
-        showToast('Email de réinitialisation envoyé !', 'envelope');
-    } catch(e) {
-        showAuthError('❌ ' + e.message);
-    }
-}
-
-function handleLogout() { 
-    auth.signOut(); 
-    showTab('profile'); 
-    showToast('Déconnecté', 'right-from-bracket');
-}
-
-function showAuthError(msg) {
-    let errorDiv = document.getElementById('auth-error');
-    if (!errorDiv) return;
-    if (!msg) { errorDiv.classList.add('hidden'); return; }
-    errorDiv.classList.remove('hidden');
-    errorDiv.innerText = msg;
-    errorDiv.style.background = 'rgba(239,68,68,0.2)';
-    errorDiv.style.color = '#ef4444';
-}
-
-// ============================================
-// 🔐 AUTH STATE
+// 🔐 AUTH EMAIL/GOOGLE
 // ============================================
 auth.onAuthStateChanged(async (user) => {
     console.log('🔔 onAuthStateChanged:', user ? user.email : 'null');
     currentUser = user;
     
     if (user) {
-        const displayId = user.email?.split('@')[0] || 'Connecté';
-        document.getElementById('header-user-status').textContent = displayId;
-        
+        document.getElementById('header-user-status').textContent = user.email?.split('@')[0] || 'Connecté';
         try {
             const token = await user.getIdToken();
-            localStorage.setItem('firebaseToken', token);
-            localStorage.setItem('firebaseUser', JSON.stringify({
-                uid: user.uid,
-                email: user.email
-            }));
+            console.log('✅ Token valide obtenu');
+            try {
+                localStorage.setItem('firebaseToken', token);
+                localStorage.setItem('firebaseUser', JSON.stringify({
+                    uid: user.uid,
+                    email: user.email
+                }));
+            } catch (storageError) {
+                console.warn('⚠️ localStorage error:', storageError);
+            }
             await loadUserData();
         } catch (error) {
             console.error('❌ Erreur token:', error);
             currentUser = null;
         }
-        
-        // ✅ ÉCOUTE DES NOTIFICATIONS ADMIN (SON + VIBRATION)
-        setupAdminNotifications();
-        
     } else {
         document.getElementById('header-user-status').textContent = 'Déconnecté';
         userAlbum = null;
@@ -1150,25 +755,90 @@ auth.onAuthStateChanged(async (user) => {
     await loadAllAlbums();
     await loadAllVideos();
     renderAll();
-    
     checkForInterruptedUpload();
 });
 
-// ✅ ÉCOUTE DES RÉPONSES ADMIN (NOTIFICATIONS)
-function setupAdminNotifications() {
-    if (!currentUser) return;
-    
-    db.collection('support')
-        .where('userId', '==', currentUser.uid)
-        .where('status', '==', 'resolved')
-        .onSnapshot((snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                if (change.type === 'modified') {
-                    // ✅ NOTIFICATION SON + VIBRATION
-                    showToast('🎉 L\'admin a répondu à votre message !', 'headset', 5000);
-                }
-            });
-        });
+async function handleGoogleSignIn() {
+    try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const isWebView = navigator.userAgent.includes('wv') || navigator.userAgent.includes('Median');
+        
+        if (isWebView) {
+            console.log('📱 WebView → signInWithRedirect');
+            await auth.signInWithRedirect(provider);
+        } else {
+            console.log('🌐 Navigateur → signInWithPopup');
+            await auth.signInWithPopup(provider);
+        }
+        showTab('home');
+    } catch(e) {
+        console.error('❌ Google error:', e);
+        if (e.code === 'auth/popup-blocked') {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                await auth.signInWithRedirect(provider);
+            } catch (e2) {
+                showAuthError(`❌ ${e2.message}`);
+            }
+        } else {
+            showAuthError(`❌ ${e.message}`);
+        }
+    }
+}
+
+auth.getRedirectResult().then((result) => {
+    if (result && result.user) {
+        console.log('✅ Redirect réussi');
+        showTab('home');
+    }
+}).catch((error) => console.error('❌ Redirect error:', error));
+
+async function handleLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pwd = document.getElementById('loginPassword').value;
+    if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
+    if (pwd.length < 6) { showAuthError("Mot de passe min 6 caractères"); return; }
+    try {
+        await auth.signInWithEmailAndPassword(email, pwd);
+        showTab('home');
+    } catch(e) {
+        showAuthError(`❌ ${e.message}`);
+    }
+}
+
+async function handleSignup() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pwd = document.getElementById('loginPassword').value;
+    if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
+    if (pwd.length < 6) { showAuthError("Mot de passe min 6 caractères"); return; }
+    try {
+        await auth.createUserWithEmailAndPassword(email, pwd);
+        showTab('home');
+    } catch(e) {
+        showAuthError(`❌ ${e.message}`);
+    }
+}
+
+function handleLogout() { auth.signOut(); showTab('profile'); }
+
+async function resetPassword() {
+    const email = document.getElementById('loginEmail').value.trim();
+    if (!email || !email.includes('@')) { showAuthError("Saisissez votre email"); return; }
+    if (!confirm(`Envoyer un email à ${email} ?`)) return;
+    try {
+        await auth.sendPasswordResetEmail(email);
+        alert(`✅ Email envoyé !`);
+    } catch(e) { showAuthError(`❌ ${e.message}`); }
+}
+
+function showAuthError(msg) {
+    let errorDiv = document.getElementById('auth-error');
+    if (!errorDiv) return;
+    if (!msg) { errorDiv.classList.add('hidden'); return; }
+    errorDiv.classList.remove('hidden');
+    errorDiv.innerText = msg;
+    errorDiv.style.background = 'rgba(239,68,68,0.2)';
+    errorDiv.style.color = '#ef4444';
 }
 
 // ============================================
@@ -1228,14 +898,22 @@ function updateProfileUI() {
     unauth.classList.add('hidden');
     authDiv.classList.remove('hidden');
     
-    const displayId = currentUser.email?.split('@')[0] || 'User';
-    document.getElementById('userName').innerText = displayId;
+    document.getElementById('userName').innerText = currentUser.email?.split('@')[0] || 'User';
     document.getElementById('userEmail').innerText = currentUser.email || '';
-    document.getElementById('userAvatar').innerText = (displayId.charAt(0) || 'U').toUpperCase();
+    document.getElementById('userAvatar').innerText = (currentUser.email?.charAt(0) || 'U').toUpperCase();
     
     const myVids = allVideos.filter(v => v.userId === currentUser.uid);
     document.getElementById('statVideos').innerText = myVids.length;
     document.getElementById('statViews').innerText = myVids.reduce((s, v) => s + (v.views || 0), 0);
+    
+    const notifStatus = document.getElementById('notif-status');
+    if (notifStatus) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            notifStatus.innerText = 'Notifications activées ✓';
+        } else {
+            notifStatus.innerText = 'Activer notifications';
+        }
+    }
     
     if (myalbumEmpty && myalbumContent) {
         if (userAlbum) {
@@ -1250,10 +928,6 @@ function updateProfileUI() {
             myalbumContent.classList.add('hidden');
         }
     }
-    
-    // ✅ INVITATION LINK
-    const inviteLink = `https://al-kitab-wa-as-sunna.vercel.app?ref=${currentUser.uid}`;
-    document.getElementById('invite-link').value = inviteLink;
 }
 
 async function submitAlbumRequest() {
@@ -1272,7 +946,7 @@ async function submitAlbumRequest() {
             status: 'pending',
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        showToast('✅ Demande soumise !', 'check-circle');
+        alert("✅ Demande soumise !");
         await loadUserData();
         updateProfileUI();
     } catch(error) {
@@ -1391,6 +1065,7 @@ function handleVideoClick(videoId, event) {
 function openVideoPlayer(url, title, speaker, videoId) {
     if (!url) return;
     document.getElementById('video-player-title').innerText = title;
+    document.getElementById('video-player-speaker').innerText = speaker;
     const video = document.getElementById('native-video');
     const source = document.getElementById('video-source');
     document.getElementById('video-overlay-player').classList.remove('hidden');
@@ -1407,8 +1082,6 @@ function closeVideoPlayer() {
 // ============================================
 // 📥 TÉLÉCHARGEMENTS
 // ============================================
-let currentPlayingVideo = null;
-
 function showDownloadOptions() {
     document.getElementById('download-modal-title').innerText = currentPlayingVideo?.title || '';
     document.getElementById('download-modal').classList.remove('hidden');
@@ -1430,6 +1103,7 @@ async function downloadWithQuality(quality) {
 function saveUploadProgress(data) {
     try {
         localStorage.setItem('interruptedUpload', JSON.stringify(data));
+        console.log('💾 Progression sauvegardée:', data.currentChunk, '/', data.totalChunks);
         const statusEl = document.getElementById('autosave-status');
         if (statusEl) {
             statusEl.innerHTML = `<i class="fa-solid fa-check mr-1"></i>Sauvegardé: chunk ${data.currentChunk}/${data.totalChunks}`;
@@ -1447,26 +1121,25 @@ function loadUploadProgress() {
 }
 
 function clearUploadProgress() {
-    try { localStorage.removeItem('interruptedUpload'); } catch (e) {}
+    try {
+        localStorage.removeItem('interruptedUpload');
+        console.log('🗑️ Progression effacée');
+    } catch (e) {}
 }
 
 function checkForInterruptedUpload() {
     if (!currentUser || !userAlbum) return;
-    
     const savedData = loadUploadProgress();
-    
     if (savedData && savedData.userId === currentUser.uid && savedData.status === 'processing') {
+        console.log('⚠️ Upload interrompu détecté:', savedData);
         interruptedUploadData = savedData;
-        
         const banner = document.getElementById('interrupted-upload-banner');
         if (banner) {
             banner.classList.remove('hidden');
             document.getElementById('interrupted-file-name').innerText = savedData.fileName || 'Fichier inconnu';
             document.getElementById('interrupted-progress').innerText = `${savedData.currentChunk}/${savedData.totalChunks} chunks`;
-            
             const percent = Math.round((savedData.currentChunk / savedData.totalChunks) * 100);
             document.getElementById('interrupted-progress-bar').style.width = `${percent}%`;
-            
             const timeAgo = getTimeAgo(savedData.lastUpdate);
             document.getElementById('interrupted-upload-info').innerText = `Dernière sauvegarde: ${timeAgo}`;
         }
@@ -1482,26 +1155,20 @@ function getTimeAgo(timestamp) {
 }
 
 async function resumeInterruptedUpload() {
-    if (!interruptedUploadData) {
-        alert('Aucune donnée de reprise');
-        return;
-    }
-    
+    if (!interruptedUploadData) { alert('Aucune donnée'); return; }
     if (!currentFileBlob) {
         alert('❌ Le fichier original n\'est plus disponible.\n\nVeuillez sélectionner à nouveau le fichier.');
         cancelInterruptedUpload();
         return;
     }
-    
+    console.log('🔄 Reprise depuis le chunk', interruptedUploadData.currentChunk);
     isResumingUpload = true;
     document.getElementById('interrupted-upload-banner').classList.add('hidden');
     document.getElementById('upload-form').classList.remove('hidden');
     document.getElementById('uploadProgress').classList.remove('hidden');
-    
     document.getElementById('selected-file-name').innerText = interruptedUploadData.fileName;
     document.getElementById('videoTitle').value = interruptedUploadData.title;
     document.getElementById('videoType').value = interruptedUploadData.videoType;
-    
     try {
         await resumeChunkedUpload(
             interruptedUploadData.fileName,
@@ -1516,6 +1183,7 @@ async function resumeInterruptedUpload() {
             interruptedUploadData.duration
         );
     } catch (error) {
+        console.error('❌ Erreur reprise:', error);
         alert('❌ Erreur: ' + error.message);
         isResumingUpload = false;
     }
@@ -1530,17 +1198,14 @@ function cancelInterruptedUpload() {
 }
 
 // ============================================
-// 🔆 WAKE LOCK
+// 🔆 WAKE LOCK AMÉLIORÉ
 // ============================================
 async function requestWakeLock() {
     try {
         if ('wakeLock' in navigator) {
-            if (wakeLock) {
-                try { await wakeLock.release(); } catch(e) {}
-            }
-            
+            if (wakeLock) { try { await wakeLock.release(); } catch(e) {} }
             wakeLock = await navigator.wakeLock.request('screen');
-            
+            console.log('✅ Wake Lock activé');
             if (wakeLockRenewInterval) clearInterval(wakeLockRenewInterval);
             wakeLockRenewInterval = setInterval(async () => {
                 try {
@@ -1550,7 +1215,7 @@ async function requestWakeLock() {
                     }
                 } catch (e) {}
             }, 30000);
-            
+            wakeLock.addEventListener('release', () => console.log('⚠️ Wake Lock relâché'));
             document.addEventListener('visibilitychange', async () => {
                 if (document.visibilityState === 'visible' && wakeLock === null) {
                     try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
@@ -1567,12 +1232,8 @@ async function releaseWakeLock() {
         clearInterval(wakeLockRenewInterval);
         wakeLockRenewInterval = null;
     }
-    
     if (wakeLock !== null) {
-        try {
-            await wakeLock.release();
-            wakeLock = null;
-        } catch (err) {}
+        try { await wakeLock.release(); wakeLock = null; } catch (err) {}
     }
 }
 
@@ -1582,38 +1243,26 @@ async function releaseWakeLock() {
 function handleFileSelected(input) {
     if (!input.files?.length) return;
     const file = input.files[0];
-    
-    if (!currentUser || !userAlbum) { 
-        alert("Album non trouvé"); 
-        input.value = ''; 
-        return; 
-    }
-    
+    if (!currentUser || !userAlbum) { alert("Album non trouvé"); input.value = ''; return; }
+    console.log('📖 Lecture immédiate du fichier...');
     const reader = new FileReader();
-    
     reader.onload = (e) => {
         try {
             currentFileBlob = new Blob([e.target.result], { type: file.type });
             currentFileName = file.name;
             currentFileSize = file.size;
             currentFileType = file.type;
-            
+            console.log('✅ Fichier lu:', currentFileBlob.size, 'bytes');
             document.getElementById('selected-file-name').innerText = file.name;
             document.getElementById('selected-file-size').innerText = `(${(file.size / 1024 / 1024).toFixed(1)} Mo)`;
             document.getElementById('videoTitle').value = file.name.replace(/\.[^/.]+$/, "");
             document.getElementById('upload-form').classList.remove('hidden');
-            
         } catch (error) {
             alert('❌ Erreur: ' + error.message);
             input.value = '';
         }
     };
-    
-    reader.onerror = () => {
-        alert('❌ Erreur de lecture');
-        input.value = '';
-    };
-    
+    reader.onerror = () => { alert('❌ Erreur de lecture'); input.value = ''; };
     reader.readAsArrayBuffer(file);
 }
 
@@ -1624,18 +1273,15 @@ function cancelFileSelection() {
 }
 
 async function uploadVideoWithChunking() {
-    if (!currentFileBlob) {
-        alert("Aucun fichier");
-        return;
-    }
-    
+    if (!currentFileBlob) { alert("Aucun fichier"); return; }
     const title = document.getElementById('videoTitle').value.trim();
     const videoType = document.getElementById('videoType').value;
-    
     if (!title) { alert("Titre requis"); return; }
     if (!videoType) { alert("Type requis"); return; }
     
     const progressDiv = document.getElementById('uploadProgress');
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
     const uploadBtn = document.getElementById('btn-upload');
     const cancelBtn = document.getElementById('btn-cancel-upload');
     
@@ -1648,9 +1294,9 @@ async function uploadVideoWithChunking() {
     await requestWakeLock();
     
     try {
+        progressPercent.innerText = 'Miniature...';
         const { thumbnail, duration } = await generateThumbnailFromBlob(currentFileBlob);
         const fileName = `videos/${Date.now()}_${currentFileName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-        
         const CHUNK_THRESHOLD = 10 * 1024 * 1024;
         
         if (currentFileBlob.size < CHUNK_THRESHOLD) {
@@ -1658,7 +1304,6 @@ async function uploadVideoWithChunking() {
         } else {
             await startChunkedUpload(fileName, currentFileBlob, thumbnail, duration, title, videoType);
         }
-        
     } catch(error) {
         alert("Erreur: " + error.message);
         progressDiv.classList.add('hidden');
@@ -1670,46 +1315,29 @@ async function uploadVideoWithChunking() {
 }
 
 async function startChunkedUpload(fileName, fileBlob, thumbnail, duration, title, videoType) {
-    const progressText = document.getElementById('progressPercent');
-    progressText.innerText = 'Init...';
-    
+    const progressPercent = document.getElementById('progressPercent');
+    progressPercent.innerText = 'Init...';
     const initResponse = await fetch('/api/upload-b2-chunked', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-            fileName: fileName,
-            fileSize: fileBlob.size,
-            contentType: fileBlob.type || 'video/mp4'
-        })
+        body: JSON.stringify({ fileName: fileName, fileSize: fileBlob.size, contentType: fileBlob.type || 'video/mp4' })
     });
-    
     if (!initResponse.ok) throw new Error(`Erreur: ${initResponse.status}`);
-    
     const { fileId, authorizationToken } = await initResponse.json();
     const totalChunks = Math.ceil(fileBlob.size / CHUNK_SIZE);
-    
+    console.log('📦 Début upload chunked:', totalChunks, 'chunks');
     saveUploadProgress({
-        userId: currentUser.uid,
-        fileName: fileName,
-        originalFileName: currentFileName,
-        fileId: fileId,
-        authorizationToken: authorizationToken,
-        totalChunks: totalChunks,
-        currentChunk: 0,
-        partShas: [],
-        title: title,
-        videoType: videoType,
-        thumbnail: thumbnail,
-        duration: duration,
-        status: 'processing',
-        lastUpdate: Date.now()
+        userId: currentUser.uid, fileName, originalFileName: currentFileName,
+        fileId, authorizationToken, totalChunks, currentChunk: 0, partShas: [],
+        title, videoType, thumbnail, duration, status: 'processing', lastUpdate: Date.now()
     });
-    
     await uploadChunks(fileName, fileBlob, fileId, authorizationToken, 1, totalChunks, [], title, videoType, thumbnail, duration);
 }
 
 async function resumeChunkedUpload(fileName, fileId, authorizationToken, partShas, lastChunk, totalChunks, title, videoType, thumbnail, duration) {
+    const progressPercent = document.getElementById('progressPercent');
+    progressPercent.innerText = 'Reprise...';
     await uploadChunks(fileName, currentFileBlob, fileId, authorizationToken, lastChunk, totalChunks, partShas, title, videoType, thumbnail, duration);
 }
 
@@ -1727,7 +1355,6 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
     let lastLoaded = uploadedChunks * CHUNK_SIZE;
     let lastTime = Date.now();
     let speeds = [];
-    
     const totalSizeMB = (fileBlob.size / 1024 / 1024).toFixed(1);
     
     progressDetail.innerText = `${(lastLoaded / 1024 / 1024).toFixed(1)} Mo / ${totalSizeMB} Mo`;
@@ -1738,21 +1365,11 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
     
     for (let partNumber = startChunk; partNumber <= totalChunks; partNumber++) {
         if (uploadAborted) {
+            console.log('⚠️ Upload annulé');
             saveUploadProgress({
-                userId: currentUser.uid,
-                fileName: fileName,
-                originalFileName: currentFileName,
-                fileId: fileId,
-                authorizationToken: authorizationToken,
-                totalChunks: totalChunks,
-                currentChunk: partNumber,
-                partShas: partShas,
-                title: title,
-                videoType: videoType,
-                thumbnail: thumbnail,
-                duration: duration,
-                status: 'processing',
-                lastUpdate: Date.now()
+                userId: currentUser.uid, fileName, originalFileName: currentFileName,
+                fileId, authorizationToken, totalChunks, currentChunk: partNumber, partShas,
+                title, videoType, thumbnail, duration, status: 'processing', lastUpdate: Date.now()
             });
             await releaseWakeLock();
             throw new Error('Upload annulé');
@@ -1761,7 +1378,6 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
         const start = (partNumber - 1) * CHUNK_SIZE;
         const end = Math.min(start + CHUNK_SIZE, fileBlob.size);
         const chunk = fileBlob.slice(start, end);
-        
         currentChunkEl.innerText = `${partNumber}/${totalChunks}`;
         
         const partUrlResponse = await fetch('/api/get-upload-part-url', {
@@ -1770,25 +1386,19 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
             credentials: 'include',
             body: JSON.stringify({ fileId, authorizationToken })
         });
-        
         if (!partUrlResponse.ok) throw new Error(`Erreur part URL`);
-        
         const { uploadUrl: chunkUploadUrl, authorizationToken: chunkAuthToken } = await partUrlResponse.json();
         const sha1 = await calculateSHA1(chunk);
         
         let retryCount = 0, success = false;
-        
         while (retryCount < MAX_RETRY && !success) {
             try {
-                const chunkStartTime = Date.now();
                 const result = await uploadChunkWithProgress(chunkUploadUrl, chunkAuthToken, chunk, partNumber, sha1, (loaded) => {
                     const currentTotalLoaded = (uploadedChunks * CHUNK_SIZE) + loaded;
                     const percent = (currentTotalLoaded / fileBlob.size) * 100;
-                    
                     progressBar.style.width = `${percent}%`;
                     progressPercent.innerText = `${Math.round(percent)}%`;
                     progressDetail.innerText = `${(currentTotalLoaded / 1024 / 1024).toFixed(1)} Mo / ${totalSizeMB} Mo`;
-                    
                     const now = Date.now();
                     const timeDiff = (now - lastTime) / 1000;
                     if (timeDiff >= 0.5) {
@@ -1796,9 +1406,7 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
                         speeds.push(speedMBps);
                         if (speeds.length > 5) speeds.shift();
                         const avg = speeds.reduce((a, b) => a + b, 0) / speeds.length;
-                        
                         speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${avg >= 1 ? avg.toFixed(2) + ' Mo/s' : (avg*1024).toFixed(0) + ' Ko/s'}`;
-                        
                         if (avg > 0) {
                             const remainingBytes = fileBlob.size - currentTotalLoaded;
                             const rem = remainingBytes / (avg * 1024 * 1024);
@@ -1806,51 +1414,27 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
                             else if (rem < 3600) timeRemaining.innerText = `${Math.floor(rem/60)}m ${Math.ceil(rem%60)}s`;
                             else timeRemaining.innerText = `${Math.floor(rem/3600)}h`;
                         }
-                        
                         lastTime = now;
                         lastLoaded = currentTotalLoaded;
                     }
                 });
-                
                 partShas.push({ partNumber, sha1: result.contentSha1 || sha1, contentLength: chunk.size });
                 uploadedChunks++;
                 success = true;
-                
+                console.log(`✅ Chunk ${partNumber}/${totalChunks} terminé`);
                 saveUploadProgress({
-                    userId: currentUser.uid,
-                    fileName: fileName,
-                    originalFileName: currentFileName,
-                    fileId: fileId,
-                    authorizationToken: authorizationToken,
-                    totalChunks: totalChunks,
-                    currentChunk: partNumber + 1,
-                    partShas: partShas,
-                    title: title,
-                    videoType: videoType,
-                    thumbnail: thumbnail,
-                    duration: duration,
-                    status: 'processing',
-                    lastUpdate: Date.now()
+                    userId: currentUser.uid, fileName, originalFileName: currentFileName,
+                    fileId, authorizationToken, totalChunks, currentChunk: partNumber + 1, partShas,
+                    title, videoType, thumbnail, duration, status: 'processing', lastUpdate: Date.now()
                 });
-                
             } catch (error) {
                 retryCount++;
+                console.warn(`⚠️ Chunk ${partNumber} échoué (${retryCount}/${MAX_RETRY})`);
                 if (retryCount >= MAX_RETRY) {
                     saveUploadProgress({
-                        userId: currentUser.uid,
-                        fileName: fileName,
-                        originalFileName: currentFileName,
-                        fileId: fileId,
-                        authorizationToken: authorizationToken,
-                        totalChunks: totalChunks,
-                        currentChunk: partNumber,
-                        partShas: partShas,
-                        title: title,
-                        videoType: videoType,
-                        thumbnail: thumbnail,
-                        duration: duration,
-                        status: 'processing',
-                        lastUpdate: Date.now()
+                        userId: currentUser.uid, fileName, originalFileName: currentFileName,
+                        fileId, authorizationToken, totalChunks, currentChunk: partNumber, partShas,
+                        title, videoType, thumbnail, duration, status: 'processing', lastUpdate: Date.now()
                     });
                     await releaseWakeLock();
                     throw new Error(`Échec chunk ${partNumber}`);
@@ -1861,49 +1445,35 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
     }
     
     progressPercent.innerText = 'Finalisation...';
-    
     const finalizeResponse = await fetch('/api/finish-b2-chunked', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ fileId, partShas, fileName })
     });
-    
     if (!finalizeResponse.ok) {
+        const errorText = await finalizeResponse.text();
+        console.error('❌ Erreur finalisation:', errorText);
         await releaseWakeLock();
         throw new Error(`Finalisation: ${finalizeResponse.status}`);
     }
-    
     const finalizeData = await finalizeResponse.json();
-    const finalVideoUrl = finalizeData.downloadUrl || 
-        ('https://f005.backblazeb2.com/file/minbar-media/' + encodeURIComponent(fileName));
+    const finalVideoUrl = finalizeData.downloadUrl || ('https://f005.backblazeb2.com/file/minbar-media/' + encodeURIComponent(fileName));
     
     await db.collection('videos').add({
-        userId: currentUser.uid,
-        albumId: userAlbum.id,
-        fileName: currentFileName,
-        title: title,
-        speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
-        duration: duration,
-        date: new Date().toISOString().split('T')[0],
-        views: 0, downloads: 0,
-        downloadURL: finalVideoUrl,
-        thumbnail: thumbnail,
-        uploadedAt: new Date(),
-        size: fileBlob.size,
-        storage: 'backblaze_b2',
-        cdn: 'bunny_net',
-        videoType: videoType,
-        uploadMethod: 'chunked'
+        userId: currentUser.uid, albumId: userAlbum.id, fileName: currentFileName,
+        title, speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
+        duration, date: new Date().toISOString().split('T')[0],
+        views: 0, downloads: 0, downloadURL: finalVideoUrl,
+        thumbnail, uploadedAt: new Date(), size: fileBlob.size,
+        storage: 'backblaze_b2', cdn: 'bunny_net', videoType, uploadMethod: 'chunked'
     });
     
     clearUploadProgress();
-    
     progressBar.style.width = '100%';
     progressPercent.innerText = '100%';
     speedText.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Terminé';
     timeRemaining.innerText = '✅ Terminé';
-    
     await releaseWakeLock();
     
     setTimeout(() => {
@@ -1921,8 +1491,8 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
     await loadAllVideos();
     updateProfileUI();
     renderAll();
-    showToast('✅ Vidéo publiée !', 'check-circle');
-    
+    sendNotification('✅ Vidéo publiée', 'Votre vidéo a été publiée avec succès !');
+    alert(`✅ Vidéo publiée !`);
     isResumingUpload = false;
 }
 
@@ -1930,17 +1500,14 @@ function uploadChunkWithProgress(uploadUrl, authorizationToken, chunk, partNumbe
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.timeout = 300000;
-        
         xhr.upload.addEventListener('progress', (e) => {
             if (e.lengthComputable && onProgress) onProgress(e.loaded);
         });
-        
         xhr.open('POST', uploadUrl, true);
         xhr.setRequestHeader('Authorization', authorizationToken);
         xhr.setRequestHeader('X-Bz-Part-Number', partNumber.toString());
         xhr.setRequestHeader('X-Bz-Content-Sha1', sha1);
         xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-        
         xhr.onload = () => {
             if (xhr.status === 200) {
                 try { resolve(JSON.parse(xhr.responseText)); } 
@@ -1959,33 +1526,25 @@ async function uploadSimpleFile(fileName, fileBlob, thumbnail, duration, title, 
     const progressDetail = document.getElementById('progressDetail');
     const speedText = document.getElementById('speedText');
     const timeRemaining = document.getElementById('timeRemaining');
-    
     progressPercent.innerText = 'Init...';
-    
     const initResponse = await fetch('/api/upload-b2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         credentials: 'include'
     });
-    
     if (!initResponse.ok) throw new Error(`Erreur: ${initResponse.status}`);
-    
     const { uploadUrl, authorizationToken, downloadUrl } = await initResponse.json();
-    
     const totalSizeMB = (fileBlob.size / 1024 / 1024).toFixed(1);
     let lastLoaded = 0, lastTime = Date.now(), speeds = [];
-    
     await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.timeout = 900000;
-        
         xhr.upload.addEventListener('progress', (e) => {
             if (e.lengthComputable) {
                 const percent = (e.loaded / e.total) * 100;
                 progressBar.style.width = `${percent}%`;
                 progressPercent.innerText = `${Math.round(percent)}%`;
                 progressDetail.innerText = `${(e.loaded / 1024 / 1024).toFixed(1)} Mo / ${totalSizeMB} Mo`;
-                
                 const now = Date.now();
                 const timeDiff = (now - lastTime) / 1000;
                 if (timeDiff >= 0.5) {
@@ -1993,61 +1552,40 @@ async function uploadSimpleFile(fileName, fileBlob, thumbnail, duration, title, 
                     speeds.push(speedMBps);
                     if (speeds.length > 5) speeds.shift();
                     const avg = speeds.reduce((a, b) => a + b, 0) / speeds.length;
-                    
                     speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${avg >= 1 ? avg.toFixed(2) + ' Mo/s' : (avg*1024).toFixed(0) + ' Ko/s'}`;
-                    
                     if (avg > 0) {
                         const rem = (e.total - e.loaded) / (avg * 1024 * 1024);
                         timeRemaining.innerText = rem < 60 ? `${Math.ceil(rem)}s` : `${Math.floor(rem/60)}m`;
                     }
-                    
                     lastLoaded = e.loaded;
                     lastTime = now;
                 }
             }
         });
-        
         xhr.onload = () => xhr.status === 200 ? resolve() : reject(new Error(`HTTP ${xhr.status}`));
         xhr.onerror = () => reject(new Error('Erreur réseau'));
         xhr.ontimeout = () => reject(new Error('Timeout'));
-        
         xhr.open('POST', uploadUrl, true);
         xhr.setRequestHeader('Authorization', authorizationToken);
         xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
         xhr.setRequestHeader('Content-Type', fileBlob.type || 'video/mp4');
         xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
-        
         xhr.send(fileBlob);
     });
-    
     const finalVideoUrl = downloadUrl + encodeURIComponent(fileName);
-    
     await db.collection('videos').add({
-        userId: currentUser.uid,
-        albumId: userAlbum.id,
-        fileName: currentFileName,
-        title: title,
-        speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
-        duration: duration,
-        date: new Date().toISOString().split('T')[0],
-        views: 0, downloads: 0,
-        downloadURL: finalVideoUrl,
-        thumbnail: thumbnail,
-        uploadedAt: new Date(),
-        size: fileBlob.size,
-        storage: 'backblaze_b2',
-        cdn: 'bunny_net',
-        videoType: videoType,
-        uploadMethod: 'simple'
+        userId: currentUser.uid, albumId: userAlbum.id, fileName: currentFileName,
+        title, speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
+        duration, date: new Date().toISOString().split('T')[0],
+        views: 0, downloads: 0, downloadURL: finalVideoUrl,
+        thumbnail, uploadedAt: new Date(), size: fileBlob.size,
+        storage: 'backblaze_b2', cdn: 'bunny_net', videoType, uploadMethod: 'simple'
     });
-    
     progressBar.style.width = '100%';
     progressPercent.innerText = '100%';
     speedText.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Terminé';
     timeRemaining.innerText = '✅ Terminé';
-    
     await releaseWakeLock();
-    
     setTimeout(() => {
         document.getElementById('uploadProgress').classList.add('hidden');
         document.getElementById('upload-form').classList.add('hidden');
@@ -2055,11 +1593,11 @@ async function uploadSimpleFile(fileName, fileBlob, thumbnail, duration, title, 
         document.getElementById('btn-upload').disabled = false;
         document.getElementById('btn-upload').innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
     }, 1500);
-    
     await loadAllVideos();
     updateProfileUI();
     renderAll();
-    showToast('✅ Vidéo publiée !', 'check-circle');
+    sendNotification('✅ Vidéo publiée', 'Votre vidéo a été publiée avec succès !');
+    alert(`✅ Vidéo publiée !`);
 }
 
 async function generateThumbnailFromBlob(fileBlob) {
@@ -2068,14 +1606,11 @@ async function generateThumbnailFromBlob(fileBlob) {
         video.preload = 'metadata';
         video.muted = true;
         video.playsInline = true;
-        
         let duration = 0;
-        
         video.onloadedmetadata = () => {
             duration = video.duration || 0;
             video.currentTime = Math.min(5, duration * 0.1);
         };
-        
         video.onseeked = () => {
             try {
                 const canvas = document.createElement('canvas');
@@ -2088,7 +1623,6 @@ async function generateThumbnailFromBlob(fileBlob) {
                 resolve({ thumbnail: '', duration: formatDuration(duration) });
             }
         };
-        
         video.onerror = () => resolve({ thumbnail: '', duration: '00:00' });
         setTimeout(() => resolve({ thumbnail: '', duration: '00:00' }), 15000);
         video.src = URL.createObjectURL(fileBlob);
@@ -2119,7 +1653,6 @@ function renderMyVideos() {
         container.innerHTML = '<p class="text-center text-zinc-500 text-xs py-6">Aucune vidéo</p>';
         return;
     }
-    
     container.innerHTML = myVids.map(v => {
         const thumb = v.thumbnail || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgZmlsbD0iIzE4MTgxYiIvPjxjaXJjbGUgY3g9IjI0MCIgY3k9IjEzNSIgcj0iNDAiIGZpbGw9IiNmZjU3MjIiLz48cG9seWdvbiBwb2ludHM9IjIyNSwxMTUgMjI1LDE1NSAyNjUsMTM1IiBmaWxsPSIjZmZmIi8+PC9zdmc+';
         return `
@@ -2155,377 +1688,293 @@ async function deleteMyVideo(videoId) {
 }
 
 // ============================================
-// 🆘 SUPPORT AMÉLIORÉ (TEXTE + IMAGES + VOCAL)
+// 🔔 NOTIFICATIONS AVEC SON ET VIBRATION
 // ============================================
-
-// ✅ GESTION IMAGES SUPPORT
-function handleSupportImages(input) {
-    if (!input.files?.length) return;
-    
-    const files = Array.from(input.files).slice(0, 3); // Max 3 images
-    
-    if (supportImages.length + files.length > 3) {
-        alert('Maximum 3 images autorisées');
-        input.value = '';
+async function toggleNotifications() {
+    if (!('Notification' in window)) {
+        alert("❌ Notifications non supportées");
         return;
     }
-    
-    files.forEach(file => {
-        if (file.size > 5 * 1024 * 1024) {
-            alert(`Image trop lourde: ${file.name} (max 5 Mo)`);
-            return;
-        }
-        supportImages.push(file);
-    });
-    
-    renderSupportImagesPreview();
-    input.value = '';
-}
-
-function renderSupportImagesPreview() {
-    const container = document.getElementById('support-images-preview');
-    container.innerHTML = supportImages.map((file, idx) => `
-        <div class="relative">
-            <img src="${URL.createObjectURL(file)}" class="w-full h-20 object-cover rounded-lg border border-zinc-700">
-            <button onclick="removeSupportImage(${idx})" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px]">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-    `).join('');
-}
-
-function removeSupportImage(idx) {
-    supportImages.splice(idx, 1);
-    renderSupportImagesPreview();
-}
-
-// ✅ ENREGISTREMENT VOCAL
-async function toggleVoiceRecording() {
-    const btn = document.getElementById('btn-record-voice');
-    const status = document.getElementById('voice-recording-status');
-    const preview = document.getElementById('voice-preview');
-    const deleteBtn = document.getElementById('btn-delete-voice');
-    
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-        // Arrêter
-        mediaRecorder.stop();
-        btn.innerHTML = '<i class="fa-solid fa-microphone mr-1"></i>Enregistrer';
-        btn.classList.remove('bg-red-600', 'animate-pulse');
-        btn.classList.add('bg-red-600/20');
-        status.classList.add('hidden');
-        clearInterval(voiceRecordingInterval);
-    } else {
-        // Démarrer
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            voiceRecordingChunks = [];
-            
-            mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) voiceRecordingChunks.push(e.data);
-            };
-            
-            mediaRecorder.onstop = () => {
-                supportVoiceBlob = new Blob(voiceRecordingChunks, { type: 'audio/webm' });
-                const audioUrl = URL.createObjectURL(supportVoiceBlob);
-                document.getElementById('voice-audio-preview').src = audioUrl;
-                preview.classList.remove('hidden');
-                deleteBtn.classList.remove('hidden');
-                
-                // Arrêter les tracks
-                stream.getTracks().forEach(track => track.stop());
-            };
-            
-            mediaRecorder.start();
-            btn.innerHTML = '<i class="fa-solid fa-stop mr-1"></i>Arrêter';
-            btn.classList.add('animate-pulse');
-            btn.classList.remove('bg-red-600/20');
-            btn.classList.add('bg-red-600');
-            status.classList.remove('hidden');
-            
-            // Timer
-            voiceRecordingStartTime = Date.now();
-            voiceRecordingInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - voiceRecordingStartTime) / 1000);
-                const min = Math.floor(elapsed / 60).toString().padStart(2, '0');
-                const sec = (elapsed % 60).toString().padStart(2, '0');
-                document.getElementById('voice-timer').innerText = `${min}:${sec}`;
-            }, 1000);
-            
-        } catch(e) {
-            alert('❌ Impossible d\'accéder au microphone: ' + e.message);
-        }
+    if (Notification.permission === 'granted') {
+        sendNotification('🔔 Test', 'Les notifications fonctionnent !');
+        return;
+    }
+    if (Notification.permission === 'denied') {
+        alert("❌ Notifications bloquées. Allez dans les paramètres.");
+        return;
+    }
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+        sendNotification('🔔 Notifications activées !', 'Vous recevrez des notifications.');
+        updateProfileUI();
     }
 }
 
-function deleteVoiceRecording() {
+function sendNotification(title, body) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    try {
+        const notif = new Notification(title, {
+            body: body,
+            vibrate: [200, 100, 200],
+            tag: 'mimbar-' + Date.now()
+        });
+        playNotificationSound();
+        if ('vibrate' in navigator) {
+            navigator.vibrate([200, 100, 200, 100, 200]);
+        }
+        notif.onclick = () => { window.focus(); notif.close(); };
+        setTimeout(() => notif.close(), 5000);
+    } catch (e) {
+        console.error('Notification error:', e);
+    }
+}
+
+function playNotificationSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+    } catch (e) {
+        console.error('Sound error:', e);
+    }
+}
+
+// ============================================
+// 📨 INVITATION D'AMI
+// ============================================
+async function inviteFriend() {
+    const shareData = {
+        title: 'أهل السنة والجماعة',
+        text: '🕌 Rejoignez l\'application "Ahlu Sunna wal Jama\'a" !',
+        url: window.location.href
+    };
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+        } catch (e) {
+            if (e.name !== 'AbortError') copyToClipboard(shareData);
+        }
+    } else {
+        copyToClipboard(shareData);
+    }
+}
+
+function copyToClipboard(shareData) {
+    const text = `${shareData.text}\n\n${shareData.url}`;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('✅ Lien copié !');
+            sendNotification('📨 Invitation', 'Lien copié !');
+        }).catch(() => fallbackCopy(text));
+    } else {
+        fallbackCopy(text);
+    }
+}
+
+function fallbackCopy(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        alert('✅ Lien copié !');
+    } catch (e) {
+        alert('Lien : ' + window.location.href);
+    }
+    document.body.removeChild(textarea);
+}
+
+// ============================================
+// 🆘 SUPPORT AVEC IMAGES ET VOCAL
+// ============================================
+function handleSupportImages(input) {
+    supportImages = Array.from(input.files);
+    const preview = document.getElementById('support-images-preview');
+    preview.innerHTML = '';
+    supportImages.forEach((img, i) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const div = document.createElement('div');
+            div.className = 'relative';
+            div.innerHTML = `
+                <img src="${e.target.result}" class="w-16 h-16 rounded object-cover border border-zinc-700">
+                <button onclick="removeSupportImage(${i})" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-600 text-white text-[10px]">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+            preview.appendChild(div);
+        };
+        reader.readAsDataURL(img);
+    });
+}
+
+function removeSupportImage(index) {
+    supportImages.splice(index, 1);
+    handleSupportImagesRefresh();
+}
+
+function handleSupportImagesRefresh() {
+    const preview = document.getElementById('support-images-preview');
+    preview.innerHTML = '';
+    supportImages.forEach((img, i) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const div = document.createElement('div');
+            div.className = 'relative';
+            div.innerHTML = `
+                <img src="${e.target.result}" class="w-16 h-16 rounded object-cover border border-zinc-700">
+                <button onclick="removeSupportImage(${i})" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-600 text-white text-[10px]">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+            preview.appendChild(div);
+        };
+        reader.readAsDataURL(img);
+    });
+}
+
+async function toggleRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        return;
+    }
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        recordingChunks = [];
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) recordingChunks.push(e.data);
+        };
+        mediaRecorder.onstop = () => {
+            supportVoiceBlob = new Blob(recordingChunks, { type: 'audio/webm' });
+            document.getElementById('voice-preview').classList.remove('hidden');
+            document.getElementById('btn-record').innerHTML = '<i class="fa-solid fa-microphone mr-1" style="color:#ef4444"></i>Enregistrer';
+            document.getElementById('recording-timer').classList.add('hidden');
+            clearInterval(recordingInterval);
+            stream.getTracks().forEach(t => t.stop());
+        };
+        mediaRecorder.start();
+        recordingStartTime = Date.now();
+        document.getElementById('btn-record').innerHTML = '<i class="fa-solid fa-stop mr-1" style="color:#ef4444"></i>Arrêter';
+        document.getElementById('recording-timer').classList.remove('hidden');
+        recordingInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+            const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const s = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('rec-time').innerText = `${m}:${s}`;
+        }, 1000);
+    } catch (e) {
+        alert('❌ Microphone : ' + e.message);
+    }
+}
+
+function removeVoice() {
     supportVoiceBlob = null;
     document.getElementById('voice-preview').classList.add('hidden');
-    document.getElementById('btn-delete-voice').classList.add('hidden');
-    document.getElementById('voice-audio-preview').src = '';
 }
 
-// ✅ UPLOAD IMAGE VERS BACKBLAZE B2 + FIREBASE STORAGE
-async function uploadSupportImageToB2AndFirebase(file) {
-    const fileName = `support/images/${currentUser.uid}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    
-    let b2Url = null;
-    let firebaseUrl = null;
-    
-    // 1️⃣ Upload vers Backblaze B2
-    try {
-        const initResponse = await fetch('/api/upload-b2', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            credentials: 'include'
-        });
-        
-        if (initResponse.ok) {
-            const { uploadUrl, authorizationToken, downloadUrl } = await initResponse.json();
-            
-            await new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                xhr.onload = () => xhr.status === 200 ? resolve() : reject(new Error(`HTTP ${xhr.status}`));
-                xhr.onerror = () => reject(new Error('Erreur réseau'));
-                
-                xhr.open('POST', uploadUrl, true);
-                xhr.setRequestHeader('Authorization', authorizationToken);
-                xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
-                xhr.setRequestHeader('Content-Type', file.type);
-                xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
-                xhr.send(file);
-            });
-            
-            b2Url = downloadUrl + encodeURIComponent(fileName);
-        }
-    } catch(e) {
-        console.warn('⚠️ B2 upload failed:', e);
-    }
-    
-    // 2️⃣ Upload vers Firebase Storage
-    try {
-        const storageRef = storage.ref(fileName);
-        const snapshot = await storageRef.put(file);
-        firebaseUrl = await snapshot.ref.getDownloadURL();
-    } catch(e) {
-        console.warn('⚠️ Firebase Storage upload failed:', e);
-    }
-    
-    return { b2Url, firebaseUrl };
-}
-
-// ✅ UPLOAD VOCAL VERS BACKBLAZE B2 + FIREBASE STORAGE
-async function uploadSupportVoiceToB2AndFirebase(blob) {
-    const fileName = `support/voices/${currentUser.uid}/${Date.now()}_voice.webm`;
-    
-    let b2Url = null;
-    let firebaseUrl = null;
-    
-    // 1️⃣ Upload vers Backblaze B2
-    try {
-        const initResponse = await fetch('/api/upload-b2', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            credentials: 'include'
-        });
-        
-        if (initResponse.ok) {
-            const { uploadUrl, authorizationToken, downloadUrl } = await initResponse.json();
-            
-            await new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                xhr.onload = () => xhr.status === 200 ? resolve() : reject(new Error(`HTTP ${xhr.status}`));
-                xhr.onerror = () => reject(new Error('Erreur réseau'));
-                
-                xhr.open('POST', uploadUrl, true);
-                xhr.setRequestHeader('Authorization', authorizationToken);
-                xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
-                xhr.setRequestHeader('Content-Type', blob.type || 'audio/webm');
-                xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
-                xhr.send(blob);
-            });
-            
-            b2Url = downloadUrl + encodeURIComponent(fileName);
-        }
-    } catch(e) {
-        console.warn('⚠️ B2 voice upload failed:', e);
-    }
-    
-    // 2️⃣ Upload vers Firebase Storage
-    try {
-        const storageRef = storage.ref(fileName);
-        const snapshot = await storageRef.put(blob);
-        firebaseUrl = await snapshot.ref.getDownloadURL();
-    } catch(e) {
-        console.warn('⚠️ Firebase Storage voice upload failed:', e);
-    }
-    
-    return { b2Url, firebaseUrl };
-}
-
-// ✅ SOUMISSION SUPPORT COMPLÈTE
 async function submitSupport() {
-    if (!currentUser) { 
-        showToast('❌ Connectez-vous d\'abord', 'xmark');
-        return; 
-    }
-    
-    const message = document.getElementById('supportMessage').value.trim();
+    if (!currentUser) { alert("Connectez-vous"); return; }
     const subject = document.getElementById('supportSubject').value;
-    
-    if (!message) { 
-        showToast('❌ Écrivez un message', 'xmark');
-        return; 
-    }
+    const message = document.getElementById('supportMessage').value.trim();
+    if (!message) { alert("Écrivez un message"); return; }
     
     const btn = document.getElementById('btn-submit-support');
-    const progressDiv = document.getElementById('support-upload-progress');
-    const progressBar = document.getElementById('support-progress-bar');
-    const progressPercent = document.getElementById('support-progress-percent');
-    const progressDetail = document.getElementById('support-progress-detail');
-    
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Envoi...';
-    progressDiv.classList.remove('hidden');
     
     try {
         const imageUrls = [];
-        let voiceData = null;
-        const totalSteps = supportImages.length + (supportVoiceBlob ? 1 : 0) + 1;
-        let currentStep = 0;
+        let voiceUrl = '';
         
-        // 📸 Upload images (B2 + Firebase)
-        for (let i = 0; i < supportImages.length; i++) {
-            progressDetail.innerText = `📸 Image ${i+1}/${supportImages.length}...`;
-            progressPercent.innerText = `${Math.round((currentStep / totalSteps) * 100)}%`;
-            progressBar.style.width = `${(currentStep / totalSteps) * 100}%`;
-            
-            const result = await uploadSupportImageToB2AndFirebase(supportImages[i]);
-            imageUrls.push({
-                b2Url: result.b2Url,
-                firebaseUrl: result.firebaseUrl,
-                originalName: supportImages[i].name
-            });
-            currentStep++;
+        // Upload images vers Backblaze B2
+        if (supportImages.length > 0) {
+            for (let i = 0; i < supportImages.length; i++) {
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Image ${i+1}/${supportImages.length}...`;
+                const url = await uploadSupportFile(supportImages[i], 'support-images');
+                imageUrls.push(url);
+            }
         }
         
-        // 🎤 Upload vocal (B2 + Firebase)
+        // Upload vocal vers Backblaze B2
         if (supportVoiceBlob) {
-            progressDetail.innerText = '🎤 Envoi du vocal...';
-            progressPercent.innerText = `${Math.round((currentStep / totalSteps) * 100)}%`;
-            progressBar.style.width = `${(currentStep / totalSteps) * 100}%`;
-            
-            const result = await uploadSupportVoiceToB2AndFirebase(supportVoiceBlob);
-            voiceData = {
-                b2Url: result.b2Url,
-                firebaseUrl: result.firebaseUrl
-            };
-            currentStep++;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Note vocale...';
+            voiceUrl = await uploadSupportFile(supportVoiceBlob, 'support-voices', 'audio.webm');
         }
         
-        // 💾 Sauvegarde dans Firestore
-        progressDetail.innerText = '💾 Enregistrement...';
-        progressPercent.innerText = '90%';
-        progressBar.style.width = '90%';
-        
+        // Sauvegarder dans Firestore (texte + URLs)
         await db.collection('support').add({
             userId: currentUser.uid,
             userEmail: currentUser.email,
             subject: subject,
             message: message,
-            images: imageUrls, // URLs B2 + Firebase
-            voice: voiceData,  // URLs B2 + Firebase
+            images: imageUrls,
+            voice: voiceUrl,
             status: 'new',
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        progressPercent.innerText = '100%';
-        progressBar.style.width = '100%';
-        progressDetail.innerText = '✅ Envoyé !';
+        document.getElementById('support-success').classList.remove('hidden');
+        document.getElementById('supportMessage').value = '';
+        supportImages = [];
+        supportVoiceBlob = null;
+        document.getElementById('support-images-preview').innerHTML = '';
+        document.getElementById('voice-preview').classList.add('hidden');
         
-        // ✅ NOTIFICATION SON + VIBRATION
-        showToast('✅ Message envoyé à l\'admin !', 'check-circle', 4000);
+        sendNotification('✅ Message envoyé', 'Nous vous répondrons bientôt.');
         
-        // Reset
         setTimeout(() => {
-            document.getElementById('supportMessage').value = '';
-            supportImages = [];
-            supportVoiceBlob = null;
-            renderSupportImagesPreview();
-            deleteVoiceRecording();
-            progressDiv.classList.add('hidden');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>Envoyer le message';
-        }, 2000);
+            document.getElementById('support-success').classList.add('hidden');
+            showTab('profile');
+        }, 3000);
         
     } catch (error) {
-        console.error('❌ Erreur support:', error);
-        showToast('❌ Erreur: ' + error.message, 'xmark', 5000);
+        console.error('Erreur support:', error);
+        alert('❌ Erreur : ' + error.message);
+    } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>Envoyer le message';
-        progressDiv.classList.add('hidden');
     }
 }
 
-// ============================================
-// 👥 INVITATION D'AMI
-// ============================================
-function copyInviteLink() {
-    const link = document.getElementById('invite-link').value;
-    navigator.clipboard.writeText(link).then(() => {
-        showToast('✅ Lien copié !', 'copy');
-    }).catch(() => {
-        // Fallback
-        const input = document.getElementById('invite-link');
-        input.select();
-        document.execCommand('copy');
-        showToast('✅ Lien copié !', 'copy');
+async function uploadSupportFile(file, folder, customName = null) {
+    const response = await fetch('/api/upload-support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
     });
-}
-
-function shareVia(platform) {
-    const link = document.getElementById('invite-link').value;
-    const text = `🕌 Découvrez أهل السنة والجماعة - Vidéos & Prêches authentiques\n\n${link}`;
-    const encodedText = encodeURIComponent(text);
-    const encodedLink = encodeURIComponent(link);
-    
-    let url = '';
-    switch(platform) {
-        case 'whatsapp':
-            url = `https://wa.me/?text=${encodedText}`;
-            break;
-        case 'telegram':
-            url = `https://t.me/share/url?url=${encodedLink}&text=${encodedText}`;
-            break;
-        case 'facebook':
-            url = `https://www.facebook.com/sharer/sharer.php?u=${encodedLink}`;
-            break;
-        case 'sms':
-            url = `sms:?body=${encodedText}`;
-            break;
-    }
-    
-    if (url) {
-        window.open(url, '_blank');
-        showToast('✅ Partage ouvert !', 'share-nodes');
-    }
-}
-
-function shareNative() {
-    const link = document.getElementById('invite-link').value;
-    const text = `🕌 Découvrez أهل السنة والجماعة - Vidéos & Prêches authentiques`;
-    
-    if (navigator.share) {
-        navigator.share({
-            title: 'أهل السنة والجماعة',
-            text: text,
-            url: link
-        }).then(() => {
-            showToast('✅ Partagé avec succès !', 'share-nodes');
-        }).catch(() => {});
-    } else {
-        copyInviteLink();
-    }
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
+    const { uploadUrl, authorizationToken, downloadUrl } = await response.json();
+    const fileName = `${folder}/${Date.now()}_${customName || file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', uploadUrl, true);
+        xhr.setRequestHeader('Authorization', authorizationToken);
+        xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
+        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+        xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                resolve(downloadUrl + encodeURIComponent(fileName));
+            } else {
+                reject(new Error(`Upload failed: ${xhr.status}`));
+            }
+        };
+        xhr.onerror = () => reject(new Error('Erreur réseau'));
+        xhr.timeout = 120000;
+        xhr.send(file);
+    });
 }
 
 // ============================================
@@ -2538,7 +1987,7 @@ const AZKAR_DATA = [
         duas: [
             { title: 'Au nom d\'Allah', arabic: 'بِسْمِ اللَّهِ', phonetic: 'Bismillâh.', translation: 'Au nom d\'Allah.' },
             { title: 'Après les ablutions', arabic: 'أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ. اللَّهُمَّ اجْعَلْنِي مِنَ التَّوَّابِينَ، وَاجْعَلْنِي مِنَ الْمُتَطَهِّرِينَ', phonetic: 'Ashhadu an lâ ilâha illâ-llâhu wahdahu lâ sharîka lahu, wa ashhadu anna Muhammadan \'abduhu wa rasûluhu. Allâhumma-j\'alnî mina-t-tawwâbîna wa-j\'alnî mina-l-mutatahhirîn.', translation: 'Je témoigne qu\'il n\'y a de divinité qu\'Allah, l\'Unique, sans associé, et je témoigne que Muhammad est Son serviteur et Messager.' },
-            { title: 'Invocation pour la lumière', arabic: 'اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا، وَفِي بَصَرِي نُورًا، وَفِي سَمْعِي نُورًا، وَعَنْ يَمِينِي نُورًا، وَعَنْ شِمَالِي نُورًا، وَمِنْ فَوْقِي نُورًا، وَمِنْ تَحْتِي نُورًا، وَأَمَامِي نُورًا، وَخَلْفِي نُورًا، وَاجْعَلْ لِي نُورًا', phonetic: 'Allâhumma-j\'al fî qalbî nûran, wa fî baṣarî nûran, wa fî sam\'î nûran, wa \'an yamînî nûran, wa \'an shimālî nûran, wa min fawqî nûran, wa min taḥtī nûran, wa amâmî nûran, wa khalfī nûran, waj\'al lī nûran.', translation: 'Ô Allah, mets de la lumière dans mon cœur, dans ma vue, dans mon ouïe, à ma droite, à ma gauche, au-dessus de moi, au-dessous de moi, devant moi, derrière moi, et accorde-moi une lumière.' }
+            { title: 'Invocation pour la lumière', arabic: 'اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا، وَفِي بَصَرِي نُورًا، وَفِي سَمْعِي نُورًا، وَعَنْ يَمِينِي نُورًا، وَعَنْ شِمَالِي نُورًا، وَمِنْ فَوْقِي نُورًا، وَمِنْ تَحْتِي نُورًا، وَأَمَامِي نُورًا، وَخَلْفِي نُورًا، وَاجْعَلْ لِي نُورًا', phonetic: 'Allâhumma-j\'al fî qalbî nûran, wa fî baṣarî nûran, wa fî sam\'î nûran, wa \'an yamînî nûran, wa \'an shimālî nûran, wa min fawqî nûran, wa min taḥtī nûran, wa amâmî nûran, wa khalfî nûran, waj\'al lî nûran.', translation: 'Ô Allah, mets de la lumière dans mon cœur, dans ma vue, dans mon ouïe, à ma droite, à ma gauche, au-dessus de moi, au-dessous de moi, devant moi, derrière moi, et accorde-moi une lumière.' }
         ]
     },
     {
@@ -2589,7 +2038,6 @@ function selectAzkarCategory(idx) {
 function renderAzkarDuas() {
     const container = document.getElementById('azkar-duas-list');
     const category = AZKAR_DATA[currentAzkarCategory];
-    
     container.innerHTML = category.duas.map((dua, idx) => `
         <div class="dua-card rounded-2xl p-4 border border-zinc-800 fade-in">
             <div class="flex items-center justify-between mb-3">
@@ -2635,8 +2083,7 @@ function toggleDuaTab(id) {
     }
 }
 
-// ✅ TOGGLE PRIVACY SECTION
-function togglePrivacySection(id) {
+function toggleAccordion(id) {
     const el = document.getElementById(id);
     const icon = document.getElementById(id + '-icon');
     if (el) {
@@ -2649,7 +2096,7 @@ function togglePrivacySection(id) {
 // 🧭 NAVIGATION
 // ============================================
 function showTab(tab) {
-    ['home','downloads','azkar','profile','create','myalbum','support','privacy','invite'].forEach(t => {
+    ['home','downloads','azkar','profile','create','myalbum','support','privacy'].forEach(t => {
         const el = document.getElementById(`tab-${t}`);
         if (el) el.classList.add('hidden');
         const btn = document.getElementById(`nav-${t}`);
@@ -2664,9 +2111,6 @@ function showTab(tab) {
     if (tab === 'azkar') { renderAzkarCategories(); renderAzkarDuas(); }
     if (tab === 'myalbum' && currentUser) { updateProfileUI(); renderMyVideos(); checkForInterruptedUpload(); }
     if (tab === 'profile' && currentUser) updateProfileUI();
-    
-    // Scroll to top
-    document.getElementById('main-content').scrollTop = 0;
 }
 
 function renderAll() {
@@ -2739,7 +2183,6 @@ function toggleDlSubTab(sub) {
 function renderDownloads() {
     const activeList = document.getElementById('active-downloads-list');
     const completedList = document.getElementById('completed-downloads-list');
-    
     if (activeList) activeList.innerHTML = '<div class="text-center text-zinc-500 py-8 text-xs">Aucun téléchargement en cours</div>';
     if (completedList) completedList.innerHTML = '<div class="text-center text-zinc-500 py-8 text-xs">Aucun téléchargement terminé</div>';
 }
