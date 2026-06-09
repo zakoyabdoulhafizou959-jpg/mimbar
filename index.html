@@ -19,7 +19,6 @@
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .arabic-title { font-family: 'Amiri', serif; font-size: 1.1rem; font-weight: 700; }
         .arabic-text { font-family: 'Amiri', serif; direction: rtl; line-height: 2.2; }
-        .azkar-card { background: linear-gradient(135deg, #18181b 0%, #27272a 100%); }
         .duration-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.85); color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; }
         @keyframes pulse-speed { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         .speed-pulse { animation: pulse-speed 1.5s infinite; }
@@ -28,8 +27,6 @@
         .type-hadith { background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
         .type-tafsir { background: rgba(59,130,246,0.2); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
         .type-preche { background: rgba(168,85,247,0.2); color: #a855f7; border: 1px solid rgba(168,85,247,0.3); }
-        .recording-pulse { animation: rec-pulse 1s infinite; }
-        @keyframes rec-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         .profile-gradient { background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%); }
         .stat-card { background: linear-gradient(135deg, rgba(255,87,34,0.1) 0%, rgba(255,152,0,0.05) 100%); border: 1px solid rgba(255,87,34,0.2); }
         .menu-item { transition: all 0.2s ease; }
@@ -40,6 +37,15 @@
         .info-card { background: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.05) 100%); border: 1px solid rgba(59,130,246,0.2); }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
         .accordion-content.open { max-height: 1000px; }
+        .interrupted-upload-banner {
+            background: linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(239,68,68,0.1) 100%);
+            border: 2px solid rgba(245,158,11,0.4);
+            animation: pulse-border 2s infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(245,158,11,0.4); }
+            50% { border-color: rgba(245,158,11,0.8); }
+        }
     </style>
 </head>
 <body class="h-full bg-slate-900 flex justify-center items-center overflow-hidden font-sans">
@@ -140,24 +146,6 @@
                         <i class="fa-solid fa-paper-plane mr-2"></i>Soumettre
                     </button>
                 </div>
-                <div id="album-pending" class="hidden text-center py-8">
-                    <div class="w-16 h-16 mx-auto rounded-full bg-yellow-500/20 flex items-center justify-center mb-3">
-                        <i class="fa-solid fa-hourglass-half text-2xl text-yellow-500"></i>
-                    </div>
-                    <h3 class="text-sm font-bold text-white">Album en examen</h3>
-                </div>
-                <div id="album-approved" class="hidden text-center py-8">
-                    <div class="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center mb-3">
-                        <i class="fa-solid fa-check text-2xl text-emerald-500"></i>
-                    </div>
-                    <h3 class="text-sm font-bold text-white">Album approuvé !</h3>
-                </div>
-                <div id="album-limit" class="hidden text-center py-8">
-                    <div class="w-16 h-16 mx-auto rounded-full bg-red-500/20 flex items-center justify-center mb-3">
-                        <i class="fa-solid fa-ban text-2xl text-red-500"></i>
-                    </div>
-                    <h3 class="text-sm font-bold text-white">Limite atteinte (20 max)</h3>
-                </div>
             </div>
         </div>
 
@@ -168,12 +156,50 @@
                 <button onclick="showTab('create')" class="mt-4 px-4 py-2 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Créer un album</button>
             </div>
             <div id="myalbum-content" class="hidden space-y-4">
+                
+                <!-- BANNIÈRE UPLOAD INTERROMPU -->
+                <div id="interrupted-upload-banner" class="hidden interrupted-upload-banner rounded-2xl p-4 space-y-3">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-triangle-exclamation text-yellow-400"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-sm font-bold text-white">Upload interrompu détecté</h3>
+                            <p class="text-[11px] text-zinc-400 mt-1" id="interrupted-upload-info">Chargement...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-zinc-900/50 rounded-xl p-3 space-y-2">
+                        <div class="flex justify-between text-[10px]">
+                            <span class="text-zinc-400">Fichier:</span>
+                            <span class="text-white font-bold truncate max-w-[200px]" id="interrupted-file-name">-</span>
+                        </div>
+                        <div class="flex justify-between text-[10px]">
+                            <span class="text-zinc-400">Progression:</span>
+                            <span class="text-yellow-400 font-bold" id="interrupted-progress">0/0 chunks</span>
+                        </div>
+                        <div class="flex justify-between text-[10px]">
+                            <span class="text-zinc-400">Pourcentage:</span>
+                            <span class="text-yellow-400 font-bold" id="interrupted-percent">0%</span>
+                        </div>
+                        <div class="h-2 bg-zinc-700 rounded-full overflow-hidden">
+                            <div id="interrupted-progress-bar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#f59e0b,#ef4444)"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button onclick="resumeInterruptedUpload()" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-white" style="background:#ff5722">
+                            <i class="fa-solid fa-play mr-1"></i>Reprendre
+                        </button>
+                        <button onclick="cancelInterruptedUpload()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-zinc-800 text-white">
+                            <i class="fa-solid fa-xmark mr-1"></i>Annuler
+                        </button>
+                    </div>
+                </div>
+                
                 <div class="bg-gradient-to-br from-orange-950 to-zinc-900 rounded-2xl p-4 border border-orange-500/30">
                     <div class="flex items-center justify-between mb-2">
                         <span class="px-2 py-0.5 rounded bg-orange-500 text-zinc-950 text-[9px] font-black uppercase" id="album-status-badge">APPROUVÉ</span>
-                        <button onclick="toggleSelectionMode()" id="btn-select-mode" class="text-[10px] px-2 py-1 bg-zinc-800 rounded text-white">
-                            <i class="fa-regular fa-square-check mr-1"></i>Sélectionner
-                        </button>
                     </div>
                     <h3 class="text-base font-black text-white" id="my-album-title">Mon Album</h3>
                     <p class="text-[10px] text-zinc-400 mt-1">
@@ -184,17 +210,7 @@
                         <span><i class="fa-regular fa-eye"></i> <span id="my-album-views">0</span> vues</span>
                     </div>
                 </div>
-                <div id="selection-bar" class="hidden bg-zinc-900 rounded-xl p-3 border border-orange-500/30 flex items-center justify-between">
-                    <span class="text-xs text-white"><span id="selected-count">0</span> sélectionnée(s)</span>
-                    <div class="flex gap-2">
-                        <button onclick="downloadSelected()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold text-white" style="background:#ff5722">
-                            <i class="fa-solid fa-download mr-1"></i>Télécharger
-                        </button>
-                        <button onclick="deleteSelected()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-red-600 text-white">
-                            <i class="fa-solid fa-trash mr-1"></i>Supprimer
-                        </button>
-                    </div>
-                </div>
+                
                 <div id="upload-section" class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed" style="border-color:rgba(255,87,34,0.5)">
                     <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="handleFileSelected(this)">
                     <button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 rounded-xl text-sm font-bold" style="background:rgba(255,87,34,0.2);color:#ff5722">
@@ -232,12 +248,16 @@
                                 </span>
                             </div>
                             <div class="flex justify-between text-[9px] text-zinc-500">
-                                <span id="progressDetail">0 Mo / 0 Mo</span>
+                                <span id="progressDetail">Chunk 0/0</span>
                                 <span id="timeRemaining">Calcul...</span>
                             </div>
                             <div class="flex justify-between text-[9px] text-zinc-500">
-                                <span>Chunk:</span>
+                                <span>Chunk actuel:</span>
                                 <span id="currentChunk" class="text-white font-bold">-</span>
+                            </div>
+                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-2 text-[10px] text-yellow-300">
+                                <i class="fa-solid fa-floppy-disk mr-1"></i>
+                                <span id="autosave-status">Sauvegarde auto: inactive</span>
                             </div>
                             <button onclick="cancelUpload()" id="btn-cancel-upload" class="w-full py-2 rounded-lg text-xs font-bold bg-red-600 text-white">
                                 <i class="fa-solid fa-stop-circle mr-1"></i>Annuler
@@ -245,6 +265,7 @@
                         </div>
                     </div>
                 </div>
+                
                 <div>
                     <h3 class="text-xs font-black text-zinc-400 uppercase mb-2">Mes vidéos</h3>
                     <div id="my-videos-list" class="space-y-2"></div>
@@ -285,12 +306,12 @@
                         <i class="fa-solid fa-user-circle text-4xl text-white"></i>
                     </div>
                     <h3 class="text-lg font-bold text-white">Bienvenue</h3>
-                    <p class="text-xs text-zinc-400 mt-1">Connectez-vous pour accéder à toutes les fonctionnalités</p>
+                    <p class="text-xs text-zinc-400 mt-1">Connectez-vous</p>
                 </div>
                 <div id="auth-error" class="hidden text-xs text-center px-3 py-2 rounded-lg"></div>
                 <div class="bg-zinc-900 rounded-2xl p-5 space-y-3 border border-zinc-800">
-                    <button onclick="handleGoogleSignIn()" class="w-full py-3 bg-white text-zinc-950 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-zinc-100 transition">
-                        <i class="fa-brands fa-google text-red-500"></i> Continuer avec Google
+                    <button onclick="handleGoogleSignIn()" class="w-full py-3 bg-white text-zinc-950 rounded-xl text-sm font-bold flex items-center justify-center gap-2">
+                        <i class="fa-brands fa-google text-red-500"></i> Google
                     </button>
                     <div class="relative flex py-2 items-center">
                         <div class="flex-grow border-t border-zinc-800"></div>
@@ -299,9 +320,8 @@
                     </div>
                     <input type="email" id="loginEmail" placeholder="📧 Email" class="w-full bg-zinc-800 rounded-xl px-4 py-3 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
                     <input type="password" id="loginPassword" placeholder="🔒 Mot de passe" class="w-full bg-zinc-800 rounded-xl px-4 py-3 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
-                    <button onclick="handleLogin()" id="btn-login" class="w-full py-3 rounded-xl text-sm font-bold text-white transition hover:opacity-90" style="background:#ff5722">Se connecter</button>
-                    <button onclick="handleSignup()" id="btn-signup" class="w-full py-3 bg-zinc-800 rounded-xl text-sm text-white hover:bg-zinc-700 transition">Créer un compte</button>
-                    <button onclick="resetPassword()" class="w-full py-2 text-xs text-zinc-400 underline hover:text-orange-400 transition">Mot de passe oublié ?</button>
+                    <button onclick="handleLogin()" id="btn-login" class="w-full py-3 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Se connecter</button>
+                    <button onclick="handleSignup()" id="btn-signup" class="w-full py-3 bg-zinc-800 rounded-xl text-sm text-white">Créer un compte</button>
                 </div>
             </div>
             
@@ -313,7 +333,7 @@
                             <h4 id="userName" class="text-lg font-bold text-white"></h4>
                             <p class="text-xs text-white/80" id="userEmail"></p>
                         </div>
-                        <button onclick="handleLogout()" class="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm text-xs text-white hover:bg-white/30 transition">
+                        <button onclick="handleLogout()" class="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm text-xs text-white">
                             <i class="fa-solid fa-right-from-bracket mr-1"></i>Sortie
                         </button>
                     </div>
@@ -322,23 +342,14 @@
                 <div class="px-4 -mt-8 relative z-10">
                     <div class="grid grid-cols-3 gap-3">
                         <div class="stat-card rounded-xl p-3 text-center">
-                            <div class="w-8 h-8 mx-auto rounded-full bg-orange-500/20 flex items-center justify-center mb-2">
-                                <i class="fa-solid fa-video text-orange-400 text-sm"></i>
-                            </div>
                             <p class="text-lg font-bold text-white" id="statVideos">0</p>
                             <p class="text-[9px] text-zinc-400 uppercase">Vidéos</p>
                         </div>
                         <div class="stat-card rounded-xl p-3 text-center">
-                            <div class="w-8 h-8 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center mb-2">
-                                <i class="fa-solid fa-eye text-emerald-400 text-sm"></i>
-                            </div>
                             <p class="text-lg font-bold text-white" id="statViews">0</p>
                             <p class="text-[9px] text-zinc-400 uppercase">Vues</p>
                         </div>
                         <div class="stat-card rounded-xl p-3 text-center">
-                            <div class="w-8 h-8 mx-auto rounded-full bg-purple-500/20 flex items-center justify-center mb-2">
-                                <i class="fa-solid fa-download text-purple-400 text-sm"></i>
-                            </div>
                             <p class="text-lg font-bold text-white" id="statDownloads">0</p>
                             <p class="text-[9px] text-zinc-400 uppercase">DL</p>
                         </div>
@@ -346,7 +357,6 @@
                 </div>
                 
                 <div class="p-4 space-y-2">
-                    <h3 class="text-xs font-bold text-zinc-500 uppercase mb-3">Mon contenu</h3>
                     <button onclick="showTab('myalbum')" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
                         <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
                             <i class="fa-solid fa-photo-film text-orange-400"></i>
@@ -361,36 +371,6 @@
                         <span class="flex-1 text-left">Créer un album</span>
                         <i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
                     </button>
-                    
-                    <h3 class="text-xs font-bold text-zinc-500 uppercase mb-3 mt-6">Paramètres</h3>
-                    <button onclick="showTab('support')" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
-                        <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                            <i class="fa-solid fa-headset text-blue-400"></i>
-                        </div>
-                        <span class="flex-1 text-left">Aide & Support</span>
-                        <i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
-                    </button>
-                    <button onclick="inviteFriend()" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
-                        <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
-                            <i class="fa-solid fa-user-plus text-green-400"></i>
-                        </div>
-                        <span class="flex-1 text-left">Inviter un ami</span>
-                        <i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
-                    </button>
-                    <button onclick="toggleNotifications()" id="btn-notif" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
-                        <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
-                            <i class="fa-solid fa-bell text-yellow-400"></i>
-                        </div>
-                        <span class="flex-1 text-left" id="notif-status">Notifications</span>
-                        <i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
-                    </button>
-                    <button onclick="showTab('privacy')" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
-                        <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                            <i class="fa-solid fa-shield-halved text-purple-400"></i>
-                        </div>
-                        <span class="flex-1 text-left">Confidentialité</span>
-                        <i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
-                    </button>
                 </div>
             </div>
         </div>
@@ -403,26 +383,10 @@
                 <h2 class="text-lg font-bold text-white">Aide & Support</h2>
             </div>
             <div class="bg-zinc-900 rounded-2xl p-5 space-y-4 border border-zinc-800">
-                <div>
-                    <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-2">Sujet *</label>
-                    <select id="supportSubject" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
-                        <option value="bug">🐛 Bug</option>
-                        <option value="question">❓ Question</option>
-                        <option value="suggestion">💡 Suggestion</option>
-                        <option value="other">📝 Autre</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-2">Message *</label>
-                    <textarea id="supportMessage" placeholder="Décrivez votre problème..." rows="4" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500"></textarea>
-                </div>
-                <button onclick="submitSupport()" id="btn-submit-support" class="w-full py-3 rounded-xl text-sm font-bold text-white" style="background:#ff5722">
+                <textarea id="supportMessage" placeholder="Votre message..." rows="4" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500"></textarea>
+                <button onclick="submitSupport()" class="w-full py-3 rounded-xl text-sm font-bold text-white" style="background:#ff5722">
                     <i class="fa-solid fa-paper-plane mr-2"></i>Envoyer
                 </button>
-            </div>
-            <div id="support-success" class="hidden text-center py-8 bg-emerald-900/20 border border-emerald-500/30 rounded-2xl">
-                <i class="fa-solid fa-circle-check text-4xl text-emerald-400"></i>
-                <h3 class="text-sm font-bold text-white mt-3">Message envoyé !</h3>
             </div>
         </div>
 
@@ -433,24 +397,8 @@
                 </button>
                 <h2 class="text-lg font-bold text-white">Confidentialité</h2>
             </div>
-            <div class="bg-zinc-900 rounded-2xl p-4 space-y-3 text-xs text-zinc-300 leading-relaxed">
-                <div class="flex items-center gap-2 mb-2">
-                    <i class="fa-solid fa-shield-halved text-2xl" style="color:#a855f7"></i>
-                    <h3 class="text-sm font-bold text-white">Politique de confidentialité</h3>
-                </div>
-                <p class="text-[10px] text-zinc-500">Dernière mise à jour : Juin 2026</p>
-                <div class="border-t border-zinc-800 pt-3">
-                    <h4 class="text-xs font-bold text-white mb-1">1. Collecte des données</h4>
-                    <p>Nous collectons uniquement les données nécessaires : email, vidéos, messages de support.</p>
-                </div>
-                <div class="border-t border-zinc-800 pt-3">
-                    <h4 class="text-xs font-bold text-white mb-1">2. Sécurité</h4>
-                    <p>Vos données sont protégées par Firebase et Backblaze B2 avec chiffrement.</p>
-                </div>
-                <div class="border-t border-zinc-800 pt-3">
-                    <h4 class="text-xs font-bold text-white mb-1">3. Partage</h4>
-                    <p>Nous ne vendons ni ne partageons vos données avec des tiers.</p>
-                </div>
+            <div class="bg-zinc-900 rounded-2xl p-4 text-xs text-zinc-300">
+                <p>Politique de confidentialité.</p>
             </div>
         </div>
     </div>
@@ -473,57 +421,19 @@
                 <source id="video-source" src="" type="video/mp4">
             </video>
         </div>
-        <div class="bg-zinc-900 p-3 flex items-center justify-between">
-            <p id="video-player-speaker" class="text-xs text-zinc-400"></p>
-            <div class="flex gap-2">
-                <button onclick="showDownloadOptions()" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
-                    <i class="fa-solid fa-download mr-1"></i>DL
-                </button>
-                <button onclick="openVideoInNewTab()" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-zinc-700">
-                    <i class="fa-solid fa-external-link mr-1"></i>Ouvrir
-                </button>
-            </div>
-        </div>
     </div>
 
     <div id="download-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-zinc-900 rounded-2xl p-5 w-full max-w-sm space-y-3 border border-zinc-800">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-download" style="color:#ff5722"></i>Télécharger
-            </h3>
+            <h3 class="text-sm font-bold text-white">Télécharger</h3>
             <p class="text-xs text-zinc-400" id="download-modal-title"></p>
-            <div class="space-y-2">
-                <button onclick="downloadWithQuality('hd')" class="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-sm font-bold text-white flex items-center gap-3">
-                    <i class="fa-solid fa-video text-emerald-400"></i>
-                    <div class="text-left flex-1">
-                        <p class="text-xs font-bold">Vidéo HD</p>
-                        <p class="text-[10px] text-zinc-400">MP4 original</p>
-                    </div>
-                </button>
-                <button onclick="downloadWithQuality('audio')" class="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-sm font-bold text-white flex items-center gap-3">
-                    <i class="fa-solid fa-music text-purple-400"></i>
-                    <div class="text-left flex-1">
-                        <p class="text-xs font-bold">Audio seulement</p>
-                        <p class="text-[10px] text-zinc-400">Extraction audio</p>
-                    </div>
-                </button>
-            </div>
+            <button onclick="downloadWithQuality('hd')" class="w-full py-3 bg-zinc-800 rounded-xl text-sm font-bold text-white">
+                <i class="fa-solid fa-video text-emerald-400 mr-2"></i>Vidéo HD
+            </button>
+            <button onclick="downloadWithQuality('audio')" class="w-full py-3 bg-zinc-800 rounded-xl text-sm font-bold text-white">
+                <i class="fa-solid fa-music text-purple-400 mr-2"></i>Audio
+            </button>
             <button onclick="closeDownloadModal()" class="w-full py-2 bg-zinc-800 rounded-xl text-xs text-zinc-400">Annuler</button>
-        </div>
-    </div>
-    
-    <div id="audio-conversion-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-        <div class="bg-zinc-900 rounded-2xl p-5 w-full max-w-sm space-y-4 border border-zinc-800">
-            <div class="text-center">
-                <div class="w-16 h-16 mx-auto rounded-full bg-purple-500/20 flex items-center justify-center mb-3">
-                    <i class="fa-solid fa-music text-2xl text-purple-400"></i>
-                </div>
-                <h3 class="text-sm font-bold text-white">Extraction audio...</h3>
-                <p class="text-xs text-zinc-400 mt-1" id="conversion-status">Préparation...</p>
-            </div>
-            <div class="h-2 bg-zinc-700 rounded-full overflow-hidden">
-                <div id="conversion-progress" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#a855f7,#ec4899)"></div>
-            </div>
         </div>
     </div>
 </div>
@@ -545,12 +455,10 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ✅ PERSISTANCE FIREBASE
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
     .then(() => console.log('✅ Firebase persistence LOCAL'))
     .catch((e) => console.error('❌ Persistence error:', e));
 
-// ✅ CONFIG FIRESTORE POUR MOBILE
 db.settings({
     cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
     experimentalForceLongPolling: true
@@ -559,14 +467,7 @@ db.settings({
 // ============================================
 // ✅ VARIABLES GLOBALES
 // ============================================
-const VIDEO_TYPE_LABELS = {
-    'coran': { label: '🕌 Coran', class: 'type-coran' },
-    'hadith': { label: '📜 Hadith', class: 'type-hadith' },
-    'tafsir': { label: '📖 Tafsir', class: 'type-tafsir' },
-    'preche': { label: '📢 Prêche', class: 'type-preche' }
-};
-
-const CHUNK_SIZE = 1 * 1024 * 1024;
+const CHUNK_SIZE = 5 * 1024 * 1024; // ✅ 5 Mo au lieu de 1 Mo
 const MAX_RETRY = 3;
 
 let currentUser = null;
@@ -576,29 +477,23 @@ let allAlbums = [];
 let selectedTypeFilter = null;
 let selectedAlbumFilter = null;
 let searchQuery = '';
-let selectionMode = false;
-let selectedVideoIds = new Set();
-let currentPlayingVideo = null;
-
-// ✅ STOCKAGE FICHIER EN MÉMOIRE (CORRECTION NotReadableError)
-let currentFileBlob = null; // Le blob en mémoire
-let currentFileName = '';
-let currentFileSize = 0;
-let currentFileType = '';
-
-let completedDownloads = JSON.parse(localStorage.getItem('completedDownloads') || '[]');
-let activeDownloads = JSON.parse(localStorage.getItem('activeDownloads') || '[]');
-let longPressTimer = null;
 let homeSelectionMode = false;
 let homeSelectedVideoIds = new Set();
 let uploadAborted = false;
 let wakeLock = null;
 
-// Support
-let supportImages = [];
+// ✅ FICHIER EN MÉMOIRE
+let currentFileBlob = null;
+let currentFileName = '';
+let currentFileSize = 0;
+let currentFileType = '';
+
+// ✅ UPLOAD INTERROMPU
+let interruptedUploadData = null;
+let isResumingUpload = false;
 
 // ============================================
-// 🔧 FONCTIONS UTILITAIRES
+// 🔧 FONCTIONS UTILITAIRES - EN PREMIER !
 // ============================================
 function getCdnUrl(originalUrl) {
     if (!originalUrl) return '';
@@ -624,7 +519,7 @@ function formatDuration(seconds) {
 }
 
 // ============================================
-// 📿 AZKAR DATA
+// 📿 AZKAR DATA - 31 Dou'as
 // ============================================
 const AZKAR_DATA = [
     {
@@ -705,7 +600,7 @@ const AZKAR_DATA = [
 let currentAzkarCategory = 0;
 
 // ============================================
-// 🔐 AUTH - AVEC SAUVEGARDE MANUELLE TOKEN
+// 🔐 AUTH
 // ============================================
 auth.onAuthStateChanged(async (user) => {
     console.log('🔔 onAuthStateChanged:', user ? user.email : 'null');
@@ -713,12 +608,9 @@ auth.onAuthStateChanged(async (user) => {
     
     if (user) {
         document.getElementById('header-user-status').textContent = user.email?.split('@')[0] || 'Connecté';
-        
         try {
             const token = await user.getIdToken();
             console.log('✅ Token valide obtenu');
-            
-            // ✅ SAUVEGARDER MANUELLEMENT LE TOKEN (pour Median)
             try {
                 localStorage.setItem('firebaseToken', token);
                 localStorage.setItem('firebaseUser', JSON.stringify({
@@ -726,12 +618,10 @@ auth.onAuthStateChanged(async (user) => {
                     email: user.email,
                     displayName: user.displayName
                 }));
-                localStorage.setItem('lastLoginTime', Date.now().toString());
-                console.log('💾 Token sauvegardé dans localStorage');
+                console.log('💾 Token sauvegardé');
             } catch (storageError) {
-                console.warn('⚠️ Impossible de sauvegarder dans localStorage:', storageError);
+                console.warn('⚠️ localStorage error:', storageError);
             }
-            
             await loadUserData();
         } catch (error) {
             console.error('❌ Erreur token:', error);
@@ -740,12 +630,9 @@ auth.onAuthStateChanged(async (user) => {
     } else {
         document.getElementById('header-user-status').textContent = 'Déconnecté';
         userAlbum = null;
-        
-        // Nettoyer le token sauvegardé
         try {
             localStorage.removeItem('firebaseToken');
             localStorage.removeItem('firebaseUser');
-            localStorage.removeItem('lastLoginTime');
         } catch (e) {}
     }
     
@@ -753,39 +640,14 @@ auth.onAuthStateChanged(async (user) => {
     await loadAllAlbums();
     await loadAllVideos();
     renderAll();
+    
+    checkForInterruptedUpload();
 });
 
-// ✅ WAKE LOCK
-async function requestWakeLock() {
-    try {
-        if ('wakeLock' in navigator) {
-            wakeLock = await navigator.wakeLock.request('screen');
-            console.log('✅ Wake Lock activé');
-        }
-    } catch (err) {
-        console.error(`❌ Wake Lock: ${err.message}`);
-    }
-}
-
-async function releaseWakeLock() {
-    if (wakeLock !== null) {
-        try {
-            await wakeLock.release();
-            wakeLock = null;
-        } catch (err) {}
-    }
-}
-
-// ✅ GOOGLE SIGN-IN
 async function handleGoogleSignIn() {
     try {
-        showAuthLoading(true);
         const provider = new firebase.auth.GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: 'select_account' });
-        
-        const isWebView = navigator.userAgent.includes('wv') || 
-                         navigator.userAgent.includes('Median') ||
-                         window.AndroidBridge !== undefined;
+        const isWebView = navigator.userAgent.includes('wv') || navigator.userAgent.includes('Median');
         
         if (isWebView) {
             console.log('📱 WebView → signInWithRedirect');
@@ -794,39 +656,28 @@ async function handleGoogleSignIn() {
             console.log('🌐 Navigateur → signInWithPopup');
             await auth.signInWithPopup(provider);
         }
-        
-        showAuthError('');
         showTab('home');
-        
     } catch(e) {
-        showAuthLoading(false);
         console.error('❌ Google error:', e);
-        
-        if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request') {
+        if (e.code === 'auth/popup-blocked') {
             try {
                 const provider = new firebase.auth.GoogleAuthProvider();
                 await auth.signInWithRedirect(provider);
-                return;
             } catch (e2) {
                 showAuthError(`❌ ${e2.message}`);
-                return;
             }
+        } else {
+            showAuthError(`❌ ${e.message}`);
         }
-        
-        showAuthError(`❌ ${e.message}`);
     }
 }
 
-auth.getRedirectResult()
-    .then((result) => {
-        if (result && result.user) {
-            console.log('✅ Redirect réussi');
-            showTab('home');
-        }
-    })
-    .catch((error) => {
-        console.error('❌ Redirect error:', error);
-    });
+auth.getRedirectResult().then((result) => {
+    if (result && result.user) {
+        console.log('✅ Redirect réussi');
+        showTab('home');
+    }
+}).catch((error) => console.error('❌ Redirect error:', error));
 
 async function handleLogin() {
     const email = document.getElementById('loginEmail').value.trim();
@@ -834,12 +685,9 @@ async function handleLogin() {
     if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
     if (pwd.length < 6) { showAuthError("Mot de passe min 6 caractères"); return; }
     try {
-        showAuthLoading(true);
         await auth.signInWithEmailAndPassword(email, pwd);
-        showAuthError('');
         showTab('home');
     } catch(e) {
-        showAuthLoading(false);
         showAuthError(`❌ ${e.message}`);
     }
 }
@@ -850,26 +698,14 @@ async function handleSignup() {
     if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
     if (pwd.length < 6) { showAuthError("Mot de passe min 6 caractères"); return; }
     try {
-        showAuthLoading(true);
         await auth.createUserWithEmailAndPassword(email, pwd);
-        showAuthError('');
         showTab('home');
     } catch(e) {
-        showAuthLoading(false);
         showAuthError(`❌ ${e.message}`);
     }
 }
 
 function handleLogout() { auth.signOut(); showTab('profile'); }
-
-async function resetPassword() {
-    const email = document.getElementById('loginEmail').value.trim();
-    if (!email || !email.includes('@')) { showAuthError("Saisissez votre email"); return; }
-    try {
-        await auth.sendPasswordResetEmail(email);
-        alert(`✅ Email envoyé !`);
-    } catch(e) { showAuthError(`❌ ${e.message}`); }
-}
 
 function showAuthError(msg) {
     let errorDiv = document.getElementById('auth-error');
@@ -879,17 +715,6 @@ function showAuthError(msg) {
     errorDiv.innerText = msg;
     errorDiv.style.background = 'rgba(239,68,68,0.2)';
     errorDiv.style.color = '#ef4444';
-    errorDiv.style.border = '1px solid rgba(239,68,68,0.3)';
-}
-
-function showAuthLoading(loading) {
-    const loginBtn = document.getElementById('btn-login');
-    const signupBtn = document.getElementById('btn-signup');
-    if (loginBtn) {
-        loginBtn.disabled = loading;
-        loginBtn.innerHTML = loading ? 'Connexion...' : 'Se connecter';
-    }
-    if (signupBtn) signupBtn.disabled = loading;
 }
 
 // ============================================
@@ -899,51 +724,37 @@ async function loadUserData() {
     if (!currentUser) return;
     try {
         const albumQuery = await db.collection('albums').where('userId', '==', currentUser.uid).limit(1).get();
-        if (!albumQuery.empty) {
-            userAlbum = { id: albumQuery.docs[0].id, ...albumQuery.docs[0].data() };
-        } else {
-            userAlbum = null;
-        }
-    } catch(e) { 
-        userAlbum = null;
-    }
+        userAlbum = albumQuery.empty ? null : { id: albumQuery.docs[0].id, ...albumQuery.docs[0].data() };
+    } catch(e) { userAlbum = null; }
 }
 
 async function loadAllAlbums() {
     try {
         const snapshot = await db.collection('albums').where('status', '==', 'approved').get();
-        allAlbums = [];
-        snapshot.forEach(doc => allAlbums.push({ id: doc.id, ...doc.data() }));
-    } catch(e) { 
-        allAlbums = [];
-    }
+        allAlbums = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch(e) { allAlbums = []; }
 }
 
 async function loadAllVideos() {
     try {
         const snapshot = await db.collection('videos').get();
-        allVideos = [];
-        snapshot.forEach(doc => {
+        allVideos = snapshot.docs.map(doc => {
             const v = doc.data();
-            allVideos.push({
+            return {
                 id: doc.id,
                 albumId: v.albumId,
                 userId: v.userId,
                 title: v.title || 'Sans titre',
                 speaker: v.speaker || 'Inconnu',
                 duration: v.duration || "00:00",
-                date: v.date || new Date().toISOString().split('T')[0],
                 views: v.views || 0,
-                downloads: v.downloads || 0,
                 videoUrl: getCdnUrl(v.downloadURL),
                 thumbnail: v.thumbnail || '',
                 size: v.size || 0,
                 videoType: v.videoType || ''
-            });
+            };
         });
-    } catch(e) { 
-        allVideos = [];
-    }
+    } catch(e) { allVideos = []; }
 }
 
 function updateProfileUI() {
@@ -970,7 +781,6 @@ function updateProfileUI() {
     const myVids = allVideos.filter(v => v.userId === currentUser.uid);
     document.getElementById('statVideos').innerText = myVids.length;
     document.getElementById('statViews').innerText = myVids.reduce((s, v) => s + (v.views || 0), 0);
-    document.getElementById('statDownloads').innerText = completedDownloads.length;
     
     if (myalbumEmpty && myalbumContent) {
         if (userAlbum) {
@@ -979,41 +789,30 @@ function updateProfileUI() {
             document.getElementById('my-album-title').innerText = userAlbum.imamName || 'Mon Album';
             document.getElementById('my-album-imam').innerText = userAlbum.imamName || '';
             document.getElementById('my-album-location').innerText = `${userAlbum.city || ''}, ${userAlbum.country || ''}`;
-            document.getElementById('my-videos-count').innerText = myVids.length;
-            document.getElementById('my-album-views').innerText = myVids.reduce((s, v) => s + (v.views || 0), 0);
             renderMyVideos();
-            document.getElementById('create-album-form').classList.add('hidden');
         } else {
             myalbumEmpty.classList.remove('hidden');
             myalbumContent.classList.add('hidden');
-            document.getElementById('create-album-form').classList.remove('hidden');
         }
     }
 }
 
 async function submitAlbumRequest() {
     if (!currentUser) { alert("Connectez-vous"); return; }
-    
     const imamName = document.getElementById('imamName').value.trim();
     const city = document.getElementById('imamCity').value.trim();
     const country = document.getElementById('imamCountry').value.trim();
     const type = document.getElementById('imamType').value;
-    const desc = document.getElementById('imamDesc').value.trim();
     
-    if (!imamName || !city || !country || !type) { 
-        alert("Remplissez tous les champs *"); 
-        return; 
-    }
+    if (!imamName || !city || !country || !type) { alert("Remplissez tous les champs *"); return; }
     
     try {
         await db.collection('albums').add({
             userId: currentUser.uid,
             imamName, city, country, type,
-            description: desc,
             status: 'pending',
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        
         alert("✅ Demande soumise !");
         await loadUserData();
         updateProfileUI();
@@ -1058,14 +857,8 @@ function renderTypeChips() {
 
 function renderAlbumChips() {
     const container = document.getElementById('album-chips');
-    let filteredAlbums = allAlbums;
-    if (selectedTypeFilter) {
-        filteredAlbums = allAlbums.filter(a => a.type === selectedTypeFilter);
-    }
-    const chips = [
-        { id: null, name: '👥 Tous' },
-        ...filteredAlbums.map(a => ({ id: a.id, name: a.imamName || 'Album' }))
-    ];
+    let filteredAlbums = selectedTypeFilter ? allAlbums.filter(a => a.type === selectedTypeFilter) : allAlbums;
+    const chips = [{ id: null, name: '👥 Tous' }, ...filteredAlbums.map(a => ({ id: a.id, name: a.imamName || 'Album' }))];
     container.innerHTML = chips.map(c => `
         <button onclick="filterByAlbum(${c.id ? `'${c.id}'` : 'null'})" 
             class="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap ${selectedAlbumFilter === c.id ? 'text-white' : 'bg-zinc-800 text-zinc-400'}"
@@ -1081,15 +874,12 @@ function getFilteredVideos() {
         const albumIdsOfType = allAlbums.filter(a => a.type === selectedTypeFilter).map(a => a.id);
         filtered = filtered.filter(v => v.videoType === selectedTypeFilter || albumIdsOfType.includes(v.albumId));
     }
-    if (selectedAlbumFilter) {
-        filtered = filtered.filter(v => v.albumId === selectedAlbumFilter);
-    }
+    if (selectedAlbumFilter) filtered = filtered.filter(v => v.albumId === selectedAlbumFilter);
     if (searchQuery) {
         const q = searchQuery.toLowerCase();
         filtered = filtered.filter(v => {
             const album = allAlbums.find(a => a.id === v.albumId);
-            return v.title.toLowerCase().includes(q) || 
-                   v.speaker.toLowerCase().includes(q) ||
+            return v.title.toLowerCase().includes(q) || v.speaker.toLowerCase().includes(q) ||
                    (album && (album.imamName || '').toLowerCase().includes(q));
         });
     }
@@ -1114,120 +904,26 @@ function renderVideoGrid() {
     
     container.innerHTML = filtered.map(v => {
         const album = allAlbums.find(a => a.id === v.albumId);
-        const thumb = v.thumbnail && v.thumbnail.trim() !== '' ? v.thumbnail : defaultThumb;
+        const thumb = v.thumbnail || defaultThumb;
         const isSelected = homeSelectedVideoIds.has(v.id);
-        const duration = v.duration || '00:00';
-        const typeInfo = VIDEO_TYPE_LABELS[v.videoType] || { label: '', class: '' };
         
         return `
         <div class="video-card bg-zinc-900 rounded-xl overflow-hidden cursor-pointer fade-in ${isSelected ? 'ring-2 ring-orange-500' : ''}" 
-             onmousedown="startLongPress('${v.id}')" onmouseup="cancelLongPress()" 
-             ontouchstart="startLongPress('${v.id}')" ontouchend="cancelLongPress()" 
              onclick="handleVideoClick('${v.id}', event)">
             <div class="relative aspect-video bg-zinc-800">
-                <img src="${thumb}" alt="${escapeAttr(v.title)}" class="w-full h-full object-cover" onerror="this.src='${defaultThumb}'">
-                <div class="duration-badge">${duration}</div>
-                ${typeInfo.label ? `<div class="absolute top-2 left-2 type-badge ${typeInfo.class}">${typeInfo.label}</div>` : ''}
-                ${homeSelectionMode ? `
-                    <div class="absolute top-2 right-2 z-10" onclick="event.stopPropagation(); toggleHomeVideoSelection('${v.id}')">
-                        <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-white bg-black/50'}">
-                            ${isSelected ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
-                        </div>
-                    </div>
-                ` : ''}
+                <img src="${thumb}" class="w-full h-full object-cover" onerror="this.src='${defaultThumb}'">
+                <div class="duration-badge">${v.duration}</div>
             </div>
-            <div class="p-3 flex gap-3">
-                <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold shrink-0 text-xs" style="background:rgba(255,87,34,0.2);color:#ff5722">
-                    ${(album?.imamName || v.speaker || 'U').charAt(0).toUpperCase()}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <h4 class="text-sm font-bold text-white line-clamp-2 leading-tight">${escapeAttr(v.title)}</h4>
-                    <p class="text-[11px] mt-1 text-zinc-400">${escapeAttr(album?.imamName || v.speaker)}</p>
-                    <div class="flex gap-3 text-[10px] text-zinc-500 mt-0.5">
-                        <span><i class="fa-regular fa-eye"></i> ${v.views || 0}</span>
-                        <span><i class="fa-solid fa-location-dot"></i> ${escapeAttr(album?.city || '')}</span>
-                    </div>
-                </div>
+            <div class="p-3">
+                <h4 class="text-sm font-bold text-white line-clamp-2">${escapeAttr(v.title)}</h4>
+                <p class="text-[11px] mt-1 text-zinc-400">${escapeAttr(album?.imamName || v.speaker)}</p>
             </div>
         </div>
         `;
     }).join('');
 }
 
-function toggleHomeSelectionMode() {
-    homeSelectionMode = !homeSelectionMode;
-    homeSelectedVideoIds.clear();
-    const btn = document.getElementById('btn-home-select-mode');
-    const bar = document.getElementById('home-selection-bar');
-    if (homeSelectionMode) {
-        btn.innerHTML = '<i class="fa-solid fa-xmark mr-1"></i>Annuler';
-        btn.style.background = '#ff5722';
-        bar.classList.remove('hidden');
-    } else {
-        btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner';
-        btn.style.background = '';
-        bar.classList.add('hidden');
-    }
-    document.getElementById('home-selected-count').innerText = '0';
-    renderVideoGrid();
-}
-
-function toggleHomeVideoSelection(videoId) {
-    if (homeSelectedVideoIds.has(videoId)) homeSelectedVideoIds.delete(videoId);
-    else homeSelectedVideoIds.add(videoId);
-    document.getElementById('home-selected-count').innerText = homeSelectedVideoIds.size;
-    renderVideoGrid();
-}
-
-function toggleSelectAllHome() {
-    const visibleVideos = getFilteredVideos();
-    const allSelected = visibleVideos.length > 0 && visibleVideos.every(v => homeSelectedVideoIds.has(v.id));
-    if (allSelected) visibleVideos.forEach(v => homeSelectedVideoIds.delete(v.id));
-    else visibleVideos.forEach(v => homeSelectedVideoIds.add(v.id));
-    document.getElementById('home-selected-count').innerText = homeSelectedVideoIds.size;
-    renderVideoGrid();
-}
-
-function cancelSelectionHome() {
-    homeSelectionMode = false;
-    homeSelectedVideoIds.clear();
-    const btn = document.getElementById('btn-home-select-mode');
-    const bar = document.getElementById('home-selection-bar');
-    if (btn) { btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner'; btn.style.background = ''; }
-    if (bar) bar.classList.add('hidden');
-    renderVideoGrid();
-}
-
-async function downloadSelectedHome() {
-    if (homeSelectedVideoIds.size === 0) { alert("Aucune vidéo"); return; }
-    const videos = allVideos.filter(v => homeSelectedVideoIds.has(v.id));
-    for (const v of videos) {
-        try { await downloadVideo(getCdnUrl(v.videoUrl), v.title + '.mp4', v.id); } 
-        catch(e) { window.open(getCdnUrl(v.videoUrl), '_blank'); }
-        await new Promise(r => setTimeout(r, 500));
-    }
-    cancelSelectionHome();
-}
-
-function startLongPress(videoId) {
-    if (homeSelectionMode) return;
-    longPressTimer = setTimeout(() => {
-        const v = allVideos.find(x => x.id === videoId);
-        if (v) { currentPlayingVideo = v; showDownloadOptions(); longPressTimer = null; }
-    }, 600);
-}
-
-function cancelLongPress() {
-    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-}
-
 function handleVideoClick(videoId, event) {
-    if (homeSelectionMode) {
-        if (event) event.stopPropagation();
-        toggleHomeVideoSelection(videoId);
-        return;
-    }
-    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
     const video = allVideos.find(x => x.id === videoId);
     if (!video) return;
     openVideoPlayer(getCdnUrl(video.videoUrl), video.title, video.speaker, video.id);
@@ -1235,36 +931,25 @@ function handleVideoClick(videoId, event) {
 
 function openVideoPlayer(url, title, speaker, videoId) {
     if (!url) return;
-    currentPlayingVideo = allVideos.find(v => v.id === videoId) || { videoUrl: url, title, speaker, id: videoId };
     document.getElementById('video-player-title').innerText = title;
-    document.getElementById('video-player-speaker').innerText = speaker;
     const video = document.getElementById('native-video');
     const source = document.getElementById('video-source');
-    video.pause();
     document.getElementById('video-overlay-player').classList.remove('hidden');
     source.src = url;
-    source.type = 'video/mp4';
     video.load();
     video.play().catch(() => {});
-    if (videoId) {
-        db.collection('videos').doc(videoId).update({ views: firebase.firestore.FieldValue.increment(1) }).catch(() => {});
-    }
 }
 
 function closeVideoPlayer() {
-    const video = document.getElementById('native-video');
-    video.pause();
-    document.getElementById('video-source').src = '';
+    document.getElementById('native-video').pause();
     document.getElementById('video-overlay-player').classList.add('hidden');
-    currentPlayingVideo = null;
 }
 
 // ============================================
 // 📥 TÉLÉCHARGEMENTS
 // ============================================
 function showDownloadOptions() {
-    if (!currentPlayingVideo) return;
-    document.getElementById('download-modal-title').innerText = currentPlayingVideo.title;
+    document.getElementById('download-modal-title').innerText = currentPlayingVideo?.title || '';
     document.getElementById('download-modal').classList.remove('hidden');
 }
 
@@ -1272,291 +957,184 @@ function closeDownloadModal() {
     document.getElementById('download-modal').classList.add('hidden');
 }
 
-function openVideoInNewTab() {
-    if (currentPlayingVideo) window.open(getCdnUrl(currentPlayingVideo.videoUrl), '_blank');
-}
-
 async function downloadWithQuality(quality) {
-    if (!currentPlayingVideo) return;
     closeDownloadModal();
-    const v = currentPlayingVideo;
+    if (!currentPlayingVideo) return;
+    
+    const url = getCdnUrl(currentPlayingVideo.videoUrl);
+    const title = currentPlayingVideo.title;
     
     if (quality === 'audio') {
-        try {
-            await downloadAudioDirect(getCdnUrl(v.videoUrl), v.title);
-        } catch(e) {
-            alert('❌ Échec: ' + e.message);
-        }
+        alert('Conversion audio en cours...');
+        window.open(url, '_blank');
     } else {
-        try {
-            await downloadVideo(getCdnUrl(v.videoUrl), v.title + '.mp4', v.id);
-        } catch(e) {
-            window.open(getCdnUrl(v.videoUrl), '_blank');
+        window.open(url, '_blank');
+    }
+}
+
+// ============================================
+// 💾 SAUVEGARDE PROGRESSION UPLOAD
+// ============================================
+function saveUploadProgress(data) {
+    try {
+        localStorage.setItem('interruptedUpload', JSON.stringify(data));
+        console.log('💾 Progression sauvegardée:', data.currentChunk, '/', data.totalChunks);
+        
+        const statusEl = document.getElementById('autosave-status');
+        if (statusEl) {
+            statusEl.innerHTML = `<i class="fa-solid fa-check mr-1"></i>Sauvegardé: chunk ${data.currentChunk}/${data.totalChunks}`;
+        }
+    } catch (e) {
+        console.error('❌ Erreur sauvegarde:', e);
+    }
+}
+
+function loadUploadProgress() {
+    try {
+        const data = localStorage.getItem('interruptedUpload');
+        return data ? JSON.parse(data) : null;
+    } catch (e) {
+        console.error('❌ Erreur chargement:', e);
+        return null;
+    }
+}
+
+function clearUploadProgress() {
+    try {
+        localStorage.removeItem('interruptedUpload');
+        console.log('🗑️ Progression effacée');
+    } catch (e) {
+        console.error('❌ Erreur effacement:', e);
+    }
+}
+
+function checkForInterruptedUpload() {
+    if (!currentUser || !userAlbum) return;
+    
+    const savedData = loadUploadProgress();
+    
+    if (savedData && savedData.userId === currentUser.uid && savedData.status === 'processing') {
+        console.log('⚠️ Upload interrompu détecté:', savedData);
+        
+        interruptedUploadData = savedData;
+        
+        const banner = document.getElementById('interrupted-upload-banner');
+        if (banner) {
+            banner.classList.remove('hidden');
+            
+            document.getElementById('interrupted-file-name').innerText = savedData.fileName || 'Fichier inconnu';
+            document.getElementById('interrupted-progress').innerText = `${savedData.currentChunk}/${savedData.totalChunks} chunks`;
+            
+            const percent = Math.round((savedData.currentChunk / savedData.totalChunks) * 100);
+            document.getElementById('interrupted-percent').innerText = `${percent}%`;
+            document.getElementById('interrupted-progress-bar').style.width = `${percent}%`;
+            
+            const timeAgo = getTimeAgo(savedData.lastUpdate);
+            document.getElementById('interrupted-upload-info').innerText = 
+                `Dernière sauvegarde: ${timeAgo}`;
         }
     }
 }
 
-async function downloadAudioDirect(videoUrl, title) {
-    const modal = document.getElementById('audio-conversion-modal');
-    modal.classList.remove('hidden');
-    document.getElementById('conversion-progress').style.width = '0%';
-    document.getElementById('conversion-status').innerText = 'Téléchargement...';
+function getTimeAgo(timestamp) {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return `il y a ${seconds}s`;
+    if (seconds < 3600) return `il y a ${Math.floor(seconds / 60)} min`;
+    if (seconds < 86400) return `il y a ${Math.floor(seconds / 3600)}h`;
+    return `il y a ${Math.floor(seconds / 86400)} jour(s)`;
+}
+
+async function resumeInterruptedUpload() {
+    if (!interruptedUploadData) {
+        alert('Aucune donnée de reprise');
+        return;
+    }
+    
+    if (!currentFileBlob) {
+        alert('❌ Le fichier original n\'est plus disponible.\n\nVeuillez sélectionner à nouveau le fichier.');
+        cancelInterruptedUpload();
+        return;
+    }
+    
+    console.log('🔄 Reprise depuis le chunk', interruptedUploadData.currentChunk);
+    
+    isResumingUpload = true;
+    document.getElementById('interrupted-upload-banner').classList.add('hidden');
+    document.getElementById('upload-form').classList.remove('hidden');
+    document.getElementById('uploadProgress').classList.remove('hidden');
+    
+    document.getElementById('selected-file-name').innerText = interruptedUploadData.fileName;
+    document.getElementById('videoTitle').value = interruptedUploadData.title;
+    document.getElementById('videoType').value = interruptedUploadData.videoType;
     
     try {
-        const response = await fetch(videoUrl, { mode: 'cors' });
-        if (!response.ok) throw new Error('HTTP: ' + response.status);
-        
-        const contentLength = response.headers.get('content-length');
-        const total = contentLength ? parseInt(contentLength) : 0;
-        let loaded = 0;
-        const reader = response.body.getReader();
-        const chunks = [];
-        
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            chunks.push(value);
-            loaded += value.length;
-            if (total > 0) {
-                const percent = (loaded / total) * 100;
-                document.getElementById('conversion-progress').style.width = `${percent}%`;
-            }
-        }
-        
-        document.getElementById('conversion-status').innerText = 'Extraction audio...';
-        
-        const videoBlob = new Blob(chunks);
-        const videoObjectURL = URL.createObjectURL(videoBlob);
-        
-        const video = document.createElement('video');
-        video.preload = 'auto';
-        video.muted = false;
-        video.playsInline = true;
-        video.src = videoObjectURL;
-        
-        await new Promise((resolve, reject) => {
-            video.onloadedmetadata = resolve;
-            video.onerror = reject;
-            video.load();
-            setTimeout(() => reject(new Error('Timeout')), 30000);
-        });
-        
-        const stream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
-        const audioTracks = stream.getAudioTracks();
-        
-        if (audioTracks.length === 0) throw new Error('Aucune piste audio');
-        
-        const audioStream = new MediaStream(audioTracks);
-        let mimeType = 'audio/webm;codecs=opus';
-        if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/webm';
-        
-        const mediaRecorder = new MediaRecorder(audioStream, { mimeType });
-        const audioChunks = [];
-        
-        mediaRecorder.ondataavailable = (e) => {
-            if (e.data && e.data.size > 0) audioChunks.push(e.data);
-        };
-        
-        document.getElementById('conversion-status').innerText = 'Conversion...';
-        
-        await new Promise((resolve, reject) => {
-            mediaRecorder.onstop = resolve;
-            mediaRecorder.onerror = reject;
-            mediaRecorder.start(1000);
-            video.currentTime = 0;
-            video.play();
-            video.onended = () => {
-                if (mediaRecorder.state === 'recording') mediaRecorder.stop();
-            };
-            setTimeout(() => {
-                if (mediaRecorder.state === 'recording') mediaRecorder.stop();
-            }, 600000);
-        });
-        
-        const audioBlob = new Blob(audioChunks, { type: mimeType });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const a = document.createElement('a');
-        a.href = audioUrl;
-        a.download = title.replace(/\.[^/.]+$/, '') + '.webm';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        
-        setTimeout(() => {
-            URL.revokeObjectURL(audioUrl);
-            URL.revokeObjectURL(videoObjectURL);
-        }, 5000);
-        
-        modal.classList.add('hidden');
-        
-        completedDownloads.unshift({ 
-            title: title + '.webm', 
-            date: new Date().toLocaleString(), 
-            size: (audioBlob.size / 1024 / 1024).toFixed(2) + ' Mo' 
-        });
-        localStorage.setItem('completedDownloads', JSON.stringify(completedDownloads));
-        renderDownloads();
-        
+        await resumeChunkedUpload(
+            interruptedUploadData.fileName,
+            interruptedUploadData.fileId,
+            interruptedUploadData.authorizationToken,
+            interruptedUploadData.partShas || [],
+            interruptedUploadData.currentChunk,
+            interruptedUploadData.totalChunks,
+            interruptedUploadData.title,
+            interruptedUploadData.videoType,
+            interruptedUploadData.thumbnail,
+            interruptedUploadData.duration
+        );
     } catch (error) {
-        modal.classList.add('hidden');
-        if (confirm(`❌ Échec: ${error.message}\n\nTélécharger la vidéo ?`)) {
-            try {
-                await downloadVideo(videoUrl, title + '.mp4', null);
-            } catch (e) {
-                window.open(videoUrl, '_blank');
-            }
-        }
+        console.error('❌ Erreur reprise:', error);
+        alert('❌ Erreur lors de la reprise: ' + error.message);
+        isResumingUpload = false;
     }
 }
 
-async function downloadVideo(url, filename, videoId) {
-    const downloadId = 'dl_' + Date.now();
-    activeDownloads.push({ id: downloadId, title: filename, url: url, progress: 0 });
-    localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-    renderDownloads();
-    
-    try {
-        const response = await fetch(url, { mode: 'cors' });
-        if (!response.ok) throw new Error('Erreur: ' + response.status);
-        
-        const contentLength = response.headers.get('content-length');
-        const total = contentLength ? parseInt(contentLength) : 0;
-        let loaded = 0;
-        const reader = response.body.getReader();
-        const chunks = [];
-        
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            chunks.push(value);
-            loaded += value.length;
-            if (total > 0) {
-                const percent = (loaded / total) * 100;
-                const dl = activeDownloads.find(d => d.id === downloadId);
-                if (dl) { dl.progress = percent; renderDownloads(); }
-            }
-        }
-        
-        const blob = new Blob(chunks);
-        const blobUrl = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-        
-        activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
-        completedDownloads.unshift({ title: filename, date: new Date().toLocaleString(), size: (blob.size / 1024 / 1024).toFixed(2) + ' Mo' });
-        localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-        localStorage.setItem('completedDownloads', JSON.stringify(completedDownloads));
-        renderDownloads();
-        
-    } catch(e) {
-        activeDownloads = activeDownloads.filter(d => d.id !== downloadId);
-        localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-        renderDownloads();
-        if (confirm("Téléchargement bloqué. Ouvrir dans un nouvel onglet ?")) {
-            window.open(url, '_blank');
-        }
+function cancelInterruptedUpload() {
+    if (confirm('Annuler définitivement cet upload ?')) {
+        clearUploadProgress();
+        interruptedUploadData = null;
+        document.getElementById('interrupted-upload-banner').classList.add('hidden');
+        console.log('✅ Upload interrompu annulé');
     }
-}
-
-function renderDownloads() {
-    const activeList = document.getElementById('active-downloads-list');
-    const completedList = document.getElementById('completed-downloads-list');
-    const badge = document.getElementById('download-count-badge');
-    if (badge) badge.innerText = `${activeDownloads.length}`;
-    if (!activeList) return;
-    if (activeDownloads.length === 0) {
-        activeList.innerHTML = '<div class="text-center text-zinc-500 py-8 text-xs">Aucun</div>';
-    } else {
-        activeList.innerHTML = activeDownloads.map(d => `
-            <div class="bg-zinc-900 p-3 rounded-xl space-y-2">
-                <div class="flex justify-between items-center">
-                    <p class="text-xs font-bold text-white truncate">📹 ${escapeAttr(d.title)}</p>
-                    <button onclick="cancelDownload('${d.id}')" class="w-6 h-6 bg-red-900/30 text-red-400 rounded flex items-center justify-center">
-                        <i class="fa-solid fa-xmark text-xs"></i>
-                    </button>
-                </div>
-                <div class="relative h-1.5 bg-zinc-700 rounded-full overflow-hidden">
-                    <div class="absolute inset-y-0 left-0" style="width: ${d.progress}%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
-                </div>
-                <p class="text-[10px] text-zinc-400 text-right">${Math.round(d.progress)}%</p>
-            </div>
-        `).join('');
-    }
-    if (completedList) {
-        completedList.innerHTML = completedDownloads.length ? completedDownloads.map(d => `
-            <div class="bg-zinc-900 p-3 rounded-xl text-white">
-                <p class="text-xs font-bold">📹 ${escapeAttr(d.title)}</p>
-                <p class="text-[9px] text-zinc-500">📅 ${escapeAttr(d.date)} · ${escapeAttr(d.size || '')}</p>
-            </div>
-        `).join('') : '<div class="text-center text-zinc-500 py-8">Aucun</div>';
-    }
-}
-
-function cancelDownload(id) {
-    activeDownloads = activeDownloads.filter(d => d.id !== id);
-    localStorage.setItem('activeDownloads', JSON.stringify(activeDownloads));
-    renderDownloads();
-}
-
-function toggleDlSubTab(sub) {
-    document.getElementById('dl-active-container').classList.toggle('hidden', sub !== 'active');
-    document.getElementById('dl-completed-container').classList.toggle('hidden', sub !== 'completed');
-    document.getElementById('btn-sub-active').className = sub === 'active' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
-    document.getElementById('btn-sub-completed').className = sub === 'completed' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
 }
 
 // ============================================
-// 📤 UPLOAD VIDÉO - LECTURE IMMÉDIATE DU FICHIER
+// 📤 UPLOAD VIDÉO
 // ============================================
-
-// ✅ CORRECTION CRITIQUE : Lire le fichier IMMÉDIATEMENT après sélection
 function handleFileSelected(input) {
     if (!input.files?.length) return;
     const file = input.files[0];
     
     if (!currentUser || !userAlbum) { 
-        alert("Album non trouvé ou non approuvé"); 
+        alert("Album non trouvé"); 
         input.value = ''; 
         return; 
     }
     
-    // ✅ LIRE LE FICHIER IMMÉDIATEMENT EN MÉMOIRE
     console.log('📖 Lecture immédiate du fichier...');
     
     const reader = new FileReader();
     
     reader.onload = (e) => {
         try {
-            // Stocker le blob en mémoire
             currentFileBlob = new Blob([e.target.result], { type: file.type });
             currentFileName = file.name;
             currentFileSize = file.size;
             currentFileType = file.type;
             
-            console.log('✅ Fichier lu en mémoire:', currentFileBlob.size, 'bytes');
-            console.log('✅ Type:', currentFileType);
+            console.log('✅ Fichier lu:', currentFileBlob.size, 'bytes');
             
-            // Afficher les infos
             document.getElementById('selected-file-name').innerText = file.name;
             document.getElementById('selected-file-size').innerText = `(${(file.size / 1024 / 1024).toFixed(1)} Mo)`;
             document.getElementById('videoTitle').value = file.name.replace(/\.[^/.]+$/, "");
             document.getElementById('upload-form').classList.remove('hidden');
             
         } catch (error) {
-            console.error('❌ Erreur lecture fichier:', error);
-            alert('❌ Impossible de lire le fichier: ' + error.message);
+            alert('❌ Erreur: ' + error.message);
             input.value = '';
         }
     };
     
     reader.onerror = () => {
-        console.error('❌ FileReader error:', reader.error);
-        alert('❌ Erreur de lecture du fichier. Essayez un autre fichier.');
+        alert('❌ Erreur de lecture');
         input.value = '';
     };
     
@@ -1567,23 +1145,18 @@ function handleFileSelected(input) {
         }
     };
     
-    // Lire en ArrayBuffer
     reader.readAsArrayBuffer(file);
 }
 
 function cancelFileSelection() {
     currentFileBlob = null;
-    currentFileName = '';
-    currentFileSize = 0;
-    currentFileType = '';
     document.getElementById('videoUpload').value = '';
     document.getElementById('upload-form').classList.add('hidden');
 }
 
-// ✅ UPLOAD PRINCIPAL - UTILISE LE BLOB EN MÉMOIRE
 async function uploadVideoWithChunking() {
     if (!currentFileBlob) {
-        alert("Aucun fichier sélectionné");
+        alert("Aucun fichier");
         return;
     }
     
@@ -1596,10 +1169,6 @@ async function uploadVideoWithChunking() {
     const progressDiv = document.getElementById('uploadProgress');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
-    const speedText = document.getElementById('speedText');
-    const progressDetail = document.getElementById('progressDetail');
-    const timeRemaining = document.getElementById('timeRemaining');
-    const currentChunkEl = document.getElementById('currentChunk');
     const uploadBtn = document.getElementById('btn-upload');
     const cancelBtn = document.getElementById('btn-cancel-upload');
     
@@ -1609,151 +1178,306 @@ async function uploadVideoWithChunking() {
     progressDiv.classList.remove('hidden');
     uploadAborted = false;
     
-    await requestWakeLock();
-    
     try {
-        // ✅ UTILISER LE BLOB DÉJÀ EN MÉMOIRE
-        console.log('📤 Upload avec blob en mémoire:', currentFileBlob.size, 'bytes');
-        
         progressText.innerText = 'Génération miniature...';
         const { thumbnail, duration } = await generateThumbnailFromBlob(currentFileBlob);
         
         const fileName = `videos/${Date.now()}_${currentFileName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         
-        const isAndroid = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const CHUNK_THRESHOLD = isAndroid ? 15 * 1024 * 1024 : 10 * 1024 * 1024;
+        const CHUNK_THRESHOLD = 10 * 1024 * 1024;
         
         if (currentFileBlob.size < CHUNK_THRESHOLD) {
-            await uploadSimpleFileFixed(fileName, currentFileBlob, thumbnail, duration, title, videoType,
-                progressDiv, progressBar, progressText, speedText, 
-                progressDetail, timeRemaining, uploadBtn, cancelBtn);
+            await uploadSimpleFile(fileName, currentFileBlob, thumbnail, duration, title, videoType);
         } else {
-            await uploadChunkedFileFixed(fileName, currentFileBlob, thumbnail, duration, title, videoType,
-                progressDiv, progressBar, progressText, speedText,
-                progressDetail, timeRemaining, currentChunkEl, uploadBtn, cancelBtn);
+            await startChunkedUpload(fileName, currentFileBlob, thumbnail, duration, title, videoType);
         }
         
     } catch(error) {
-        console.error("❌ Erreur upload:", error);
         alert("Erreur: " + error.message);
         progressDiv.classList.add('hidden');
         uploadBtn.disabled = false;
         uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
         cancelBtn.classList.add('hidden');
-    } finally {
-        await releaseWakeLock();
     }
 }
 
-// ✅ MINIATURE DEPUIS BLOB EN MÉMOIRE
-async function generateThumbnailFromBlob(fileBlob) {
-    return new Promise((resolve) => {
-        const video = document.createElement('video');
-        video.preload = 'metadata';
-        video.muted = true;
-        video.playsInline = true;
-        
-        let duration = 0;
-        
-        video.onloadedmetadata = () => {
-            duration = video.duration || 0;
-            video.currentTime = Math.min(5, duration * 0.1);
-        };
-        
-        video.onloadeddata = () => {
-            if (duration === 0) video.currentTime = Math.min(2, (video.duration || 10) / 2);
-        };
-        
-        video.onseeked = () => {
-            try {
-                const canvas = document.createElement('canvas');
-                canvas.width = 480;
-                canvas.height = 270;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                resolve({ thumbnail: canvas.toDataURL('image/jpeg', 0.7), duration: formatDuration(duration) });
-            } catch (e) {
-                resolve({ thumbnail: '', duration: formatDuration(duration) });
-            }
-        };
-        
-        video.onerror = () => resolve({ thumbnail: '', duration: '00:00' });
-        setTimeout(() => resolve({ thumbnail: '', duration: '00:00' }), 15000);
-        video.src = URL.createObjectURL(fileBlob);
-    });
-}
-
-// ✅ UPLOAD SIMPLE AVEC RETRY
-async function uploadSimpleFileFixed(fileName, fileBlob, thumbnail, duration, title, videoType,
-    progressDiv, progressBar, progressText, speedText, progressDetail, 
-    timeRemaining, uploadBtn, cancelBtn) {
-    
+async function startChunkedUpload(fileName, fileBlob, thumbnail, duration, title, videoType) {
+    const progressText = document.getElementById('progressText');
     progressText.innerText = 'Initialisation...';
     
-    let initResponse;
-    let retryCount = 0;
+    const initResponse = await fetch('/api/upload-b2-chunked', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+            fileName: fileName,
+            fileSize: fileBlob.size,
+            contentType: fileBlob.type || 'video/mp4'
+        })
+    });
     
-    while (retryCount < MAX_RETRY) {
-        try {
-            initResponse = await fetch('/api/upload-b2', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                credentials: 'include'
+    if (!initResponse.ok) throw new Error(`Erreur: ${initResponse.status}`);
+    
+    const { fileId, authorizationToken } = await initResponse.json();
+    const totalChunks = Math.ceil(fileBlob.size / CHUNK_SIZE);
+    
+    console.log('📦 Début upload chunked:', totalChunks, 'chunks');
+    
+    saveUploadProgress({
+        userId: currentUser.uid,
+        fileName: fileName,
+        originalFileName: currentFileName,
+        fileId: fileId,
+        authorizationToken: authorizationToken,
+        totalChunks: totalChunks,
+        currentChunk: 0,
+        partShas: [],
+        title: title,
+        videoType: videoType,
+        thumbnail: thumbnail,
+        duration: duration,
+        status: 'processing',
+        lastUpdate: Date.now()
+    });
+    
+    await uploadChunks(
+        fileName,
+        fileBlob,
+        fileId,
+        authorizationToken,
+        1,
+        totalChunks,
+        [],
+        title,
+        videoType,
+        thumbnail,
+        duration
+    );
+}
+
+async function resumeChunkedUpload(fileName, fileId, authorizationToken, partShas, lastChunk, totalChunks, title, videoType, thumbnail, duration) {
+    const progressText = document.getElementById('progressText');
+    progressText.innerText = 'Reprise...';
+    
+    console.log('🔄 Reprise depuis le chunk', lastChunk, 'sur', totalChunks);
+    
+    await uploadChunks(
+        fileName,
+        currentFileBlob,
+        fileId,
+        authorizationToken,
+        lastChunk,
+        totalChunks,
+        partShas,
+        title,
+        videoType,
+        thumbnail,
+        duration
+    );
+}
+
+async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, startChunk, totalChunks, partShas, title, videoType, thumbnail, duration) {
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const progressDetail = document.getElementById('progressDetail');
+    const currentChunkEl = document.getElementById('currentChunk');
+    const uploadBtn = document.getElementById('btn-upload');
+    const cancelBtn = document.getElementById('btn-cancel-upload');
+    
+    let uploadedChunks = startChunk - 1;
+    
+    for (let partNumber = startChunk; partNumber <= totalChunks; partNumber++) {
+        if (uploadAborted) {
+            console.log('⚠️ Upload annulé par l\'utilisateur');
+            saveUploadProgress({
+                userId: currentUser.uid,
+                fileName: fileName,
+                originalFileName: currentFileName,
+                fileId: fileId,
+                authorizationToken: authorizationToken,
+                totalChunks: totalChunks,
+                currentChunk: partNumber,
+                partShas: partShas,
+                title: title,
+                videoType: videoType,
+                thumbnail: thumbnail,
+                duration: duration,
+                status: 'processing',
+                lastUpdate: Date.now()
             });
-            if (initResponse.ok) break;
-            retryCount++;
-            await new Promise(r => setTimeout(r, 2000 * retryCount));
-        } catch (e) {
-            retryCount++;
-            if (retryCount >= MAX_RETRY) throw new Error('Serveur inaccessible');
-            await new Promise(r => setTimeout(r, 2000 * retryCount));
+            throw new Error('Upload annulé');
+        }
+        
+        const start = (partNumber - 1) * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, fileBlob.size);
+        const chunk = fileBlob.slice(start, end);
+        
+        currentChunkEl.innerText = `${partNumber}/${totalChunks}`;
+        progressDetail.innerText = `Chunk ${partNumber}/${totalChunks}`;
+        
+        const partUrlResponse = await fetch('/api/get-upload-part-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ fileId, authorizationToken })
+        });
+        
+        if (!partUrlResponse.ok) throw new Error(`Erreur part URL`);
+        
+        const { uploadUrl: chunkUploadUrl, authorizationToken: chunkAuthToken } = await partUrlResponse.json();
+        const sha1 = await calculateSHA1(chunk);
+        
+        let retryCount = 0, success = false;
+        
+        while (retryCount < MAX_RETRY && !success) {
+            try {
+                const result = await uploadChunk(chunkUploadUrl, chunkAuthToken, chunk, partNumber, sha1);
+                partShas.push({ partNumber, sha1: result.contentSha1 || sha1, contentLength: chunk.size });
+                uploadedChunks++;
+                success = true;
+                
+                const percent = (uploadedChunks / totalChunks) * 100;
+                progressBar.style.width = `${percent}%`;
+                progressText.innerText = `${Math.round(percent)}%`;
+                
+                console.log(`✅ Chunk ${partNumber}/${totalChunks} terminé`);
+                
+                saveUploadProgress({
+                    userId: currentUser.uid,
+                    fileName: fileName,
+                    originalFileName: currentFileName,
+                    fileId: fileId,
+                    authorizationToken: authorizationToken,
+                    totalChunks: totalChunks,
+                    currentChunk: partNumber + 1,
+                    partShas: partShas,
+                    title: title,
+                    videoType: videoType,
+                    thumbnail: thumbnail,
+                    duration: duration,
+                    status: 'processing',
+                    lastUpdate: Date.now()
+                });
+                
+            } catch (error) {
+                retryCount++;
+                console.warn(`⚠️ Chunk ${partNumber} échoué (${retryCount}/${MAX_RETRY})`);
+                
+                if (retryCount >= MAX_RETRY) {
+                    saveUploadProgress({
+                        userId: currentUser.uid,
+                        fileName: fileName,
+                        originalFileName: currentFileName,
+                        fileId: fileId,
+                        authorizationToken: authorizationToken,
+                        totalChunks: totalChunks,
+                        currentChunk: partNumber,
+                        partShas: partShas,
+                        title: title,
+                        videoType: videoType,
+                        thumbnail: thumbnail,
+                        duration: duration,
+                        status: 'processing',
+                        lastUpdate: Date.now()
+                    });
+                    throw new Error(`Échec chunk ${partNumber} après ${MAX_RETRY} tentatives`);
+                }
+                
+                await new Promise(r => setTimeout(r, 2000 * retryCount));
+            }
         }
     }
     
-    if (!initResponse || !initResponse.ok) {
-        throw new Error(`Erreur API: ${initResponse?.status || 'unknown'}`);
+    progressText.innerText = 'Finalisation...';
+    
+    const finalizeResponse = await fetch('/api/finish-b2-chunked', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ fileId, partShas, fileName })
+    });
+    
+    if (!finalizeResponse.ok) {
+        const errorText = await finalizeResponse.text();
+        console.error('❌ Erreur finalisation:', errorText);
+        throw new Error(`Finalisation: ${finalizeResponse.status} - ${errorText}`);
     }
+    
+    const finalizeData = await finalizeResponse.json();
+    const finalVideoUrl = finalizeData.downloadUrl || 
+        ('https://f005.backblazeb2.com/file/minbar-media/' + encodeURIComponent(fileName));
+    
+    await db.collection('videos').add({
+        userId: currentUser.uid,
+        albumId: userAlbum.id,
+        fileName: currentFileName,
+        title: title,
+        speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
+        duration: duration,
+        date: new Date().toISOString().split('T')[0],
+        views: 0, downloads: 0,
+        downloadURL: finalVideoUrl,
+        thumbnail: thumbnail,
+        uploadedAt: new Date(),
+        size: fileBlob.size,
+        storage: 'backblaze_b2',
+        cdn: 'bunny_net',
+        videoType: videoType,
+        uploadMethod: 'chunked'
+    });
+    
+    clearUploadProgress();
+    
+    progressBar.style.width = '100%';
+    progressText.innerText = '100%';
+    
+    setTimeout(() => {
+        document.getElementById('uploadProgress').classList.add('hidden');
+        document.getElementById('upload-form').classList.add('hidden');
+        document.getElementById('videoUpload').value = '';
+        document.getElementById('videoType').value = '';
+        currentFileBlob = null;
+        currentFileName = '';
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
+        cancelBtn.classList.add('hidden');
+    }, 1500);
+    
+    await loadAllVideos();
+    updateProfileUI();
+    renderAll();
+    alert(`✅ Vidéo publiée !`);
+    
+    isResumingUpload = false;
+}
+
+async function uploadSimpleFile(fileName, fileBlob, thumbnail, duration, title, videoType) {
+    const progressText = document.getElementById('progressText');
+    progressText.innerText = 'Initialisation...';
+    
+    const initResponse = await fetch('/api/upload-b2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        credentials: 'include'
+    });
+    
+    if (!initResponse.ok) throw new Error(`Erreur: ${initResponse.status}`);
     
     const { uploadUrl, authorizationToken, downloadUrl } = await initResponse.json();
     
     await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        let lastLoaded = 0, lastTime = Date.now(), speeds = [];
-        
         xhr.timeout = 900000;
         
         xhr.upload.addEventListener('progress', (e) => {
             if (e.lengthComputable) {
                 const percent = (e.loaded / e.total) * 100;
-                progressBar.style.width = `${percent}%`;
-                progressText.innerText = `${Math.round(percent)}%`;
-                
-                const now = Date.now();
-                const timeDiff = (now - lastTime) / 1000;
-                if (timeDiff >= 0.5) {
-                    const speedMBps = ((e.loaded - lastLoaded) / 1024 / 1024) / timeDiff;
-                    speeds.push(speedMBps);
-                    if (speeds.length > 5) speeds.shift();
-                    const avg = speeds.reduce((a, b) => a + b, 0) / speeds.length;
-                    speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${avg >= 1 ? avg.toFixed(2) + ' Mo/s' : (avg*1024).toFixed(0) + ' Ko/s'}`;
-                    
-                    if (avg > 0) {
-                        const rem = (e.total - e.loaded) / (avg * 1024 * 1024);
-                        timeRemaining.innerText = rem < 60 ? `${Math.ceil(rem)}s` : `${Math.floor(rem/60)}m`;
-                    }
-                    
-                    progressDetail.innerText = `${(e.loaded/1024/1024).toFixed(1)} Mo / ${(e.total/1024/1024).toFixed(1)} Mo`;
-                    lastLoaded = e.loaded;
-                    lastTime = now;
-                }
+                document.getElementById('progressBar').style.width = `${percent}%`;
+                document.getElementById('progressText').innerText = `${Math.round(percent)}%`;
             }
         });
         
-        xhr.onload = () => {
-            if (xhr.status === 200) resolve();
-            else reject(new Error(`HTTP ${xhr.status}`));
-        };
-        
+        xhr.onload = () => xhr.status === 200 ? resolve() : reject(new Error(`HTTP ${xhr.status}`));
         xhr.onerror = () => reject(new Error('Erreur réseau'));
         xhr.ontimeout = () => reject(new Error('Timeout'));
         
@@ -1787,114 +1511,57 @@ async function uploadSimpleFileFixed(fileName, fileBlob, thumbnail, duration, ti
         uploadMethod: 'simple'
     });
     
-    await finalizeUpload(progressDiv, progressBar, progressText, speedText,
-        timeRemaining, uploadBtn, cancelBtn);
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('progressText').innerText = '100%';
+    
+    setTimeout(() => {
+        document.getElementById('uploadProgress').classList.add('hidden');
+        document.getElementById('upload-form').classList.add('hidden');
+        currentFileBlob = null;
+        document.getElementById('btn-upload').disabled = false;
+        document.getElementById('btn-upload').innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
+    }, 1500);
+    
+    await loadAllVideos();
+    updateProfileUI();
+    renderAll();
+    alert(`✅ Vidéo publiée !`);
 }
 
-// ✅ UPLOAD CHUNKED
-async function uploadChunkedFileFixed(fileName, fileBlob, thumbnail, duration, title, videoType,
-    progressDiv, progressBar, progressText, speedText, progressDetail,
-    currentChunkEl, uploadBtn, cancelBtn) {
-    
-    const initResponse = await fetch('/api/upload-b2-chunked', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-            fileName: fileName,
-            fileSize: fileBlob.size,
-            contentType: fileBlob.type || 'video/mp4'
-        })
-    });
-    
-    if (!initResponse.ok) throw new Error(`Erreur: ${initResponse.status}`);
-    
-    const { fileId, authorizationToken } = await initResponse.json();
-    const totalChunks = Math.ceil(fileBlob.size / CHUNK_SIZE);
-    
-    const partShas = [];
-    let uploadedChunks = 0;
-    let lastTime = Date.now(), lastLoaded = 0;
-    
-    for (let partNumber = 1; partNumber <= totalChunks; partNumber++) {
-        if (uploadAborted) throw new Error('Annulé');
+async function generateThumbnailFromBlob(fileBlob) {
+    return new Promise((resolve) => {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
         
-        const start = (partNumber - 1) * CHUNK_SIZE;
-        const end = Math.min(start + CHUNK_SIZE, fileBlob.size);
-        const chunk = fileBlob.slice(start, end);
+        let duration = 0;
         
-        currentChunkEl.innerText = `${partNumber}/${totalChunks}`;
+        video.onloadedmetadata = () => {
+            duration = video.duration || 0;
+            video.currentTime = Math.min(5, duration * 0.1);
+        };
         
-        const partUrlResponse = await fetch('/api/get-upload-part-url', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ fileId, authorizationToken })
-        });
-        
-        if (!partUrlResponse.ok) throw new Error(`Erreur part URL`);
-        
-        const { uploadUrl: chunkUploadUrl, authorizationToken: chunkAuthToken } = await partUrlResponse.json();
-        const sha1 = await calculateSHA1(chunk);
-        
-        let retryCount = 0, success = false;
-        
-        while (retryCount < MAX_RETRY && !success) {
+        video.onseeked = () => {
             try {
-                const result = await uploadChunkAndroid(chunkUploadUrl, chunkAuthToken, chunk, partNumber, sha1);
-                partShas.push({ partNumber, sha1: result.contentSha1 || sha1, contentLength: chunk.size });
-                uploadedChunks++;
-                success = true;
-                
-                const percent = (uploadedChunks / totalChunks) * 100;
-                progressBar.style.width = `${percent}%`;
-                progressText.innerText = `${Math.round(percent)}%`;
-                
-            } catch (error) {
-                retryCount++;
-                if (retryCount >= MAX_RETRY) throw new Error(`Échec chunk ${partNumber}`);
-                await new Promise(r => setTimeout(r, 2000 * retryCount));
+                const canvas = document.createElement('canvas');
+                canvas.width = 480;
+                canvas.height = 270;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                resolve({ thumbnail: canvas.toDataURL('image/jpeg', 0.7), duration: formatDuration(duration) });
+            } catch (e) {
+                resolve({ thumbnail: '', duration: formatDuration(duration) });
             }
-        }
-    }
-    
-    const finalizeResponse = await fetch('/api/finish-b2-chunked', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ fileId, partShas, fileName })
+        };
+        
+        video.onerror = () => resolve({ thumbnail: '', duration: '00:00' });
+        setTimeout(() => resolve({ thumbnail: '', duration: '00:00' }), 15000);
+        video.src = URL.createObjectURL(fileBlob);
     });
-    
-    if (!finalizeResponse.ok) throw new Error(`Finalisation: ${finalizeResponse.status}`);
-    
-    const finalizeData = await finalizeResponse.json();
-    const finalVideoUrl = finalizeData.downloadUrl || 
-        ('https://f005.backblazeb2.com/file/minbar-media/' + encodeURIComponent(fileName));
-    
-    await db.collection('videos').add({
-        userId: currentUser.uid,
-        albumId: userAlbum.id,
-        fileName: currentFileName,
-        title: title,
-        speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
-        duration: duration,
-        date: new Date().toISOString().split('T')[0],
-        views: 0, downloads: 0,
-        downloadURL: finalVideoUrl,
-        thumbnail: thumbnail,
-        uploadedAt: new Date(),
-        size: fileBlob.size,
-        storage: 'backblaze_b2',
-        cdn: 'bunny_net',
-        videoType: videoType,
-        uploadMethod: 'chunked'
-    });
-    
-    await finalizeUpload(progressDiv, progressBar, progressText, speedText,
-        progressDetail, uploadBtn, cancelBtn);
 }
 
-async function uploadChunkAndroid(uploadUrl, authorizationToken, chunk, partNumber, sha1) {
+async function uploadChunk(uploadUrl, authorizationToken, chunk, partNumber, sha1) {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.timeout = 300000;
@@ -1915,31 +1582,6 @@ async function uploadChunkAndroid(uploadUrl, authorizationToken, chunk, partNumb
     });
 }
 
-async function finalizeUpload(progressDiv, progressBar, progressText, speedText,
-    timeRemaining, uploadBtn, cancelBtn) {
-    
-    progressBar.style.width = '100%';
-    progressText.innerText = '100%';
-    speedText.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Terminé';
-    
-    setTimeout(() => {
-        progressDiv.classList.add('hidden');
-        document.getElementById('upload-form').classList.add('hidden');
-        document.getElementById('videoUpload').value = '';
-        document.getElementById('videoType').value = '';
-        currentFileBlob = null;
-        currentFileName = '';
-        uploadBtn.disabled = false;
-        uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
-        cancelBtn.classList.add('hidden');
-    }, 1500);
-    
-    await loadAllVideos();
-    updateProfileUI();
-    renderAll();
-    alert(`✅ Vidéo publiée !`);
-}
-
 async function calculateSHA1(blob) {
     const arrayBuffer = await blob.arrayBuffer();
     const hashBuffer = await crypto.subtle.digest('SHA-1', arrayBuffer);
@@ -1948,7 +1590,9 @@ async function calculateSHA1(blob) {
 }
 
 function cancelUpload() {
-    if (confirm("Annuler ?")) uploadAborted = true;
+    if (confirm("Annuler l'upload ?\n\nLa progression sera sauvegardée et vous pourrez reprendre plus tard.")) {
+        uploadAborted = true;
+    }
 }
 
 // ============================================
@@ -1962,89 +1606,29 @@ function renderMyVideos() {
         container.innerHTML = '<p class="text-center text-zinc-500 text-xs py-6">Aucune vidéo</p>';
         return;
     }
-    const defaultThumb = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgZmlsbD0iIzE4MTgxYiIvPjxjaXJjbGUgY3g9IjI0MCIgY3k9IjEzNSIgcj0iNDAiIGZpbGw9IiNmZjU3MjIiLz48cG9seWdvbiBwb2ludHM9IjIyNSwxMTUgMjI1LDE1NSAyNjUsMTM1IiBmaWxsPSIjZmZmIi8+PC9zdmc+';
+    
     container.innerHTML = myVids.map(v => {
-        const isSelected = selectedVideoIds.has(v.id);
-        const thumb = v.thumbnail && v.thumbnail.trim() !== '' ? v.thumbnail : defaultThumb;
-        const duration = v.duration || '00:00';
-        const typeInfo = VIDEO_TYPE_LABELS[v.videoType] || { label: '', class: '' };
+        const thumb = v.thumbnail || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgZmlsbD0iIzE4MTgxYiIvPjxjaXJjbGUgY3g9IjI0MCIgY3k9IjEzNSIgcj0iNDAiIGZpbGw9IiNmZjU3MjIiLz48cG9seWdvbiBwb2ludHM9IjIyNSwxMTUgMjI1LDE1NSAyNjUsMTM1IiBmaWxsPSIjZmZmIi8+PC9zdmc+';
         return `
-        <div class="bg-zinc-900 rounded-xl overflow-hidden ${isSelected ? 'border-2 border-orange-500' : 'border border-zinc-800'}">
+        <div class="bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800">
             <div class="flex gap-3 p-2 items-center">
-                ${selectionMode ? `
-                    <button onclick="event.stopPropagation(); toggleVideoSelection('${v.id}')" class="w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-zinc-600'}">
-                        ${isSelected ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
-                    </button>
-                ` : ''}
                 <div class="relative shrink-0 cursor-pointer" onclick="openVideoPlayer('${escapeAttr(getCdnUrl(v.videoUrl))}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
-                    <img src="${thumb}" class="w-28 h-16 rounded object-cover" onerror="this.src='${defaultThumb}'">
-                    <div class="absolute bottom-1 right-1 bg-black/80 text-white text-[9px] px-1 rounded font-bold">${duration}</div>
+                    <img src="${thumb}" class="w-28 h-16 rounded object-cover">
+                    <div class="absolute bottom-1 right-1 bg-black/80 text-white text-[9px] px-1 rounded font-bold">${v.duration}</div>
                 </div>
-                <div class="flex-1 min-w-0 cursor-pointer" onclick="openVideoPlayer('${escapeAttr(getCdnUrl(v.videoUrl))}', '${escapeAttr(v.title)}', '${escapeAttr(v.speaker)}', '${v.id}')">
+                <div class="flex-1 min-w-0">
                     <p class="text-xs font-bold text-white truncate">${escapeAttr(v.title)}</p>
-                    ${typeInfo.label ? `<span class="type-badge ${typeInfo.class} mt-1 inline-block">${typeInfo.label}</span>` : ''}
                     <p class="text-[9px] text-zinc-500 mt-0.5">
                         <i class="fa-regular fa-eye"></i> ${v.views || 0} · ${(v.size / 1024 / 1024).toFixed(1)} Mo
                     </p>
                 </div>
-                ${!selectionMode ? `
-                    <button onclick="event.stopPropagation(); deleteMyVideo('${v.id}')" class="w-7 h-7 rounded bg-red-900/30 text-red-400 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-trash text-xs"></i>
-                    </button>
-                ` : ''}
+                <button onclick="deleteMyVideo('${v.id}')" class="w-7 h-7 rounded bg-red-900/30 text-red-400 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-trash text-xs"></i>
+                </button>
             </div>
         </div>
         `;
     }).join('');
-}
-
-function toggleSelectionMode() {
-    selectionMode = !selectionMode;
-    selectedVideoIds.clear();
-    const btn = document.getElementById('btn-select-mode');
-    const bar = document.getElementById('selection-bar');
-    if (selectionMode) {
-        btn.innerHTML = '<i class="fa-solid fa-xmark mr-1"></i>Annuler';
-        btn.style.background = '#ff5722';
-        if (bar) bar.classList.remove('hidden');
-    } else {
-        btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner';
-        btn.style.background = '';
-        if (bar) bar.classList.add('hidden');
-    }
-    document.getElementById('selected-count').innerText = selectedVideoIds.size;
-    renderMyVideos();
-}
-
-function toggleVideoSelection(videoId) {
-    if (selectedVideoIds.has(videoId)) selectedVideoIds.delete(videoId);
-    else selectedVideoIds.add(videoId);
-    document.getElementById('selected-count').innerText = selectedVideoIds.size;
-    renderMyVideos();
-}
-
-async function downloadSelected() {
-    if (selectedVideoIds.size === 0) return;
-    const videos = allVideos.filter(v => selectedVideoIds.has(v.id));
-    for (const v of videos) {
-        try { await downloadVideo(getCdnUrl(v.videoUrl), v.title + '.mp4', v.id); } 
-        catch(e) { window.open(getCdnUrl(v.videoUrl), '_blank'); }
-        await new Promise(r => setTimeout(r, 500));
-    }
-    toggleSelectionMode();
-}
-
-async function deleteSelected() {
-    if (selectedVideoIds.size === 0) return;
-    if (!confirm(`Supprimer ${selectedVideoIds.size} vidéo(s) ?`)) return;
-    for (const id of selectedVideoIds) {
-        try { await db.collection('videos').doc(id).delete(); } catch(e) {}
-    }
-    selectedVideoIds.clear();
-    await loadAllVideos();
-    updateProfileUI();
-    renderMyVideos();
-    toggleSelectionMode();
 }
 
 async function deleteMyVideo(videoId) {
@@ -2058,106 +1642,25 @@ async function deleteMyVideo(videoId) {
 }
 
 // ============================================
-// 🔔 NOTIFICATIONS
-// ============================================
-async function toggleNotifications() {
-    if (!('Notification' in window)) {
-        alert("❌ Non supporté");
-        return;
-    }
-    if (Notification.permission === 'granted') {
-        new Notification('🔔 Test', { body: 'Fonctionne !' });
-        return;
-    }
-    if (Notification.permission === 'denied') {
-        alert("❌ Bloquées. Allez dans les paramètres.");
-        return;
-    }
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-        new Notification('🔔 Activées !');
-        updateProfileUI();
-    }
-}
-
-// ============================================
-// 📨 INVITATION
-// ============================================
-async function inviteFriend() {
-    const shareData = {
-        title: 'أهل السنة والجماعة',
-        text: '🕌 Rejoignez l\'application !',
-        url: window.location.href
-    };
-    if (navigator.share) {
-        try { await navigator.share(shareData); } 
-        catch (e) { if (e.name !== 'AbortError') copyToClipboard(shareData); }
-    } else {
-        copyToClipboard(shareData);
-    }
-}
-
-function copyToClipboard(shareData) {
-    const text = `${shareData.text}\n\n${shareData.url}`;
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => alert('✅ Copié !')).catch(() => fallbackCopy(text));
-    } else {
-        fallbackCopy(text);
-    }
-}
-
-function fallbackCopy(text) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-        document.execCommand('copy');
-        alert('✅ Copié !');
-    } catch (e) {
-        alert('Lien : ' + window.location.href);
-    }
-    document.body.removeChild(textarea);
-}
-
-// ============================================
 // 🆘 SUPPORT
 // ============================================
 async function submitSupport() {
     if (!currentUser) { alert("Connectez-vous"); return; }
-    const subject = document.getElementById('supportSubject').value;
     const message = document.getElementById('supportMessage').value.trim();
     if (!message) { alert("Écrivez un message"); return; }
-    
-    const btn = document.getElementById('btn-submit-support');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Envoi...';
     
     try {
         await db.collection('support').add({
             userId: currentUser.uid,
             userEmail: currentUser.email,
-            subject: subject,
             message: message,
             status: 'new',
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        
-        document.getElementById('support-success').classList.remove('hidden');
+        alert('✅ Message envoyé !');
         document.getElementById('supportMessage').value = '';
-        
-        setTimeout(() => {
-            document.getElementById('support-success').classList.add('hidden');
-            showTab('profile');
-        }, 3000);
-        
     } catch (error) {
         alert('❌ Erreur : ' + error.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>Envoyer';
     }
 }
 
@@ -2264,17 +1767,83 @@ function showTab(tab) {
     
     if (tab === 'downloads') renderDownloads();
     if (tab === 'azkar') { renderAzkarCategories(); renderAzkarDuas(); }
-    if (tab === 'myalbum' && currentUser) { updateProfileUI(); renderMyVideos(); }
+    if (tab === 'myalbum' && currentUser) { updateProfileUI(); renderMyVideos(); checkForInterruptedUpload(); }
     if (tab === 'profile' && currentUser) updateProfileUI();
-    if (tab === 'create' && currentUser) updateProfileUI();
-    if (tab !== 'home') cancelSelectionHome();
 }
 
 function renderAll() {
     renderTypeChips();
     renderAlbumChips();
     renderVideoGrid();
-    renderDownloads();
+}
+
+function toggleHomeSelectionMode() {
+    homeSelectionMode = !homeSelectionMode;
+    homeSelectedVideoIds.clear();
+    const btn = document.getElementById('btn-home-select-mode');
+    const bar = document.getElementById('home-selection-bar');
+    if (homeSelectionMode) {
+        btn.innerHTML = '<i class="fa-solid fa-xmark mr-1"></i>Annuler';
+        btn.style.background = '#ff5722';
+        bar.classList.remove('hidden');
+    } else {
+        btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner';
+        btn.style.background = '';
+        bar.classList.add('hidden');
+    }
+    document.getElementById('home-selected-count').innerText = '0';
+    renderVideoGrid();
+}
+
+function toggleHomeVideoSelection(videoId) {
+    if (homeSelectedVideoIds.has(videoId)) homeSelectedVideoIds.delete(videoId);
+    else homeSelectedVideoIds.add(videoId);
+    document.getElementById('home-selected-count').innerText = homeSelectedVideoIds.size;
+    renderVideoGrid();
+}
+
+function toggleSelectAllHome() {
+    const visibleVideos = getFilteredVideos();
+    const allSelected = visibleVideos.length > 0 && visibleVideos.every(v => homeSelectedVideoIds.has(v.id));
+    if (allSelected) visibleVideos.forEach(v => homeSelectedVideoIds.delete(v.id));
+    else visibleVideos.forEach(v => homeSelectedVideoIds.add(v.id));
+    document.getElementById('home-selected-count').innerText = homeSelectedVideoIds.size;
+    renderVideoGrid();
+}
+
+function cancelSelectionHome() {
+    homeSelectionMode = false;
+    homeSelectedVideoIds.clear();
+    const btn = document.getElementById('btn-home-select-mode');
+    const bar = document.getElementById('home-selection-bar');
+    if (btn) { btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner'; btn.style.background = ''; }
+    if (bar) bar.classList.add('hidden');
+    renderVideoGrid();
+}
+
+async function downloadSelectedHome() {
+    if (homeSelectedVideoIds.size === 0) { alert("Aucune vidéo"); return; }
+    const videos = allVideos.filter(v => homeSelectedVideoIds.has(v.id));
+    for (const v of videos) {
+        window.open(getCdnUrl(v.videoUrl), '_blank');
+        await new Promise(r => setTimeout(r, 500));
+    }
+    cancelSelectionHome();
+}
+
+function toggleDlSubTab(sub) {
+    document.getElementById('dl-active-container').classList.toggle('hidden', sub !== 'active');
+    document.getElementById('dl-completed-container').classList.toggle('hidden', sub !== 'completed');
+    document.getElementById('btn-sub-active').className = sub === 'active' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
+    document.getElementById('btn-sub-completed').className = sub === 'completed' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
+}
+
+function renderDownloads() {
+    const activeList = document.getElementById('active-downloads-list');
+    const completedList = document.getElementById('completed-downloads-list');
+    
+    if (activeList) activeList.innerHTML = '<div class="text-center text-zinc-500 py-8 text-xs">Aucun téléchargement en cours</div>';
+    if (completedList) completedList.innerHTML = '<div class="text-center text-zinc-500 py-8 text-xs">Aucun téléchargement terminé</div>';
 }
 
 showTab('home');
