@@ -32,20 +32,16 @@
         .type-preche { background: rgba(168,85,247,0.2); color: #a855f7; border: 1px solid rgba(168,85,247,0.3); }
         .recording-pulse { animation: rec-pulse 1s infinite; }
         @keyframes rec-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        
         .profile-gradient { background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%); }
         .stat-card { background: linear-gradient(135deg, rgba(255,87,34,0.1) 0%, rgba(255,152,0,0.05) 100%); border: 1px solid rgba(255,87,34,0.2); }
         .menu-item { transition: all 0.2s ease; }
         .menu-item:hover { background: rgba(255,87,34,0.1); transform: translateX(4px); }
-        
         .dua-card { background: linear-gradient(135deg, #18181b 0%, #27272a 100%); transition: all 0.3s ease; }
-        .dua-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .category-chip { transition: all 0.2s ease; }
         .category-chip.active { transform: scale(1.05); }
-        
         .info-card { background: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.05) 100%); border: 1px solid rgba(59,130,246,0.2); }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
-        .accordion-content.open { max-height: 500px; }
+        .accordion-content.open { max-height: 1000px; }
     </style>
 </head>
 <body class="h-full bg-slate-900 flex justify-center items-center overflow-hidden font-sans">
@@ -649,7 +645,7 @@
                     <i class="fa-solid fa-music text-purple-400"></i>
                     <div class="text-left flex-1">
                         <p class="text-xs font-bold">Audio seulement</p>
-                        <p class="text-[10px] text-zinc-400">Conversion MP3 automatique</p>
+                        <p class="text-[10px] text-zinc-400">Téléchargement audio direct</p>
                     </div>
                 </button>
             </div>
@@ -663,20 +659,20 @@
                 <div class="w-16 h-16 mx-auto rounded-full bg-purple-500/20 flex items-center justify-center mb-3">
                     <i class="fa-solid fa-music text-2xl text-purple-400"></i>
                 </div>
-                <h3 class="text-sm font-bold text-white">Conversion en cours...</h3>
+                <h3 class="text-sm font-bold text-white">Téléchargement audio...</h3>
                 <p class="text-xs text-zinc-400 mt-1" id="conversion-status">Préparation...</p>
             </div>
             <div class="h-2 bg-zinc-700 rounded-full overflow-hidden">
                 <div id="conversion-progress" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#a855f7,#ec4899)"></div>
             </div>
-            <p class="text-[10px] text-zinc-500 text-center">La conversion peut prendre quelques minutes</p>
+            <p class="text-[10px] text-zinc-500 text-center">Veuillez garder l'application ouverte</p>
         </div>
     </div>
 </div>
 
 <script>
 // ============================================
-// 🔥 FIREBASE INIT - AVEC PERSISTANCE
+// 🔥 FIREBASE INIT - PERSISTANCE ROBUSTE
 // ============================================
 const firebaseConfig = {
     apiKey: "AIzaSyC3ybM8gMQZ-IjVLLXqs0MZLPEzqGmyREA",
@@ -689,17 +685,18 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
-
-// ✅ PERSISTANCE FIREBASE POUR MEDIAN/APK
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-    .then(() => {
-        console.log('✅ Firebase persistence LOCAL configurée');
-    })
-    .catch((error) => {
-        console.error('❌ Erreur persistence:', error);
-    });
-
 const db = firebase.firestore();
+
+// ✅ PERSISTANCE FIREBASE
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    .then(() => console.log('✅ Firebase persistence LOCAL configurée'))
+    .catch((error) => console.error('❌ Erreur persistence:', error));
+
+// ✅ CONFIGURATION FIRESTORE POUR MOBILE (désactive QUIC)
+db.settings({
+    cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
+    experimentalForceLongPolling: true
+});
 
 // ============================================
 // ✅ VARIABLES GLOBALES
@@ -711,7 +708,7 @@ const VIDEO_TYPE_LABELS = {
     'preche': { label: '📢 Prêche', class: 'type-preche' }
 };
 
-const CHUNK_SIZE = 5 * 1024 * 1024;
+const CHUNK_SIZE = 1 * 1024 * 1024; // 1 Mo pour mobile
 const MAX_RETRY = 3;
 
 let currentUser = null;
@@ -732,6 +729,7 @@ let homeSelectionMode = false;
 let homeSelectedVideoIds = new Set();
 let uploadAborted = false;
 let wakeLock = null;
+let authCheckInterval = null;
 
 // Support
 let supportImages = [];
@@ -853,35 +851,66 @@ const AZKAR_DATA = [
 let currentAzkarCategory = 0;
 
 // ============================================
-// 🔐 AUTH - OPTIMISÉ POUR MEDIAN/APK
+// 🔐 AUTH - ROBUSTE POUR MOBILE
 // ============================================
 auth.onAuthStateChanged(async (user) => {
     console.log('🔔 onAuthStateChanged:', user ? user.email : 'null');
     currentUser = user;
+    
     if (user) {
         document.getElementById('header-user-status').textContent = user.email?.split('@')[0] || 'Connecté';
-        await loadUserData();
+        
+        try {
+            const idToken = await user.getIdToken();
+            console.log('✅ Token valide obtenu');
+            await loadUserData();
+            
+            // ✅ VÉRIFICATION PÉRIODIQUE DE LA SESSION
+            if (!authCheckInterval) {
+                authCheckInterval = setInterval(async () => {
+                    try {
+                        const currentUser = auth.currentUser;
+                        if (currentUser) {
+                            await currentUser.getIdToken(true);
+                            console.log('✅ Session valide');
+                        } else {
+                            console.warn('⚠️ Session perdue');
+                            clearInterval(authCheckInterval);
+                            authCheckInterval = null;
+                        }
+                    } catch (e) {
+                        console.error('❌ Erreur vérification session:', e);
+                    }
+                }, 60000);
+            }
+        } catch (error) {
+            console.error('❌ Erreur token:', error);
+            currentUser = null;
+        }
     } else {
         document.getElementById('header-user-status').textContent = 'Déconnecté';
         userAlbum = null;
+        if (authCheckInterval) {
+            clearInterval(authCheckInterval);
+            authCheckInterval = null;
+        }
     }
+    
     updateProfileUI();
     await loadAllAlbums();
     await loadAllVideos();
     renderAll();
 });
 
+// ✅ WAKE LOCK POUR ANDROID
 async function requestWakeLock() {
     try {
         if ('wakeLock' in navigator) {
             wakeLock = await navigator.wakeLock.request('screen');
             console.log('✅ Wake Lock activé');
-            wakeLock.addEventListener('release', () => {
-                console.log('⚠️ Wake Lock relâché');
-            });
         }
     } catch (err) {
-        console.error(`❌ Wake Lock error: ${err.name}, ${err.message}`);
+        console.error(`❌ Wake Lock error: ${err.message}`);
     }
 }
 
@@ -897,14 +926,27 @@ async function releaseWakeLock() {
     }
 }
 
+// ✅ GOOGLE SIGN-IN OPTIMISÉ
 async function handleGoogleSignIn() {
     try {
         showAuthLoading(true);
         console.log('🔄 Démarrage Google Sign-In...');
         
         const provider = new firebase.auth.GoogleAuthProvider();
-        console.log('📱 Utilisation de signInWithPopup (optimisé WebView)');
-        await auth.signInWithPopup(provider);
+        provider.setCustomParameters({ prompt: 'select_account' });
+        
+        const isWebView = navigator.userAgent.includes('wv') || 
+                         navigator.userAgent.includes('Median') ||
+                         window.AndroidBridge !== undefined;
+        
+        if (isWebView) {
+            console.log('📱 WebView → signInWithRedirect');
+            localStorage.setItem('pendingAuth', 'google');
+            await auth.signInWithRedirect(provider);
+        } else {
+            console.log('🌐 Navigateur → signInWithPopup');
+            await auth.signInWithPopup(provider);
+        }
         
         console.log('✅ Connexion Google réussie');
         showAuthError('');
@@ -915,30 +957,39 @@ async function handleGoogleSignIn() {
         console.error('❌ Google Sign-In error:', e);
         
         if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request') {
-            console.log('⚠️ Popup bloqué, tentative avec redirect...');
             try {
+                localStorage.setItem('pendingAuth', 'google');
                 const provider = new firebase.auth.GoogleAuthProvider();
                 await auth.signInWithRedirect(provider);
                 return;
             } catch (e2) {
-                console.error('❌ Redirect also failed:', e2);
                 showAuthError(`❌ ${e2.message}`);
                 return;
             }
         }
         
-        showAuthError(`❌ ${e.message}`);
+        if (e.code === 'auth/web-storage-unsupported' || e.message.includes('état initial')) {
+            showAuthError('❌ Stockage bloqué. Activez les cookies.');
+        } else {
+            showAuthError(`❌ ${e.message}`);
+        }
     }
 }
 
-auth.getRedirectResult().then((result) => {
-    if (result) {
-        console.log('✅ Redirect Google réussi');
-        showTab('home');
-    }
-}).catch((error) => {
-    console.error('❌ Redirect result error:', error);
-});
+auth.getRedirectResult()
+    .then((result) => {
+        console.log('🔍 getRedirectResult:', result?.user?.email);
+        localStorage.removeItem('pendingAuth');
+        if (result && result.user) {
+            console.log('✅ Redirect Google réussi');
+            showAuthError('');
+            showTab('home');
+        }
+    })
+    .catch((error) => {
+        console.error('❌ Redirect result error:', error);
+        showAuthError(`❌ ${error.message}`);
+    });
 
 async function handleLogin() {
     const email = document.getElementById('loginEmail').value.trim();
@@ -1488,16 +1539,155 @@ async function downloadWithQuality(quality) {
     
     if (quality === 'audio') {
         try {
-            await convertVideoToAudio(getCdnUrl(v.videoUrl), v.title);
+            await downloadAudioDirect(getCdnUrl(v.videoUrl), v.title);
         } catch(e) {
-            console.error('Audio conversion failed:', e);
-            alert('❌ Conversion audio échouée: ' + e.message);
+            console.error('Audio download failed:', e);
+            alert('❌ Échec: ' + e.message);
         }
     } else {
         try {
             await downloadVideo(getCdnUrl(v.videoUrl), v.title + '.mp4', v.id);
         } catch(e) {
             window.open(getCdnUrl(v.videoUrl), '_blank');
+        }
+    }
+}
+
+// ✅ TÉLÉCHARGEMENT AUDIO DIRECT (sans conversion)
+async function downloadAudioDirect(videoUrl, title) {
+    const modal = document.getElementById('audio-conversion-modal');
+    modal.classList.remove('hidden');
+    document.getElementById('conversion-progress').style.width = '0%';
+    document.getElementById('conversion-status').innerText = 'Téléchargement audio...';
+    
+    try {
+        // Étape 1 : Télécharger la vidéo
+        const response = await fetch(videoUrl, { mode: 'cors' });
+        if (!response.ok) throw new Error('Erreur HTTP: ' + response.status);
+        
+        const contentLength = response.headers.get('content-length');
+        const total = contentLength ? parseInt(contentLength) : 0;
+        let loaded = 0;
+        const reader = response.body.getReader();
+        const chunks = [];
+        
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+            loaded += value.length;
+            
+            if (total > 0) {
+                const percent = (loaded / total) * 100;
+                document.getElementById('conversion-progress').style.width = `${percent}%`;
+                document.getElementById('conversion-status').innerText = `Téléchargement: ${Math.round(percent)}%`;
+            }
+        }
+        
+        document.getElementById('conversion-status').innerText = 'Extraction audio...';
+        document.getElementById('conversion-progress').style.width = '70%';
+        
+        // Étape 2 : Créer blob vidéo
+        const videoBlob = new Blob(chunks);
+        const videoObjectURL = URL.createObjectURL(videoBlob);
+        
+        // Étape 3 : Créer élément vidéo
+        const video = document.createElement('video');
+        video.preload = 'auto';
+        video.muted = false;
+        video.playsInline = true;
+        video.src = videoObjectURL;
+        
+        await new Promise((resolve, reject) => {
+            video.onloadedmetadata = resolve;
+            video.onerror = reject;
+            video.load();
+            setTimeout(() => reject(new Error('Timeout chargement vidéo')), 30000);
+        });
+        
+        // Étape 4 : Capturer stream audio
+        const stream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
+        const audioTracks = stream.getAudioTracks();
+        
+        if (audioTracks.length === 0) {
+            throw new Error('Aucune piste audio trouvée');
+        }
+        
+        // Étape 5 : Enregistrer l'audio
+        const audioStream = new MediaStream(audioTracks);
+        let mimeType = 'audio/webm;codecs=opus';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'audio/webm';
+        }
+        
+        const mediaRecorder = new MediaRecorder(audioStream, { mimeType });
+        const audioChunks = [];
+        
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) audioChunks.push(e.data);
+        };
+        
+        document.getElementById('conversion-status').innerText = 'Conversion en cours...';
+        
+        await new Promise((resolve, reject) => {
+            mediaRecorder.onstop = resolve;
+            mediaRecorder.onerror = reject;
+            
+            mediaRecorder.start(1000);
+            video.currentTime = 0;
+            video.play();
+            
+            video.onended = () => {
+                if (mediaRecorder.state === 'recording') mediaRecorder.stop();
+            };
+            
+            video.onerror = reject;
+            
+            // Timeout 10 minutes
+            setTimeout(() => {
+                if (mediaRecorder.state === 'recording') mediaRecorder.stop();
+            }, 600000);
+        });
+        
+        document.getElementById('conversion-progress').style.width = '100%';
+        document.getElementById('conversion-status').innerText = 'Finalisation...';
+        
+        // Étape 6 : Télécharger le fichier audio
+        const audioBlob = new Blob(audioChunks, { type: mimeType });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const a = document.createElement('a');
+        a.href = audioUrl;
+        a.download = title.replace(/\.[^/.]+$/, '') + '.webm';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        setTimeout(() => {
+            URL.revokeObjectURL(audioUrl);
+            URL.revokeObjectURL(videoObjectURL);
+        }, 5000);
+        
+        modal.classList.add('hidden');
+        sendNotification('✅ Audio téléchargé', title + '.webm');
+        
+        completedDownloads.unshift({ 
+            title: title + '.webm', 
+            date: new Date().toLocaleString(), 
+            size: (audioBlob.size / 1024 / 1024).toFixed(2) + ' Mo' 
+        });
+        localStorage.setItem('completedDownloads', JSON.stringify(completedDownloads));
+        renderDownloads();
+        
+    } catch (error) {
+        console.error('❌ Audio download error:', error);
+        modal.classList.add('hidden');
+        
+        if (confirm(`❌ Échec: ${error.message}\n\nTélécharger la vidéo originale ?`)) {
+            try {
+                await downloadVideo(videoUrl, title + '.mp4', null);
+            } catch (e) {
+                window.open(videoUrl, '_blank');
+            }
         }
     }
 }
@@ -1587,7 +1777,7 @@ function renderDownloads() {
         completedList.innerHTML = completedDownloads.length ? completedDownloads.map(d => `
             <div class="bg-zinc-900 p-3 rounded-xl text-white">
                 <p class="text-xs font-bold">📹 ${escapeAttr(d.title)}</p>
-                <p class="text-[9px] text-zinc-500">📅 ${escapeAttr(d.date)}</p>
+                <p class="text-[9px] text-zinc-500">📅 ${escapeAttr(d.date)} · ${escapeAttr(d.size || '')}</p>
             </div>
         `).join('') : '<div class="text-center text-zinc-500 py-8">Aucun</div>';
     }
@@ -1607,7 +1797,7 @@ function toggleDlSubTab(sub) {
 }
 
 // ============================================
-// 📤 UPLOAD VIDÉO
+// 📤 UPLOAD VIDÉO - SOLUTION ANDROID (LIT LE FICHIER EN MÉMOIRE)
 // ============================================
 function handleFileSelected(input) {
     if (!input.files?.length) return;
@@ -1629,7 +1819,75 @@ function cancelFileSelection() {
     document.getElementById('upload-form').classList.add('hidden');
 }
 
-async function generateThumbnail(file) {
+// ✅ UPLOAD PRINCIPAL - LIT LE FICHIER EN MÉMOIRE AVANT TOUT
+async function uploadVideoWithChunking() {
+    if (!currentSelectedFile) return;
+    const title = document.getElementById('videoTitle').value.trim();
+    const videoType = document.getElementById('videoType').value;
+    
+    if (!title) { alert("Titre requis"); return; }
+    if (!videoType) { alert("Type requis"); return; }
+    
+    const progressDiv = document.getElementById('uploadProgress');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const speedText = document.getElementById('speedText');
+    const progressDetail = document.getElementById('progressDetail');
+    const timeRemaining = document.getElementById('timeRemaining');
+    const currentChunkEl = document.getElementById('currentChunk');
+    const uploadBtn = document.getElementById('btn-upload');
+    const cancelBtn = document.getElementById('btn-cancel-upload');
+    
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Préparation...';
+    cancelBtn.classList.remove('hidden');
+    progressDiv.classList.remove('hidden');
+    uploadAborted = false;
+    
+    await requestWakeLock();
+    
+    try {
+        // ✅ ÉTAPE CRITIQUE : LIRE LE FICHIER EN MÉMOIRE
+        progressText.innerText = 'Lecture du fichier...';
+        console.log('📖 Lecture du fichier en mémoire...');
+        
+        const fileArrayBuffer = await currentSelectedFile.arrayBuffer();
+        const fileBlob = new Blob([fileArrayBuffer], { type: currentSelectedFile.type });
+        
+        console.log('✅ Fichier lu:', fileBlob.size, 'bytes');
+        
+        progressText.innerText = 'Génération miniature...';
+        const { thumbnail, duration } = await generateThumbnailFromBlob(fileBlob);
+        
+        const fileName = `videos/${Date.now()}_${currentSelectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        
+        const isAndroid = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const CHUNK_THRESHOLD = isAndroid ? 15 * 1024 * 1024 : 10 * 1024 * 1024;
+        
+        if (fileBlob.size < CHUNK_THRESHOLD) {
+            await uploadSimpleFileFixed(fileName, fileBlob, thumbnail, duration, title, videoType,
+                progressDiv, progressBar, progressText, speedText, 
+                progressDetail, timeRemaining, uploadBtn, cancelBtn);
+        } else {
+            await uploadChunkedFileFixed(fileName, fileBlob, thumbnail, duration, title, videoType,
+                progressDiv, progressBar, progressText, speedText,
+                progressDetail, timeRemaining, currentChunkEl, uploadBtn, cancelBtn);
+        }
+        
+    } catch(error) {
+        console.error("❌ Erreur upload:", error);
+        alert("Erreur: " + error.message);
+        progressDiv.classList.add('hidden');
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
+        cancelBtn.classList.add('hidden');
+    } finally {
+        await releaseWakeLock();
+    }
+}
+
+// ✅ MINIATURE DEPUIS BLOB EN MÉMOIRE
+async function generateThumbnailFromBlob(fileBlob) {
     return new Promise((resolve) => {
         const video = document.createElement('video');
         video.preload = 'metadata';
@@ -1661,85 +1919,59 @@ async function generateThumbnail(file) {
         };
         
         video.onerror = () => resolve({ thumbnail: '', duration: '00:00' });
-        setTimeout(() => resolve({ thumbnail: '', duration: '00:00' }), 10000);
-        video.src = URL.createObjectURL(file);
+        setTimeout(() => resolve({ thumbnail: '', duration: '00:00' }), 15000);
+        video.src = URL.createObjectURL(fileBlob);
     });
 }
 
-async function uploadVideoWithChunking() {
-    if (!currentSelectedFile) return;
-    const title = document.getElementById('videoTitle').value.trim();
-    const videoType = document.getElementById('videoType').value;
-    
-    if (!title) { alert("Titre requis"); return; }
-    if (!videoType) { alert("Veuillez sélectionner le type de vidéo"); return; }
-    
-    const progressDiv = document.getElementById('uploadProgress');
-    const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
-    const speedText = document.getElementById('speedText');
-    const progressDetail = document.getElementById('progressDetail');
-    const timeRemaining = document.getElementById('timeRemaining');
-    const currentChunkEl = document.getElementById('currentChunk');
-    const uploadBtn = document.getElementById('btn-upload');
-    const cancelBtn = document.getElementById('btn-cancel-upload');
-    
-    uploadBtn.disabled = true;
-    uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Upload...';
-    cancelBtn.classList.remove('hidden');
-    progressDiv.classList.remove('hidden');
-    uploadAborted = false;
-    
-    await requestWakeLock();
-    
-    try {
-        progressText.innerText = 'Génération miniature...';
-        const { thumbnail, duration } = await generateThumbnail(currentSelectedFile);
-        
-        const fileName = `videos/${Date.now()}_${currentSelectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-        
-        const SMALL_FILE_THRESHOLD = 10 * 1024 * 1024;
-        
-        if (currentSelectedFile.size < SMALL_FILE_THRESHOLD) {
-            await uploadSimpleFile(fileName, thumbnail, duration, title, videoType,
-                progressDiv, progressBar, progressText, speedText, 
-                progressDetail, timeRemaining, currentChunkEl, uploadBtn, cancelBtn);
-        } else {
-            await uploadChunkedFile(fileName, thumbnail, duration, title, videoType,
-                progressDiv, progressBar, progressText, speedText,
-                progressDetail, timeRemaining, currentChunkEl, uploadBtn, cancelBtn);
-        }
-        
-    } catch(error) {
-        console.error("❌ Erreur upload:", error);
-        alert("Erreur: " + error.message);
-        progressDiv.classList.add('hidden');
-        uploadBtn.disabled = false;
-        uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
-        cancelBtn.classList.add('hidden');
-    } finally {
-        await releaseWakeLock();
-    }
-}
-
-async function uploadSimpleFile(fileName, thumbnail, duration, title, videoType,
+// ✅ UPLOAD SIMPLE AVEC RETRY
+async function uploadSimpleFileFixed(fileName, fileBlob, thumbnail, duration, title, videoType,
     progressDiv, progressBar, progressText, speedText, progressDetail, 
-    timeRemaining, currentChunkEl, uploadBtn, cancelBtn) {
+    timeRemaining, uploadBtn, cancelBtn) {
     
     progressText.innerText = 'Initialisation...';
+    console.log('🚀 Démarrage upload simple');
     
-    const initResponse = await fetch('/api/upload-b2', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-    });
+    let initResponse;
+    let retryCount = 0;
     
-    if (!initResponse.ok) throw new Error(`Erreur: ${initResponse.status}`);
+    while (retryCount < MAX_RETRY) {
+        try {
+            initResponse = await fetch('/api/upload-b2', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'include'
+            });
+            
+            if (initResponse.ok) break;
+            
+            retryCount++;
+            console.warn(`⚠️ Retry ${retryCount}/${MAX_RETRY}`);
+            await new Promise(r => setTimeout(r, 2000 * retryCount));
+            
+        } catch (e) {
+            retryCount++;
+            console.error(`❌ Erreur init ${retryCount}:`, e);
+            if (retryCount >= MAX_RETRY) throw new Error('Impossible de contacter le serveur');
+            await new Promise(r => setTimeout(r, 2000 * retryCount));
+        }
+    }
+    
+    if (!initResponse || !initResponse.ok) {
+        throw new Error(`Erreur API: ${initResponse?.status || 'unknown'}`);
+    }
     
     const { uploadUrl, authorizationToken, downloadUrl } = await initResponse.json();
+    console.log('✅ URLs reçues');
     
     await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         let lastLoaded = 0, lastTime = Date.now(), speeds = [];
+        
+        xhr.timeout = 900000;
         
         xhr.upload.addEventListener('progress', (e) => {
             if (e.lengthComputable) {
@@ -1749,11 +1981,13 @@ async function uploadSimpleFile(fileName, thumbnail, duration, title, videoType,
                 
                 const now = Date.now();
                 const timeDiff = (now - lastTime) / 1000;
+                
                 if (timeDiff >= 0.5) {
                     const speedMBps = ((e.loaded - lastLoaded) / 1024 / 1024) / timeDiff;
                     speeds.push(speedMBps);
                     if (speeds.length > 5) speeds.shift();
                     const avg = speeds.reduce((a, b) => a + b, 0) / speeds.length;
+                    
                     speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${avg >= 1 ? avg.toFixed(2) + ' Mo/s' : (avg*1024).toFixed(0) + ' Ko/s'}`;
                     
                     if (avg > 0) {
@@ -1768,64 +2002,88 @@ async function uploadSimpleFile(fileName, thumbnail, duration, title, videoType,
             }
         });
         
-        xhr.onload = () => xhr.status === 200 ? resolve() : reject(new Error(`HTTP ${xhr.status}`));
-        xhr.onerror = () => reject(new Error('Erreur réseau'));
-        xhr.ontimeout = () => reject(new Error('Timeout'));
+        xhr.onload = () => {
+            console.log('✅ Upload terminé, status:', xhr.status);
+            if (xhr.status === 200) resolve();
+            else reject(new Error(`HTTP ${xhr.status}: ${xhr.responseText}`));
+        };
+        
+        xhr.onerror = () => reject(new Error('Erreur réseau. Vérifiez votre connexion.'));
+        xhr.ontimeout = () => reject(new Error('Timeout: Upload trop lent'));
         
         xhr.open('POST', uploadUrl, true);
         xhr.setRequestHeader('Authorization', authorizationToken);
         xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
-        xhr.setRequestHeader('Content-Type', currentSelectedFile.type || 'video/mp4');
+        xhr.setRequestHeader('Content-Type', fileBlob.type || 'video/mp4');
         xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
-        xhr.timeout = 600000;
-        xhr.send(currentSelectedFile);
+        
+        console.log('📤 Envoi blob en mémoire:', fileBlob.size, 'bytes');
+        xhr.send(fileBlob);
     });
     
     const finalVideoUrl = downloadUrl + encodeURIComponent(fileName);
     
-    await db.collection('videos').add({
-        userId: currentUser.uid,
-        albumId: userAlbum.id,
-        fileName: currentSelectedFile.name,
-        title: title,
-        speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
-        duration: duration,
-        date: new Date().toISOString().split('T')[0],
-        views: 0, downloads: 0,
-        downloadURL: finalVideoUrl,
-        thumbnail: thumbnail,
-        uploadedAt: new Date(),
-        size: currentSelectedFile.size,
-        storage: 'backblaze_b2',
-        cdn: 'bunny_net',
-        videoType: videoType,
-        uploadMethod: 'simple'
-    });
+    let firestoreRetry = 0;
+    while (firestoreRetry < 3) {
+        try {
+            await db.collection('videos').add({
+                userId: currentUser.uid,
+                albumId: userAlbum.id,
+                fileName: currentSelectedFile.name,
+                title: title,
+                speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
+                duration: duration,
+                date: new Date().toISOString().split('T')[0],
+                views: 0, downloads: 0,
+                downloadURL: finalVideoUrl,
+                thumbnail: thumbnail,
+                uploadedAt: new Date(),
+                size: fileBlob.size,
+                storage: 'backblaze_b2',
+                cdn: 'bunny_net',
+                videoType: videoType,
+                uploadMethod: 'simple'
+            });
+            break;
+        } catch (e) {
+            firestoreRetry++;
+            console.warn(`⚠️ Firestore error ${firestoreRetry}:`, e);
+            if (firestoreRetry >= 3) throw new Error('Erreur sauvegarde: ' + e.message);
+            await new Promise(r => setTimeout(r, 2000));
+        }
+    }
     
     await finalizeUpload(progressDiv, progressBar, progressText, speedText,
         timeRemaining, uploadBtn, cancelBtn);
 }
 
-async function uploadChunkedFile(fileName, thumbnail, duration, title, videoType,
+// ✅ UPLOAD CHUNKED AVEC RETRY
+async function uploadChunkedFileFixed(fileName, fileBlob, thumbnail, duration, title, videoType,
     progressDiv, progressBar, progressText, speedText, progressDetail,
-    timeRemaining, currentChunkEl, uploadBtn, cancelBtn) {
+    currentChunkEl, uploadBtn, cancelBtn) {
     
     progressText.innerText = 'Initialisation...';
     
     const initResponse = await fetch('/api/upload-b2-chunked', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        credentials: 'include',
         body: JSON.stringify({
             fileName: fileName,
-            fileSize: currentSelectedFile.size,
-            contentType: currentSelectedFile.type || 'video/mp4'
+            fileSize: fileBlob.size,
+            contentType: fileBlob.type || 'video/mp4'
         })
     });
     
     if (!initResponse.ok) throw new Error(`Erreur: ${initResponse.status}`);
     
     const { fileId, authorizationToken } = await initResponse.json();
-    const totalChunks = Math.ceil(currentSelectedFile.size / CHUNK_SIZE);
+    const totalChunks = Math.ceil(fileBlob.size / CHUNK_SIZE);
+    
+    console.log('📦 Total chunks:', totalChunks);
     
     const partShas = [];
     let uploadedChunks = 0;
@@ -1835,15 +2093,19 @@ async function uploadChunkedFile(fileName, thumbnail, duration, title, videoType
         if (uploadAborted) throw new Error('Upload annulé');
         
         const start = (partNumber - 1) * CHUNK_SIZE;
-        const end = Math.min(start + CHUNK_SIZE, currentSelectedFile.size);
-        const chunk = currentSelectedFile.slice(start, end);
+        const end = Math.min(start + CHUNK_SIZE, fileBlob.size);
+        const chunk = fileBlob.slice(start, end);
         
         currentChunkEl.innerText = `${partNumber}/${totalChunks}`;
         progressDetail.innerText = `Chunk ${partNumber}/${totalChunks}`;
         
         const partUrlResponse = await fetch('/api/get-upload-part-url', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            credentials: 'include',
             body: JSON.stringify({ fileId, authorizationToken })
         });
         
@@ -1856,7 +2118,7 @@ async function uploadChunkedFile(fileName, thumbnail, duration, title, videoType
         
         while (retryCount < MAX_RETRY && !success) {
             try {
-                const result = await uploadChunk(chunkUploadUrl, chunkAuthToken, chunk, partNumber, sha1);
+                const result = await uploadChunkAndroid(chunkUploadUrl, chunkAuthToken, chunk, partNumber, sha1);
                 partShas.push({ partNumber, sha1: result.contentSha1 || sha1, contentLength: chunk.size });
                 uploadedChunks++;
                 success = true;
@@ -1874,11 +2136,6 @@ async function uploadChunkedFile(fileName, thumbnail, duration, title, videoType
                     const avg = speeds.reduce((a, b) => a + b, 0) / speeds.length;
                     speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${avg >= 1 ? avg.toFixed(2) + ' Mo/s' : (avg*1024).toFixed(0) + ' Ko/s'}`;
                     
-                    if (avg > 0) {
-                        const rem = ((totalChunks - uploadedChunks) * CHUNK_SIZE) / (avg * 1024 * 1024);
-                        timeRemaining.innerText = rem < 60 ? `Restant: ${Math.ceil(rem)}s` : `Restant: ${Math.floor(rem/60)}m ${Math.ceil(rem%60)}s`;
-                    }
-                    
                     lastTime = now;
                     lastLoaded = uploadedChunks * CHUNK_SIZE;
                 }
@@ -1888,23 +2145,12 @@ async function uploadChunkedFile(fileName, thumbnail, duration, title, videoType
             } catch (error) {
                 retryCount++;
                 console.warn(`⚠️ Chunk ${partNumber} échoué (${retryCount}/${MAX_RETRY})`);
+                
                 if (retryCount >= MAX_RETRY) {
-                    const retryUrl = await fetch('/api/get-upload-part-url', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fileId, authorizationToken })
-                    });
-                    if (retryUrl.ok) {
-                        const retryData = await retryUrl.json();
-                        const retryResult = await uploadChunk(retryData.uploadUrl, retryData.authorizationToken, chunk, partNumber, sha1);
-                        partShas.push({ partNumber, sha1: retryResult.contentSha1 || sha1, contentLength: chunk.size });
-                        uploadedChunks++;
-                        success = true;
-                    } else {
-                        throw new Error(`Échec chunk ${partNumber}`);
-                    }
+                    throw new Error(`Échec chunk ${partNumber}`);
                 }
-                if (!success) await new Promise(r => setTimeout(r, 1000 * retryCount));
+                
+                await new Promise(r => setTimeout(r, 2000 * retryCount));
             }
         }
     }
@@ -1913,7 +2159,11 @@ async function uploadChunkedFile(fileName, thumbnail, duration, title, videoType
     
     const finalizeResponse = await fetch('/api/finish-b2-chunked', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        credentials: 'include',
         body: JSON.stringify({ fileId, partShas, fileName })
     });
     
@@ -1935,7 +2185,7 @@ async function uploadChunkedFile(fileName, thumbnail, duration, title, videoType
         downloadURL: finalVideoUrl,
         thumbnail: thumbnail,
         uploadedAt: new Date(),
-        size: currentSelectedFile.size,
+        size: fileBlob.size,
         storage: 'backblaze_b2',
         cdn: 'bunny_net',
         videoType: videoType,
@@ -1943,7 +2193,34 @@ async function uploadChunkedFile(fileName, thumbnail, duration, title, videoType
     });
     
     await finalizeUpload(progressDiv, progressBar, progressText, speedText,
-        timeRemaining, uploadBtn, cancelBtn);
+        progressDetail, uploadBtn, cancelBtn);
+}
+
+async function uploadChunkAndroid(uploadUrl, authorizationToken, chunk, partNumber, sha1) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.timeout = 300000;
+        
+        xhr.open('POST', uploadUrl, true);
+        xhr.setRequestHeader('Authorization', authorizationToken);
+        xhr.setRequestHeader('X-Bz-Part-Number', partNumber.toString());
+        xhr.setRequestHeader('X-Bz-Content-Sha1', sha1);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+        
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                try { resolve(JSON.parse(xhr.responseText)); } 
+                catch (e) { resolve({ contentSha1: sha1 }); }
+            } else {
+                reject(new Error(`HTTP ${xhr.status}`));
+            }
+        };
+        
+        xhr.onerror = () => reject(new Error('Erreur réseau chunk'));
+        xhr.ontimeout = () => reject(new Error('Timeout chunk'));
+        
+        xhr.send(chunk);
+    });
 }
 
 async function finalizeUpload(progressDiv, progressBar, progressText, speedText,
@@ -1952,7 +2229,7 @@ async function finalizeUpload(progressDiv, progressBar, progressText, speedText,
     progressBar.style.width = '100%';
     progressText.innerText = '100%';
     speedText.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Terminé';
-    timeRemaining.innerText = '✅ Terminé !';
+    if (timeRemaining) timeRemaining.innerText = '✅ Terminé !';
     
     setTimeout(() => {
         progressDiv.classList.add('hidden');
@@ -1968,8 +2245,8 @@ async function finalizeUpload(progressDiv, progressBar, progressText, speedText,
     await loadAllVideos();
     updateProfileUI();
     renderAll();
-    sendNotification('✅ Vidéo publiée', 'Votre vidéo a été publiée avec succès !');
-    alert(`✅ Vidéo publiée avec succès !`);
+    sendNotification('✅ Vidéo publiée', 'Succès !');
+    alert(`✅ Vidéo publiée !`);
 }
 
 async function calculateSHA1(blob) {
@@ -1977,29 +2254,6 @@ async function calculateSHA1(blob) {
     const hashBuffer = await crypto.subtle.digest('SHA-1', arrayBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function uploadChunk(uploadUrl, authorizationToken, chunk, partNumber, sha1) {
-    return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', uploadUrl, true);
-        xhr.setRequestHeader('Authorization', authorizationToken);
-        xhr.setRequestHeader('X-Bz-Part-Number', partNumber.toString());
-        xhr.setRequestHeader('X-Bz-Content-Sha1', sha1);
-        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-        xhr.onload = () => {
-            if (xhr.status === 200) {
-                try { resolve(JSON.parse(xhr.responseText)); } 
-                catch (e) { resolve({ contentSha1: sha1 }); }
-            } else {
-                reject(new Error(`HTTP ${xhr.status}`));
-            }
-        };
-        xhr.onerror = () => reject(new Error('Erreur réseau'));
-        xhr.ontimeout = () => reject(new Error('Timeout'));
-        xhr.timeout = 120000;
-        xhr.send(chunk);
-    });
 }
 
 function cancelUpload() {
@@ -2151,8 +2405,6 @@ function sendNotification(title, body) {
             tag: 'mimbar-' + Date.now()
         });
         
-        playNotificationSound();
-        
         if ('vibrate' in navigator) {
             navigator.vibrate([200, 100, 200, 100, 200]);
         }
@@ -2161,28 +2413,6 @@ function sendNotification(title, body) {
         setTimeout(() => notif.close(), 5000);
     } catch (e) {
         console.error('Notification error:', e);
-    }
-}
-
-function playNotificationSound() {
-    try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
-    } catch (e) {
-        console.error('Sound error:', e);
     }
 }
 
@@ -2213,7 +2443,6 @@ function copyToClipboard(shareData) {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(text).then(() => {
             alert('✅ Lien copié !');
-            sendNotification('📨 Invitation', 'Lien copié !');
         }).catch(() => fallbackCopy(text));
     } else {
         fallbackCopy(text);
@@ -2405,7 +2634,8 @@ async function submitSupport() {
 async function uploadSupportFile(file, folder, customName = null) {
     const response = await fetch('/api/upload-support', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
     });
     
     if (!response.ok) throw new Error(`API error: ${response.status}`);
@@ -2432,161 +2662,6 @@ async function uploadSupportFile(file, folder, customName = null) {
         xhr.onerror = () => reject(new Error('Erreur réseau'));
         xhr.timeout = 120000;
         xhr.send(file);
-    });
-}
-
-// ============================================
-// 🎵 CONVERSION AUDIO
-// ============================================
-async function loadFFmpeg() {
-    if (ffmpegLoaded) return;
-    
-    try {
-        const { FFmpeg } = FFmpegWASM;
-        ffmpeg = new FFmpeg();
-        
-        ffmpeg.on('log', ({ message }) => {
-            console.log('[FFmpeg]', message);
-        });
-        
-        ffmpeg.on('progress', ({ progress, time }) => {
-            const percent = Math.round(progress * 100);
-            document.getElementById('conversion-progress').style.width = `${percent}%`;
-            document.getElementById('conversion-status').innerText = `Conversion: ${percent}%`;
-        });
-        
-        await ffmpeg.load({
-            coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
-        });
-        
-        ffmpegLoaded = true;
-        console.log('✅ FFmpeg loaded');
-    } catch (error) {
-        console.error('❌ FFmpeg load error:', error);
-        throw new Error('Impossible de charger le convertisseur audio');
-    }
-}
-
-async function convertVideoToAudio(videoUrl, title) {
-    const modal = document.getElementById('audio-conversion-modal');
-    modal.classList.remove('hidden');
-    document.getElementById('conversion-progress').style.width = '0%';
-    document.getElementById('conversion-status').innerText = 'Téléchargement de la vidéo...';
-    
-    try {
-        await loadFFmpeg();
-        
-        const response = await fetch(videoUrl);
-        const videoBlob = await response.blob();
-        const videoData = await videoBlob.arrayBuffer();
-        
-        document.getElementById('conversion-status').innerText = 'Écriture du fichier...';
-        await ffmpeg.writeFile('input.mp4', new Uint8Array(videoData));
-        
-        document.getElementById('conversion-status').innerText = 'Conversion en MP3...';
-        
-        await ffmpeg.exec([
-            '-i', 'input.mp4',
-            '-vn',
-            '-acodec', 'libmp3lame',
-            '-q:a', '2',
-            '-y',
-            'output.mp3'
-        ]);
-        
-        document.getElementById('conversion-status').innerText = 'Finalisation...';
-        
-        const data = await ffmpeg.readFile('output.mp3');
-        const audioBlob = new Blob([data.buffer], { type: 'audio/mp3' });
-        
-        const url = URL.createObjectURL(audioBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = title.replace(/\.[^/.]+$/, '') + '.mp3';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-        
-        await ffmpeg.deleteFile('input.mp4');
-        await ffmpeg.deleteFile('output.mp3');
-        
-        modal.classList.add('hidden');
-        sendNotification('✅ Conversion terminée', title + '.mp3');
-        
-    } catch (error) {
-        console.error('Conversion error:', error);
-        modal.classList.add('hidden');
-        
-        try {
-            await fallbackAudioConversion(videoUrl, title);
-        } catch (fallbackError) {
-            alert('❌ Erreur de conversion: ' + error.message);
-        }
-    }
-}
-
-async function fallbackAudioConversion(videoUrl, title) {
-    const modal = document.getElementById('audio-conversion-modal');
-    modal.classList.remove('hidden');
-    document.getElementById('conversion-progress').style.width = '0%';
-    document.getElementById('conversion-status').innerText = 'Méthode alternative...';
-    
-    const video = document.createElement('video');
-    video.crossOrigin = 'anonymous';
-    video.src = videoUrl;
-    video.muted = false;
-    video.playsInline = true;
-    
-    await new Promise((resolve, reject) => {
-        video.onloadeddata = resolve;
-        video.onerror = reject;
-        video.load();
-    });
-    
-    const stream = video.captureStream();
-    const audioTracks = stream.getAudioTracks();
-    
-    if (audioTracks.length === 0) {
-        throw new Error('Aucune piste audio trouvée');
-    }
-    
-    const audioStream = new MediaStream(audioTracks);
-    const mediaRecorder = new MediaRecorder(audioStream, {
-        mimeType: 'audio/webm;codecs=opus'
-    });
-    
-    const chunks = [];
-    mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
-    };
-    
-    return new Promise((resolve, reject) => {
-        mediaRecorder.onstop = () => {
-            const blob = new Blob(chunks, { type: 'audio/webm' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = title.replace(/\.[^/.]+$/, '') + '.webm';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 100);
-            
-            modal.classList.add('hidden');
-            sendNotification('✅ Conversion terminée', title + '.webm');
-            resolve();
-        };
-        
-        mediaRecorder.start();
-        video.play();
-        
-        video.onended = () => {
-            mediaRecorder.stop();
-            video.pause();
-        };
-        
-        video.onerror = reject;
     });
 }
 
