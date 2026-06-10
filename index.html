@@ -11,23 +11,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <style>
-/* IMAGE DE FOND SUR TOUTES LES PAGES */
-body {
-background-image: url('https://raw.githubusercontent.com/zakoyabdoulhafizou959-jpg/mimbar/main/0f1797c1fe593f61dbf2e046c15a913e.jpg');
-background-size: cover;
-background-position: center;
-background-attachment: fixed;
-background-repeat: no-repeat;
-}
-body::before {
-content: '';
-position: fixed;
-top: 0; left: 0; right: 0; bottom: 0;
-background: rgba(0, 0, 0, 0.72);
-z-index: -1;
-pointer-events: none;
-}
-
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .fade-in { animation: fadeIn 0.3s ease; }
@@ -59,13 +42,52 @@ background: linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(239,68,68,0.1)
 border: 2px solid rgba(245,158,11,0.4);
 animation: pulse-border 2s infinite;
 }
-@keyframes pulse-border { 0%, 100% { border-color: rgba(245,158,11,0.4); } 50% { border-color: rgba(245,158,11,0.8); } }
-.upload-active-indicator { animation: upload-pulse 2s infinite; }
-@keyframes upload-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); } }
-.recording-pulse { animation: rec-pulse 1s infinite; }
-@keyframes rec-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-.download-pulse-ring { animation: downloadPulse 2s ease-out infinite; }
-@keyframes downloadPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); } }
+@keyframes pulse-border {
+0%, 100% { border-color: rgba(245,158,11,0.4); }
+50% { border-color: rgba(245,158,11,0.8); }
+}
+.upload-active-indicator {
+animation: upload-pulse 2s infinite;
+}
+@keyframes upload-pulse {
+0%, 100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.7); }
+50% { box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); }
+}
+.recording-pulse {
+animation: rec-pulse 1s infinite;
+}
+@keyframes rec-pulse {
+0%, 100% { opacity: 1; }
+50% { opacity: 0.5; }
+}
+.downloads-bg-animation {
+position: relative;
+overflow: hidden;
+}
+.downloads-bg-animation::before {
+content: '';
+position: absolute;
+top: -50%;
+left: -50%;
+width: 200%;
+height: 200%;
+background: radial-gradient(circle, rgba(255,87,34,0.03) 1px, transparent 1px);
+background-size: 50px 50px;
+animation: downloadGridMove 20s linear infinite;
+pointer-events: none;
+}
+@keyframes downloadGridMove {
+0% { transform: translate(0, 0); }
+100% { transform: translate(50px, 50px); }
+}
+.download-pulse-ring {
+animation: downloadPulse 2s ease-out infinite;
+}
+@keyframes downloadPulse {
+0% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.4); }
+70% { box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); }
+100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); }
+}
 .popular-section { margin-bottom: 20px; }
 .popular-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .popular-title { font-size: 14px; font-weight: bold; color: #ff5722; }
@@ -73,10 +95,8 @@ animation: pulse-border 2s infinite;
 </style>
 </head>
 <body class="h-full bg-slate-900 flex justify-center items-center overflow-hidden font-sans">
-
-<div class="w-full h-full max-w-[480px] md:h-[92vh] md:rounded-[40px] md:border-[10px] md:border-zinc-800 bg-zinc-950/30 flex flex-col relative overflow-hidden shadow-2xl">
-
-<header class="bg-zinc-900/90 px-4 pt-6 pb-3 border-b border-zinc-800/80 flex items-center justify-between shrink-0">
+<div class="w-full h-full max-w-[480px] md:h-[92vh] md:rounded-[40px] md:border-[10px] md:border-zinc-800 bg-zinc-950 flex flex-col relative overflow-hidden shadow-2xl">
+<header class="bg-zinc-900 px-4 pt-6 pb-3 border-b border-zinc-800/80 flex items-center justify-between shrink-0">
 <div class="flex items-center gap-2">
 <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-400 to-emerald-500 p-1 flex items-center justify-center shadow-lg">
 <i class="fa-solid fa-mosque text-white text-xs"></i>
@@ -91,12 +111,10 @@ animation: pulse-border 2s infinite;
 <span id="header-user-status">Déconnecté</span>
 </div>
 </header>
-
 <div class="flex-1 overflow-y-auto no-scrollbar pb-20" id="main-content">
-
 <div id="tab-home" class="p-4 space-y-4">
 <div class="relative">
-<input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher Imam, titre, ville..." class="w-full bg-zinc-900/90 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
+<input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher Imam, titre, ville..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
 </div>
 <div class="popular-section">
@@ -115,83 +133,192 @@ animation: pulse-border 2s infinite;
 <i class="fa-regular fa-square-check mr-1"></i>Sélectionner
 </button>
 </div>
-<div id="home-selection-bar" class="hidden bg-zinc-900/90 rounded-xl p-3 border border-orange-500/30 flex items-center justify-between">
+<div id="home-selection-bar" class="hidden bg-zinc-900 rounded-xl p-3 border border-orange-500/30 flex items-center justify-between">
 <div class="flex items-center gap-2">
-<button onclick="toggleSelectAllHome()" class="text-[10px] px-2 py-1 bg-zinc-800 rounded text-white"><i class="fa-regular fa-square-check mr-1"></i>Tout</button>
+<button onclick="toggleSelectAllHome()" class="text-[10px] px-2 py-1 bg-zinc-800 rounded text-white">
+<i class="fa-regular fa-square-check mr-1"></i>Tout
+</button>
 <span class="text-xs text-white"><span id="home-selected-count">0</span> sélectionnée(s)</span>
 </div>
 <div class="flex gap-2">
-<button onclick="downloadSelectedHome()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold text-white" style="background:#ff5722"><i class="fa-solid fa-download mr-1"></i>DL</button>
-<button onclick="cancelSelectionHome()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-zinc-800 text-white"><i class="fa-solid fa-xmark mr-1"></i>Annuler</button>
+<button onclick="downloadSelectedHome()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold text-white" style="background:#ff5722">
+<i class="fa-solid fa-download mr-1"></i>DL
+</button>
+<button onclick="cancelSelectionHome()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-zinc-800 text-white">
+<i class="fa-solid fa-xmark mr-1"></i>Annuler
+</button>
 </div>
 </div>
 <div id="video-grid" class="space-y-4"></div>
 </div>
 </div>
-
 <div id="tab-create" class="hidden p-4 space-y-4">
-<div class="bg-zinc-900/90 rounded-2xl p-5 space-y-4">
-<h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-plus-circle" style="color:#ff5722"></i>Créer un album</h2>
+<div class="bg-zinc-900 rounded-2xl p-5 space-y-4">
+<h2 class="text-base font-bold text-white flex items-center gap-2">
+<i class="fa-solid fa-plus-circle" style="color:#ff5722"></i>Créer un album
+</h2>
 <div id="create-album-form" class="space-y-3">
-<div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 text-xs text-blue-300"><i class="fa-solid fa-circle-info mr-1"></i>Votre album sera examiné par l'administrateur.</div>
-<div><label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Nom et prénom *</label><input type="text" id="imamName" placeholder="Ex: Cheikh Ousmane Diallo" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none"></div>
+<div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 text-xs text-blue-300">
+<i class="fa-solid fa-circle-info mr-1"></i>Votre album sera examiné par l'administrateur.
+</div>
+<div>
+<label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Nom et prénom *</label>
+<input type="text" id="imamName" placeholder="Ex: Cheikh Ousmane Diallo" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
+</div>
 <div class="grid grid-cols-2 gap-2">
-<div><label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Ville *</label><input type="text" id="imamCity" placeholder="Ex: Niamey" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none"></div>
-<div><label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Pays *</label><input type="text" id="imamCountry" placeholder="Ex: Niger" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none"></div>
+<div>
+<label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Ville *</label>
+<input type="text" id="imamCity" placeholder="Ex: Niamey" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
 </div>
-<div><label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Type *</label><select id="imamType" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none"><option value="">-- Choisir --</option><option value="preche">📢 Prêche</option><option value="tafsir">📖 Tafsir</option><option value="hadith">📜 Hadith</option><option value="coran">🕌 Coran</option></select></div>
-<button onclick="submitAlbumRequest()" id="btn-submit-album" class="w-full py-3 rounded-xl text-sm font-bold text-white" style="background:#ff5722"><i class="fa-solid fa-paper-plane mr-2"></i>Soumettre</button>
+<div>
+<label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Pays *</label>
+<input type="text" id="imamCountry" placeholder="Ex: Niger" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
+</div>
+</div>
+<div>
+<label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Type *</label>
+<select id="imamType" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
+<option value="">-- Choisir --</option>
+<option value="preche">📢 Prêche</option>
+<option value="tafsir">📖 Tafsir</option>
+<option value="hadith">📜 Hadith</option>
+<option value="coran">🕌 Coran</option>
+</select>
+</div>
+<button onclick="submitAlbumRequest()" id="btn-submit-album" class="w-full py-3 rounded-xl text-sm font-bold text-white" style="background:#ff5722">
+<i class="fa-solid fa-paper-plane mr-2"></i>Soumettre
+</button>
 </div>
 </div>
 </div>
-
 <div id="tab-myalbum" class="hidden p-4 space-y-4">
-<div id="myalbum-empty" class="text-center py-12"><i class="fa-solid fa-lock text-4xl text-zinc-600"></i><h3 class="text-sm font-bold text-white mt-3">Aucun album</h3><button onclick="showTab('create')" class="mt-4 px-4 py-2 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Créer un album</button></div>
+<div id="myalbum-empty" class="text-center py-12">
+<i class="fa-solid fa-lock text-4xl text-zinc-600"></i>
+<h3 class="text-sm font-bold text-white mt-3">Aucun album</h3>
+<button onclick="showTab('create')" class="mt-4 px-4 py-2 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Créer un album</button>
+</div>
 <div id="myalbum-content" class="hidden space-y-4">
 <div id="interrupted-upload-banner" class="hidden interrupted-upload-banner rounded-2xl p-4 space-y-3">
-<div class="flex items-start gap-3"><div class="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0"><i class="fa-solid fa-triangle-exclamation text-yellow-400"></i></div><div class="flex-1"><h3 class="text-sm font-bold text-white">Upload interrompu détecté</h3><p class="text-[11px] text-zinc-400 mt-1" id="interrupted-upload-info">Chargement...</p></div></div>
+<div class="flex items-start gap-3">
+<div class="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0">
+<i class="fa-solid fa-triangle-exclamation text-yellow-400"></i>
+</div>
+<div class="flex-1">
+<h3 class="text-sm font-bold text-white">Upload interrompu détecté</h3>
+<p class="text-[11px] text-zinc-400 mt-1" id="interrupted-upload-info">Chargement...</p>
+</div>
+</div>
 <div class="bg-zinc-900/50 rounded-xl p-3 space-y-2">
-<div class="flex justify-between text-[10px]"><span class="text-zinc-400">Fichier:</span><span class="text-white font-bold truncate max-w-[200px]" id="interrupted-file-name">-</span></div>
-<div class="flex justify-between text-[10px]"><span class="text-zinc-400">Progression:</span><span class="text-yellow-400 font-bold" id="interrupted-progress">0/0 chunks</span></div>
-<div class="h-2 bg-zinc-700 rounded-full overflow-hidden"><div id="interrupted-progress-bar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#f59e0b,#ef4444)"></div></div>
+<div class="flex justify-between text-[10px]">
+<span class="text-zinc-400">Fichier:</span>
+<span class="text-white font-bold truncate max-w-[200px]" id="interrupted-file-name">-</span>
 </div>
-<div class="flex gap-2"><button onclick="resumeInterruptedUpload()" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-white" style="background:#ff5722"><i class="fa-solid fa-play mr-1"></i>Reprendre</button><button onclick="cancelInterruptedUpload()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-zinc-800 text-white"><i class="fa-solid fa-xmark mr-1"></i>Annuler</button></div>
+<div class="flex justify-between text-[10px]">
+<span class="text-zinc-400">Progression:</span>
+<span class="text-yellow-400 font-bold" id="interrupted-progress">0/0 chunks</span>
 </div>
-<div class="bg-gradient-to-br from-orange-950/90 to-zinc-900/90 rounded-2xl p-4 border border-orange-500/30">
-<div class="flex items-center justify-between mb-2"><span class="px-2 py-0.5 rounded bg-orange-500 text-zinc-950 text-[9px] font-black uppercase" id="album-status-badge">APPROUVÉ</span></div>
+<div class="h-2 bg-zinc-700 rounded-full overflow-hidden">
+<div id="interrupted-progress-bar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#f59e0b,#ef4444)"></div>
+</div>
+</div>
+<div class="flex gap-2">
+<button onclick="resumeInterruptedUpload()" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-white" style="background:#ff5722">
+<i class="fa-solid fa-play mr-1"></i>Reprendre
+</button>
+<button onclick="cancelInterruptedUpload()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-zinc-800 text-white">
+<i class="fa-solid fa-xmark mr-1"></i>Annuler
+</button>
+</div>
+</div>
+<div class="bg-gradient-to-br from-orange-950 to-zinc-900 rounded-2xl p-4 border border-orange-500/30">
+<div class="flex items-center justify-between mb-2">
+<span class="px-2 py-0.5 rounded bg-orange-500 text-zinc-950 text-[9px] font-black uppercase" id="album-status-badge">APPROUVÉ</span>
+</div>
 <h3 class="text-base font-black text-white" id="my-album-title">Mon Album</h3>
-<p class="text-[10px] text-zinc-400 mt-1"><span id="my-album-imam"></span> · <span id="my-album-location"></span></p>
+<p class="text-[10px] text-zinc-400 mt-1">
+<span id="my-album-imam"></span> · <span id="my-album-location"></span>
+</p>
 </div>
-<div id="upload-section" class="bg-zinc-900/90 rounded-2xl p-4 border-2 border-dashed" style="border-color:rgba(255,87,34,0.5)">
+<div id="upload-section" class="bg-zinc-900 rounded-2xl p-4 border-2 border-dashed" style="border-color:rgba(255,87,34,0.5)">
 <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="handleFileSelected(this)">
-<button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 rounded-xl text-sm font-bold" style="background:rgba(255,87,34,0.2);color:#ff5722"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>Ajouter une vidéo</button>
+<button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 rounded-xl text-sm font-bold" style="background:rgba(255,87,34,0.2);color:#ff5722">
+<i class="fa-solid fa-cloud-arrow-up mr-2"></i>Ajouter une vidéo
+</button>
 <div id="upload-form" class="hidden mt-3 space-y-2">
-<div class="flex items-center gap-2 bg-zinc-800 rounded-lg p-2"><i class="fa-solid fa-film text-orange-500"></i><span id="selected-file-name" class="text-xs text-white truncate flex-1"></span><span id="selected-file-size" class="text-[10px] text-zinc-400"></span><button onclick="cancelFileSelection()" class="text-zinc-400"><i class="fa-solid fa-xmark"></i></button></div>
+<div class="flex items-center gap-2 bg-zinc-800 rounded-lg p-2">
+<i class="fa-solid fa-film text-orange-500"></i>
+<span id="selected-file-name" class="text-xs text-white truncate flex-1"></span>
+<span id="selected-file-size" class="text-[10px] text-zinc-400"></span>
+<button onclick="cancelFileSelection()" class="text-zinc-400"><i class="fa-solid fa-xmark"></i></button>
+</div>
 <input type="text" id="videoTitle" placeholder="Titre de la vidéo" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
-<div><label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Type de vidéo *</label><select id="videoType" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500"><option value="">-- Choisir --</option><option value="coran">🕌 Coran</option><option value="hadith">📜 Hadith</option><option value="tafsir">📖 Tafsir</option><option value="preche">📢 Prêche</option></select></div>
-<button onclick="uploadVideoWithChunking()" id="btn-upload" class="w-full py-2 rounded-lg text-xs font-bold text-white" style="background:#ff5722"><i class="fa-solid fa-upload mr-1"></i>Publier</button>
+<div>
+<label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Type de vidéo *</label>
+<select id="videoType" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
+<option value="">-- Choisir --</option>
+<option value="coran">🕌 Coran</option>
+<option value="hadith">📜 Hadith</option>
+<option value="tafsir">📖 Tafsir</option>
+<option value="preche">📢 Prêche</option>
+</select>
+</div>
+<button onclick="uploadVideoWithChunking()" id="btn-upload" class="w-full py-2 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
+<i class="fa-solid fa-upload mr-1"></i>Publier
+</button>
 <div id="uploadProgress" class="hidden space-y-2">
 <div class="bg-zinc-800 rounded-xl p-3 space-y-2 upload-active-indicator">
-<div class="flex justify-between items-center"><span class="text-[10px] font-bold text-white"><i class="fa-solid fa-cloud-arrow-up text-orange-400 mr-1"></i>Upload en cours...</span><span id="progressPercent" class="text-sm font-black text-orange-400">0%</span></div>
-<div class="h-3 bg-zinc-700 rounded-full overflow-hidden"><div id="progressBar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#ff5722,#00e676)"></div></div>
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-bold text-white">
+<i class="fa-solid fa-cloud-arrow-up text-orange-400 mr-1"></i>Upload en cours...
+</span>
+<span id="progressPercent" class="text-sm font-black text-orange-400">0%</span>
+</div>
+<div class="h-3 bg-zinc-700 rounded-full overflow-hidden">
+<div id="progressBar" class="h-full transition-all duration-300" style="width:0%;background:linear-gradient(to right,#ff5722,#00e676)"></div>
+</div>
 </div>
 <div class="grid grid-cols-2 gap-2">
-<div class="bg-zinc-800 rounded-lg p-2 text-center"><p class="text-[9px] text-zinc-500 uppercase">Vitesse</p><p id="speedText" class="text-sm font-black text-emerald-400 speed-pulse"><i class="fa-solid fa-bolt mr-1"></i>0 Mo/s</p></div>
-<div class="bg-zinc-800 rounded-lg p-2 text-center"><p class="text-[9px] text-zinc-500 uppercase">Temps restant</p><p id="timeRemaining" class="text-sm font-black text-blue-400">Calcul...</p></div>
+<div class="bg-zinc-800 rounded-lg p-2 text-center">
+<p class="text-[9px] text-zinc-500 uppercase">Vitesse</p>
+<p id="speedText" class="text-sm font-black text-emerald-400 speed-pulse">
+<i class="fa-solid fa-bolt mr-1"></i>0 Mo/s
+</p>
+</div>
+<div class="bg-zinc-800 rounded-lg p-2 text-center">
+<p class="text-[9px] text-zinc-500 uppercase">Temps restant</p>
+<p id="timeRemaining" class="text-sm font-black text-blue-400">Calcul...</p>
+</div>
 </div>
 <div class="bg-zinc-800 rounded-lg p-3">
-<div class="flex justify-between items-center mb-1"><span class="text-[10px] text-zinc-400"><i class="fa-solid fa-database mr-1"></i>Données transférées</span><span id="progressDetail" class="text-xs font-bold text-white">0 Mo / 0 Mo</span></div>
-<div class="flex justify-between items-center"><span class="text-[10px] text-zinc-400"><i class="fa-solid fa-puzzle-piece mr-1"></i>Chunks</span><span id="currentChunk" class="text-xs font-bold text-white">0/0</span></div>
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] text-zinc-400">
+<i class="fa-solid fa-database mr-1"></i>Données transférées
+</span>
+<span id="progressDetail" class="text-xs font-bold text-white">0 Mo / 0 Mo</span>
 </div>
-<div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-2 text-[10px] text-yellow-300"><i class="fa-solid fa-floppy-disk mr-1"></i><span id="autosave-status">Sauvegarde auto: inactive</span></div>
-<button onclick="cancelUpload()" id="btn-cancel-upload" class="w-full py-2 rounded-lg text-xs font-bold bg-red-600 text-white"><i class="fa-solid fa-stop-circle mr-1"></i>Annuler</button>
+<div class="flex justify-between items-center">
+<span class="text-[10px] text-zinc-400">
+<i class="fa-solid fa-puzzle-piece mr-1"></i>Chunks
+</span>
+<span id="currentChunk" class="text-xs font-bold text-white">0/0</span>
+</div>
+</div>
+<div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-2 text-[10px] text-yellow-300">
+<i class="fa-solid fa-floppy-disk mr-1"></i>
+<span id="autosave-status">Sauvegarde auto: inactive</span>
+</div>
+<button onclick="cancelUpload()" id="btn-cancel-upload" class="w-full py-2 rounded-lg text-xs font-bold bg-red-600 text-white">
+<i class="fa-solid fa-stop-circle mr-1"></i>Annuler
+</button>
 </div>
 </div>
 </div>
-<div><h3 class="text-xs font-black text-zinc-400 uppercase mb-2">Mes vidéos</h3><div id="my-videos-list" class="space-y-2"></div></div>
+<div>
+<h3 class="text-xs font-black text-zinc-400 uppercase mb-2">Mes vidéos</h3>
+<div id="my-videos-list" class="space-y-2"></div>
 </div>
 </div>
-
+</div>
 <div id="tab-azkar" class="hidden p-4 space-y-4">
 <div class="text-center mb-4">
 <h2 class="text-2xl font-bold text-white mb-1">أذكار وأدعية</h2>
@@ -200,34 +327,46 @@ animation: pulse-border 2s infinite;
 <div class="flex gap-2 overflow-x-auto no-scrollbar py-2" id="azkar-categories"></div>
 <div id="azkar-duas-list" class="space-y-4"></div>
 </div>
-
-<div id="tab-downloads" class="hidden">
-<div class="p-4 border-b border-zinc-800 flex justify-between items-center">
+<div id="tab-downloads" class="hidden downloads-bg-animation">
+<div class="p-4 border-b border-zinc-800 flex justify-between items-center relative z-10">
 <h2 class="text-base font-bold text-white"><i class="fa-solid fa-circle-down mr-2" style="color:#ff5722"></i>Téléchargements</h2>
 <span class="text-[11px] text-zinc-400" id="download-count-badge">0</span>
 </div>
-<div class="px-4 py-3 flex gap-2">
+<div class="px-4 py-3 flex gap-2 relative z-10">
 <button onclick="toggleDlSubTab('active')" id="btn-sub-active" class="px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950">En cours</button>
 <button onclick="toggleDlSubTab('completed')" id="btn-sub-completed" class="px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400">Terminés</button>
 </div>
-<div id="dl-active-container" class="p-4 space-y-3"><div id="active-downloads-list" class="space-y-3"></div></div>
-<div id="dl-completed-container" class="hidden p-4 space-y-3"><div id="completed-downloads-list" class="space-y-3"></div></div>
+<div id="dl-active-container" class="p-4 space-y-3 relative z-10">
+<div id="active-downloads-list" class="space-y-3"></div>
 </div>
-
+<div id="dl-completed-container" class="hidden p-4 space-y-3 relative z-10">
+<div id="completed-downloads-list" class="space-y-3"></div>
+</div>
+</div>
 <div id="tab-profile" class="hidden">
 <div id="profile-unauth" class="p-4 space-y-4">
-<div class="text-center py-8 px-4 bg-gradient-to-br from-zinc-900/90 to-zinc-800/90 rounded-2xl border border-zinc-700">
-<div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center mb-4 shadow-lg"><i class="fa-solid fa-user-circle text-4xl text-white"></i></div>
+<div class="text-center py-8 px-4 bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl border border-zinc-700">
+<div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center mb-4 shadow-lg">
+<i class="fa-solid fa-user-circle text-4xl text-white"></i>
+</div>
 <h3 class="text-lg font-bold text-white">Bienvenue</h3>
 <p class="text-xs text-zinc-400 mt-1">Connectez-vous pour accéder à toutes les fonctionnalités</p>
 </div>
 <div id="auth-error" class="hidden text-xs text-center px-3 py-2 rounded-lg"></div>
-<button onclick="downloadApp()" id="btn-install-app-unauth" class="w-full py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition hover:opacity-90" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%)"><i class="fa-solid fa-download"></i>Installer l'App</button>
-<div class="bg-zinc-900/90 rounded-2xl p-5 space-y-3 border border-zinc-800">
-<button onclick="handleGoogleSignIn()" class="w-full py-3 bg-white text-zinc-950 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-zinc-100 transition"><i class="fa-brands fa-google text-red-500"></i> Continuer avec Google</button>
-<div class="relative flex py-2 items-center"><div class="flex-grow border-t border-zinc-800"></div><span class="flex-shrink mx-3 text-[10px] text-zinc-500 font-bold">OU</span><div class="flex-grow border-t border-zinc-800"></div></div>
-<input type="email" id="loginEmail" placeholder=" Email" class="w-full bg-zinc-800 rounded-xl px-4 py-3 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
-<input type="password" id="loginPassword" placeholder=" Mot de passe" class="w-full bg-zinc-800 rounded-xl px-4 py-3 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
+<button onclick="downloadApp()" id="btn-install-app-unauth" class="w-full py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition hover:opacity-90" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%)">
+<i class="fa-solid fa-download"></i>Installer l'App
+</button>
+<div class="bg-zinc-900 rounded-2xl p-5 space-y-3 border border-zinc-800">
+<button onclick="handleGoogleSignIn()" class="w-full py-3 bg-white text-zinc-950 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-zinc-100 transition">
+<i class="fa-brands fa-google text-red-500"></i> Continuer avec Google
+</button>
+<div class="relative flex py-2 items-center">
+<div class="flex-grow border-t border-zinc-800"></div>
+<span class="flex-shrink mx-3 text-[10px] text-zinc-500 font-bold">OU</span>
+<div class="flex-grow border-t border-zinc-800"></div>
+</div>
+<input type="email" id="loginEmail" placeholder="📧 Email" class="w-full bg-zinc-800 rounded-xl px-4 py-3 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
+<input type="password" id="loginPassword" placeholder="🔒 Mot de passe" class="w-full bg-zinc-800 rounded-xl px-4 py-3 text-sm text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
 <button onclick="handleLogin()" id="btn-login" class="w-full py-3 rounded-xl text-sm font-bold text-white transition hover:opacity-90" style="background:#ff5722">Se connecter</button>
 <button onclick="handleSignup()" id="btn-signup" class="w-full py-3 bg-zinc-800 rounded-xl text-sm text-white hover:bg-zinc-700 transition">Créer un compte</button>
 <button onclick="resetPassword()" class="w-full py-2 text-xs text-zinc-400 underline hover:text-orange-400 transition">Mot de passe oublié ?</button>
@@ -237,81 +376,251 @@ animation: pulse-border 2s infinite;
 <div class="profile-gradient p-6 pb-12 relative">
 <div class="flex items-center gap-4">
 <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-2xl text-white border-2 border-white/30 shadow-lg" id="userAvatar">U</div>
-<div class="flex-1"><h4 id="userName" class="text-lg font-bold text-white"></h4><p class="text-xs text-white/80" id="userEmail"></p></div>
-<button onclick="handleLogout()" class="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm text-xs text-white"><i class="fa-solid fa-right-from-bracket mr-1"></i>Sortie</button>
+<div class="flex-1">
+<h4 id="userName" class="text-lg font-bold text-white"></h4>
+<p class="text-xs text-white/80" id="userEmail"></p>
+</div>
+<button onclick="handleLogout()" class="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm text-xs text-white">
+<i class="fa-solid fa-right-from-bracket mr-1"></i>Sortie
+</button>
 </div>
 </div>
 <div class="px-4 -mt-8 relative z-10">
 <div class="grid grid-cols-3 gap-3">
-<div class="stat-card rounded-xl p-3 text-center"><p class="text-lg font-bold text-white" id="statVideos">0</p><p class="text-[9px] text-zinc-400 uppercase">Vidéos</p></div>
-<div class="stat-card rounded-xl p-3 text-center"><p class="text-lg font-bold text-white" id="statViews">0</p><p class="text-[9px] text-zinc-400 uppercase">Vues</p></div>
-<div class="stat-card rounded-xl p-3 text-center"><p class="text-lg font-bold text-white" id="statDownloads">0</p><p class="text-[9px] text-zinc-400 uppercase">DL</p></div>
+<div class="stat-card rounded-xl p-3 text-center">
+<p class="text-lg font-bold text-white" id="statVideos">0</p>
+<p class="text-[9px] text-zinc-400 uppercase">Vidéos</p>
+</div>
+<div class="stat-card rounded-xl p-3 text-center">
+<p class="text-lg font-bold text-white" id="statViews">0</p>
+<p class="text-[9px] text-zinc-400 uppercase">Vues</p>
+</div>
+<div class="stat-card rounded-xl p-3 text-center">
+<p class="text-lg font-bold text-white" id="statDownloads">0</p>
+<p class="text-[9px] text-zinc-400 uppercase">DL</p>
+</div>
 </div>
 </div>
 <div class="p-4 space-y-2">
-<div id="btn-install-app-auth-container" class="mb-4"><button onclick="downloadApp()" id="btn-install-app-auth" class="w-full py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition hover:opacity-90" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%)"><i class="fa-solid fa-download"></i>Installer l'App</button></div>
+<div id="btn-install-app-auth-container" class="mb-4">
+<button onclick="downloadApp()" id="btn-install-app-auth" class="w-full py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition hover:opacity-90" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%)">
+<i class="fa-solid fa-download"></i>Installer l'App
+</button>
+</div>
 <h3 class="text-xs font-bold text-zinc-500 uppercase mb-3">Mon contenu</h3>
-<button onclick="showTab('myalbum')" class="menu-item w-full py-3 px-4 bg-zinc-900/90 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800"><div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center"><i class="fa-solid fa-photo-film text-orange-400"></i></div><span class="flex-1 text-left">Gérer mon album</span><i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i></button>
-<button onclick="showTab('create')" class="menu-item w-full py-3 px-4 bg-zinc-900/90 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800"><div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center"><i class="fa-solid fa-plus text-emerald-400"></i></div><span class="flex-1 text-left">Créer un album</span><i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i></button>
+<button onclick="showTab('myalbum')" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
+<div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+<i class="fa-solid fa-photo-film text-orange-400"></i>
+</div>
+<span class="flex-1 text-left">Gérer mon album</span>
+<i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
+</button>
+<button onclick="showTab('create')" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
+<div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+<i class="fa-solid fa-plus text-emerald-400"></i>
+</div>
+<span class="flex-1 text-left">Créer un album</span>
+<i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
+</button>
 <h3 class="text-xs font-bold text-zinc-500 uppercase mb-3 mt-6">Paramètres</h3>
-<button onclick="showTab('support')" class="menu-item w-full py-3 px-4 bg-zinc-900/90 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800"><div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center"><i class="fa-solid fa-headset text-blue-400"></i></div><span class="flex-1 text-left">Aide & Support</span><i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i></button>
-<button onclick="inviteFriend()" class="menu-item w-full py-3 px-4 bg-zinc-900/90 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800"><div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center"><i class="fa-solid fa-user-plus text-green-400"></i></div><span class="flex-1 text-left">Inviter un ami</span><i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i></button>
-<button onclick="toggleNotifications()" id="btn-notif" class="menu-item w-full py-3 px-4 bg-zinc-900/90 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800"><div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center"><i class="fa-solid fa-bell text-yellow-400"></i></div><span class="flex-1 text-left" id="notif-status">Notifications</span><i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i></button>
-<button onclick="showTab('privacy')" class="menu-item w-full py-3 px-4 bg-zinc-900/90 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800"><div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center"><i class="fa-solid fa-shield-halved text-purple-400"></i></div><span class="flex-1 text-left">Confidentialité</span><i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i></button>
+<button onclick="showTab('support')" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
+<div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+<i class="fa-solid fa-headset text-blue-400"></i>
+</div>
+<span class="flex-1 text-left">Aide & Support</span>
+<i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
+</button>
+<button onclick="inviteFriend()" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
+<div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+<i class="fa-solid fa-user-plus text-green-400"></i>
+</div>
+<span class="flex-1 text-left">Inviter un ami</span>
+<i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
+</button>
+<button onclick="toggleNotifications()" id="btn-notif" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
+<div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+<i class="fa-solid fa-bell text-yellow-400"></i>
+</div>
+<span class="flex-1 text-left" id="notif-status">Notifications</span>
+<i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
+</button>
+<button onclick="showTab('privacy')" class="menu-item w-full py-3 px-4 bg-zinc-900 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
+<div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+<i class="fa-solid fa-shield-halved text-purple-400"></i>
+</div>
+<span class="flex-1 text-left">Confidentialité</span>
+<i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
+</button>
 </div>
 </div>
 </div>
-
 <div id="tab-support" class="hidden p-4 space-y-4">
-<div class="flex items-center gap-2 mb-2"><button onclick="showTab('profile')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-white text-xs"></i></button><h2 class="text-lg font-bold text-white">Aide & Support</h2></div>
-<div class="info-card rounded-lg p-3 text-xs text-blue-300"><i class="fa-solid fa-circle-info mr-1"></i>Notre équipe vous répondra dans les 24-48h.</div>
-<div class="bg-zinc-900/90 rounded-2xl p-5 space-y-4 border border-zinc-800">
-<div><label class="block text-[10px] font-bold text-zinc-400 uppercase mb-2">Sujet *</label><select id="supportSubject" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500"><option value="bug">🐛 Signaler un bug</option><option value="question">❓ Question générale</option><option value="suggestion">💡 Suggestion</option><option value="album">📁 Problème avec mon album</option><option value="other">📝 Autre</option></select></div>
-<div><label class="block text-[10px] font-bold text-zinc-400 uppercase mb-2">Votre message *</label><textarea id="supportMessage" placeholder="Décrivez votre problème en détail..." rows="4" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500"></textarea></div>
-<div><label class="block text-[10px] font-bold text-zinc-400 uppercase mb-2">Images (optionnel)</label><input type="file" id="supportImages" accept="image/*" multiple class="hidden" onchange="handleSupportImages(this)"><button onclick="document.getElementById('supportImages').click()" class="w-full py-2.5 rounded-lg text-xs font-bold bg-zinc-800 text-white border border-zinc-700 hover:bg-zinc-700 transition"><i class="fa-solid fa-image mr-1" style="color:#3b82f6"></i>Ajouter des images</button><div id="support-images-preview" class="mt-2 flex flex-wrap gap-2"></div></div>
-<div><label class="block text-[10px] font-bold text-zinc-400 uppercase mb-2">Note vocale (optionnel)</label><div class="flex gap-2"><button onclick="toggleRecording()" id="btn-record" class="flex-1 py-2.5 rounded-lg text-xs font-bold bg-zinc-800 text-white border border-zinc-700 hover:bg-zinc-700 transition"><i class="fa-solid fa-microphone mr-1" style="color:#ef4444"></i>Enregistrer</button><div id="recording-timer" class="hidden px-3 py-2.5 rounded-lg bg-red-900/30 text-red-400 text-xs font-bold recording-pulse"><i class="fa-solid fa-circle mr-1"></i><span id="rec-time">00:00</span></div></div><div id="voice-preview" class="hidden mt-2 bg-zinc-800 rounded-lg p-2 flex items-center gap-2"><i class="fa-solid fa-waveform text-emerald-400"></i><span class="text-xs text-white flex-1">Note vocale enregistrée</span><button onclick="removeVoice()" class="text-zinc-400 hover:text-red-400 transition"><i class="fa-solid fa-xmark"></i></button></div></div>
-<button onclick="submitSupport()" id="btn-submit-support" class="w-full py-3 rounded-xl text-sm font-bold text-white transition hover:opacity-90" style="background:#ff5722"><i class="fa-solid fa-paper-plane mr-2"></i>Envoyer le message</button>
+<div class="flex items-center gap-2 mb-2">
+<button onclick="showTab('profile')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
+<i class="fa-solid fa-arrow-left text-white text-xs"></i>
+</button>
+<h2 class="text-lg font-bold text-white">Aide & Support</h2>
 </div>
-<div id="support-success" class="hidden text-center py-8 bg-emerald-900/20 border border-emerald-500/30 rounded-2xl"><i class="fa-solid fa-circle-check text-4xl text-emerald-400"></i><h3 class="text-sm font-bold text-white mt-3">Message envoyé !</h3><p class="text-xs text-zinc-400 mt-1">Nous vous répondrons bientôt.</p></div>
+<div class="info-card rounded-lg p-3 text-xs text-blue-300">
+<i class="fa-solid fa-circle-info mr-1"></i>
+Notre équipe vous répondra dans les 24-48h.
 </div>
-
+<div class="bg-zinc-900 rounded-2xl p-5 space-y-4 border border-zinc-800">
+<div>
+<label class="block text-[10px] font-bold text-zinc-400 uppercase mb-2">Sujet *</label>
+<select id="supportSubject" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
+<option value="bug">🐛 Signaler un bug</option>
+<option value="question">❓ Question générale</option>
+<option value="suggestion">💡 Suggestion</option>
+<option value="album">📁 Problème avec mon album</option>
+<option value="other">📝 Autre</option>
+</select>
+</div>
+<div>
+<label class="block text-[10px] font-bold text-zinc-400 uppercase mb-2">Votre message *</label>
+<textarea id="supportMessage" placeholder="Décrivez votre problème en détail..." rows="4" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500"></textarea>
+</div>
+<div>
+<label class="block text-[10px] font-bold text-zinc-400 uppercase mb-2">Images (optionnel)</label>
+<input type="file" id="supportImages" accept="image/*" multiple class="hidden" onchange="handleSupportImages(this)">
+<button onclick="document.getElementById('supportImages').click()" class="w-full py-2.5 rounded-lg text-xs font-bold bg-zinc-800 text-white border border-zinc-700 hover:bg-zinc-700 transition">
+<i class="fa-solid fa-image mr-1" style="color:#3b82f6"></i>Ajouter des images
+</button>
+<div id="support-images-preview" class="mt-2 flex flex-wrap gap-2"></div>
+</div>
+<div>
+<label class="block text-[10px] font-bold text-zinc-400 uppercase mb-2">Note vocale (optionnel)</label>
+<div class="flex gap-2">
+<button onclick="toggleRecording()" id="btn-record" class="flex-1 py-2.5 rounded-lg text-xs font-bold bg-zinc-800 text-white border border-zinc-700 hover:bg-zinc-700 transition">
+<i class="fa-solid fa-microphone mr-1" style="color:#ef4444"></i>Enregistrer
+</button>
+<div id="recording-timer" class="hidden px-3 py-2.5 rounded-lg bg-red-900/30 text-red-400 text-xs font-bold recording-pulse">
+<i class="fa-solid fa-circle mr-1"></i><span id="rec-time">00:00</span>
+</div>
+</div>
+<div id="voice-preview" class="hidden mt-2 bg-zinc-800 rounded-lg p-2 flex items-center gap-2">
+<i class="fa-solid fa-waveform text-emerald-400"></i>
+<span class="text-xs text-white flex-1">Note vocale enregistrée</span>
+<button onclick="removeVoice()" class="text-zinc-400 hover:text-red-400 transition"><i class="fa-solid fa-xmark"></i></button>
+</div>
+</div>
+<button onclick="submitSupport()" id="btn-submit-support" class="w-full py-3 rounded-xl text-sm font-bold text-white transition hover:opacity-90" style="background:#ff5722">
+<i class="fa-solid fa-paper-plane mr-2"></i>Envoyer le message
+</button>
+</div>
+<div id="support-success" class="hidden text-center py-8 bg-emerald-900/20 border border-emerald-500/30 rounded-2xl">
+<i class="fa-solid fa-circle-check text-4xl text-emerald-400"></i>
+<h3 class="text-sm font-bold text-white mt-3">Message envoyé !</h3>
+<p class="text-xs text-zinc-400 mt-1">Nous vous répondrons bientôt.</p>
+</div>
+</div>
 <div id="tab-privacy" class="hidden p-4 space-y-4">
-<div class="flex items-center gap-2 mb-2"><button onclick="showTab('profile')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-white text-xs"></i></button><h2 class="text-lg font-bold text-white">Confidentialité</h2></div>
-<div class="bg-gradient-to-br from-purple-900/20 to-pink-900/10 rounded-2xl p-5 border border-purple-500/20"><div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center"><i class="fa-solid fa-shield-halved text-2xl text-purple-400"></i></div><div><h3 class="text-base font-bold text-white">Politique de confidentialité</h3><p class="text-[10px] text-zinc-400">Dernière mise à jour : Juin 2026</p></div></div></div>
+<div class="flex items-center gap-2 mb-2">
+<button onclick="showTab('profile')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
+<i class="fa-solid fa-arrow-left text-white text-xs"></i>
+</button>
+<h2 class="text-lg font-bold text-white">Confidentialité</h2>
+</div>
+<div class="bg-gradient-to-br from-purple-900/20 to-pink-900/10 rounded-2xl p-5 border border-purple-500/20">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center">
+<i class="fa-solid fa-shield-halved text-2xl text-purple-400"></i>
+</div>
+<div>
+<h3 class="text-base font-bold text-white">Politique de confidentialité</h3>
+<p class="text-[10px] text-zinc-400">Dernière mise à jour : Juin 2026</p>
+</div>
+</div>
+</div>
 <div class="space-y-3">
-<div class="bg-zinc-900/90 rounded-xl p-4 border border-zinc-800"><button onclick="toggleAccordion('privacy1')" class="w-full flex items-center justify-between text-left"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center"><i class="fa-solid fa-database text-blue-400 text-sm"></i></div><span class="text-sm font-bold text-white">1. Collecte des données</span></div><i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy1-icon"></i></button><div id="privacy1" class="accordion-content"><p class="text-xs text-zinc-400 mt-3 leading-relaxed">Nous collectons uniquement les données nécessaires : email, vidéos uploadées, messages de support. Aucune donnée sensible n'est collectée.</p></div></div>
-<div class="bg-zinc-900/90 rounded-xl p-4 border border-zinc-800"><button onclick="toggleAccordion('privacy2')" class="w-full flex items-center justify-between text-left"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center"><i class="fa-solid fa-lock text-emerald-400 text-sm"></i></div><span class="text-sm font-bold text-white">2. Sécurité</span></div><i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy2-icon"></i></button><div id="privacy2" class="accordion-content"><p class="text-xs text-zinc-400 mt-3 leading-relaxed">Vos données sont protégées par Firebase et Backblaze B2 avec chiffrement de bout en bout.</p></div></div>
-<div class="bg-zinc-900/90 rounded-xl p-4 border border-zinc-800"><button onclick="toggleAccordion('privacy3')" class="w-full flex items-center justify-between text-left"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center"><i class="fa-solid fa-share-nodes text-orange-400 text-sm"></i></div><span class="text-sm font-bold text-white">3. Partage des données</span></div><i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy3-icon"></i></button><div id="privacy3" class="accordion-content"><p class="text-xs text-zinc-400 mt-3 leading-relaxed">Nous ne vendons ni ne partageons vos données personnelles avec des tiers.</p></div></div>
-<div class="bg-zinc-900/90 rounded-xl p-4 border border-zinc-800"><button onclick="toggleAccordion('privacy4')" class="w-full flex items-center justify-between text-left"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center"><i class="fa-solid fa-envelope text-pink-400 text-sm"></i></div><span class="text-sm font-bold text-white">4. Contact</span></div><i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy4-icon"></i></button><div id="privacy4" class="accordion-content"><p class="text-xs text-zinc-400 mt-3 leading-relaxed">Pour toute question, utilisez la section <strong class="text-orange-400">Aide & Support</strong>.</p></div></div>
+<div class="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+<button onclick="toggleAccordion('privacy1')" class="w-full flex items-center justify-between text-left">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+<i class="fa-solid fa-database text-blue-400 text-sm"></i>
+</div>
+<span class="text-sm font-bold text-white">1. Collecte des données</span>
+</div>
+<i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy1-icon"></i>
+</button>
+<div id="privacy1" class="accordion-content">
+<p class="text-xs text-zinc-400 mt-3 leading-relaxed">Nous collectons uniquement les données nécessaires : email, vidéos uploadées, messages de support. Aucune donnée sensible n'est collectée.</p>
 </div>
 </div>
-
+<div class="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+<button onclick="toggleAccordion('privacy2')" class="w-full flex items-center justify-between text-left">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+<i class="fa-solid fa-lock text-emerald-400 text-sm"></i>
 </div>
-
-<nav class="absolute bottom-0 left-0 right-0 bg-zinc-900/95 border-t border-zinc-800/80 py-2 px-4 flex items-center justify-around">
+<span class="text-sm font-bold text-white">2. Sécurité</span>
+</div>
+<i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy2-icon"></i>
+</button>
+<div id="privacy2" class="accordion-content">
+<p class="text-xs text-zinc-400 mt-3 leading-relaxed">Vos données sont protégées par Firebase et Backblaze B2 avec chiffrement de bout en bout.</p>
+</div>
+</div>
+<div class="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+<button onclick="toggleAccordion('privacy3')" class="w-full flex items-center justify-between text-left">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+<i class="fa-solid fa-share-nodes text-orange-400 text-sm"></i>
+</div>
+<span class="text-sm font-bold text-white">3. Partage des données</span>
+</div>
+<i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy3-icon"></i>
+</button>
+<div id="privacy3" class="accordion-content">
+<p class="text-xs text-zinc-400 mt-3 leading-relaxed">Nous ne vendons ni ne partageons vos données personnelles avec des tiers.</p>
+</div>
+</div>
+<div class="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+<button onclick="toggleAccordion('privacy4')" class="w-full flex items-center justify-between text-left">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center">
+<i class="fa-solid fa-envelope text-pink-400 text-sm"></i>
+</div>
+<span class="text-sm font-bold text-white">4. Contact</span>
+</div>
+<i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy4-icon"></i>
+</button>
+<div id="privacy4" class="accordion-content">
+<p class="text-xs text-zinc-400 mt-3 leading-relaxed">Pour toute question, utilisez la section <strong class="text-orange-400">Aide & Support</strong>.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<nav class="absolute bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800/80 py-2 px-4 flex items-center justify-around">
 <button onclick="showTab('home')" id="nav-home" class="flex flex-col items-center gap-1" style="color:#ff5722"><i class="fa-solid fa-house text-lg"></i><span class="text-[9px]">Accueil</span></button>
 <button onclick="showTab('downloads')" id="nav-downloads" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-download text-lg"></i><span class="text-[9px]">Downloads</span></button>
 <button onclick="showTab('azkar')" id="nav-azkar" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-book-quran text-lg"></i><span class="text-[9px]">Azkar</span></button>
 <button onclick="showTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-user text-lg"></i><span class="text-[9px]">Profil</span></button>
 </nav>
-
 <div id="video-overlay-player" class="hidden fixed inset-0 bg-black z-50 flex flex-col">
 <div class="bg-zinc-900 p-3 flex items-center justify-between">
 <button onclick="closeVideoPlayer()" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-white"></i></button>
 <h3 id="video-player-title" class="text-sm font-bold text-white flex-1 mx-3 truncate"></h3>
 <div class="w-8"></div>
 </div>
-<div class="flex-1 flex items-center justify-center bg-black"><video id="native-video" class="w-full max-h-full" controls playsinline><source id="video-source" src="" type="video/mp4"></video></div>
+<div class="flex-1 flex items-center justify-center bg-black">
+<video id="native-video" class="w-full max-h-full" controls playsinline>
+<source id="video-source" src="" type="video/mp4">
+</video>
+</div>
 <div class="bg-zinc-900 p-3 flex items-center justify-between">
 <p id="video-player-speaker" class="text-xs text-zinc-400"></p>
 <div class="flex gap-2">
-<button onclick="showDownloadOptions()" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white" style="background:#ff5722"><i class="fa-solid fa-download mr-1"></i>DL</button>
-<button onclick="openVideoInNewTab()" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-zinc-700"><i class="fa-solid fa-external-link mr-1"></i>Ouvrir</button>
+<button onclick="showDownloadOptions()" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white" style="background:#ff5722">
+<i class="fa-solid fa-download mr-1"></i>DL
+</button>
+<button onclick="openVideoInNewTab()" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-zinc-700">
+<i class="fa-solid fa-external-link mr-1"></i>Ouvrir
+</button>
 </div>
 </div>
 </div>
-
-<!-- MODAL TÉLÉCHARGEMENT - AUDIO SUPPRIMÉ -->
 <div id="download-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
 <div class="bg-zinc-900 rounded-2xl p-5 w-full max-w-sm space-y-3 border border-zinc-800">
 <h3 class="text-sm font-bold text-white">Télécharger</h3>
@@ -319,13 +628,17 @@ animation: pulse-border 2s infinite;
 <button onclick="startDownload('hd')" class="w-full py-3 bg-zinc-800 rounded-xl text-sm font-bold text-white hover:bg-zinc-700 transition">
 <i class="fa-solid fa-video text-emerald-400 mr-2"></i>Vidéo HD
 </button>
+<button onclick="startDownload('audio')" class="w-full py-3 bg-zinc-800 rounded-xl text-sm font-bold text-white hover:bg-zinc-700 transition">
+<i class="fa-solid fa-music text-purple-400 mr-2"></i>Audio
+</button>
 <button onclick="closeDownloadModal()" class="w-full py-2 bg-zinc-800 rounded-xl text-xs text-zinc-400">Annuler</button>
 </div>
 </div>
-
 </div>
-
 <script>
+// ============================================
+// 🔥 FIREBASE INIT
+// ============================================
 const firebaseConfig = {
 apiKey: "AIzaSyC3ybM8gMQZ-IjVLLXqs0MZLPEzqGmyREA",
 authDomain: "mimbar-e1bee.firebaseapp.com",
@@ -340,10 +653,12 @@ const db = firebase.firestore();
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => {}).catch((e) => {});
 db.settings({ cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED, experimentalForceLongPolling: true });
 
+// ============================================
+// ✅ VARIABLES GLOBALES
+// ============================================
 const CHUNK_SIZE = 5 * 1024 * 1024;
 const MAX_RETRY = 3;
 const APK_DOWNLOAD_URL = 'https://github.com/zakoyabdoulhafizou959-jpg/mimbar/releases/download/v1.0.0/app-release.2.apk';
-
 let currentUser = null, userAlbum = null, allVideos = [], allAlbums = [];
 let selectedTypeFilter = null, selectedAlbumFilter = null, searchQuery = '';
 let homeSelectionMode = false, homeSelectedVideoIds = new Set();
@@ -354,6 +669,9 @@ let supportImages = [], supportVoiceBlob = null, mediaRecorder = null, recording
 let currentPlayingVideo = null, activeDownloads = [], completedDownloads = [], downloadInterval = null, showingAllVideos = false;
 let longPressTimer = null, isLongPress = false;
 
+// ============================================
+// 🔧 FONCTIONS UTILITAIRES
+// ============================================
 function getCdnUrl(originalUrl) {
 if (!originalUrl) return '';
 if (originalUrl.includes('kitabwasunna.b-cdn.net')) return originalUrl;
@@ -375,6 +693,9 @@ if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart
 return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
+// ============================================
+// 🔐 AUTH
+// ============================================
 auth.onAuthStateChanged(async (user) => {
 currentUser = user;
 if (user) {
@@ -442,6 +763,9 @@ errorDiv.style.background = 'rgba(239,68,68,0.2)';
 errorDiv.style.color = '#ef4444';
 }
 
+// ============================================
+// 📚 DONNÉES
+// ============================================
 async function loadUserData() {
 if (!currentUser) return;
 try {
@@ -461,11 +785,18 @@ const snapshot = await db.collection('videos').get();
 allVideos = snapshot.docs.map(doc => {
 const v = doc.data();
 return {
-id: doc.id, albumId: v.albumId, userId: v.userId,
-title: v.title || 'Sans titre', speaker: v.speaker || 'Inconnu',
-duration: v.duration || "00:00", views: v.views || 0,
-videoUrl: getCdnUrl(v.downloadURL), thumbnail: v.thumbnail || '',
-size: v.size || 0, videoType: v.videoType || ''
+id: doc.id,
+albumId: v.albumId,
+userId: v.userId,
+title: v.title || 'Sans titre',
+speaker: v.speaker || 'Inconnu',
+duration: v.duration || "00:00",
+views: v.views || 0,
+downloads: v.downloads || 0,
+videoUrl: getCdnUrl(v.downloadURL),
+thumbnail: v.thumbnail || '',
+size: v.size || 0,
+videoType: v.videoType || ''
 };
 });
 } catch(e) { allVideos = []; }
@@ -527,6 +858,9 @@ await loadUserData(); updateProfileUI();
 } catch(error) { alert("❌ Erreur: " + error.message); }
 }
 
+// ============================================
+// 📱 INSTALLATION APP
+// ============================================
 function downloadApp() {
 const link = document.createElement('a');
 link.href = APK_DOWNLOAD_URL; link.download = 'mimbar-v1.0.0.apk';
@@ -535,6 +869,9 @@ localStorage.setItem('appInstalled', 'true');
 setTimeout(() => { updateProfileUI(); sendNotification('✅ Application téléchargée', 'Merci !'); }, 1000);
 }
 
+// ============================================
+// 🎛️ FILTRES
+// ============================================
 function filterByType(typeId) { selectedTypeFilter = typeId; renderTypeChips(); renderAlbumChips(); renderVideoGrid(); }
 function filterByAlbum(albumId) { selectedAlbumFilter = albumId; renderAlbumChips(); renderVideoGrid(); }
 function renderTypeChips() {
@@ -583,6 +920,9 @@ if (showingAllVideos) renderVideoGrid();
 else { if (val.trim() !== '') showAllVideos(); renderPopularVideos(); }
 }
 
+// ============================================
+// 🎬 VIDÉO GRID
+// ============================================
 function renderPopularVideos() {
 const container = document.getElementById('popular-videos-grid');
 const popularVideos = [...allVideos].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 4);
@@ -651,21 +991,58 @@ document.getElementById('popular-section').classList.remove('hidden');
 renderPopularVideos();
 }
 
-function startLongPress(videoId) {
-isLongPress = false;
-longPressTimer = setTimeout(() => {
-isLongPress = true;
+// ============================================
+// ✅ NOUVEAU : GESTION DES VUES ET TÉLÉCHARGEMENTS
+// ============================================
+async function incrementVideoViews(videoId) {
+try {
+const videoRef = db.collection('videos').doc(videoId);
+await videoRef.update({
+views: firebase.firestore.FieldValue.increment(1)
+});
 const video = allVideos.find(v => v.id === videoId);
-if (video) { currentPlayingVideo = video; if ('vibrate' in navigator) navigator.vibrate(50); showDownloadOptions(); }
-}, 600);
+if (video) {
+video.views = (video.views || 0) + 1;
 }
-function endLongPress() { if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; } }
+console.log('✅ Vue incrémentée pour vidéo:', videoId);
+} catch (error) {
+console.error('❌ Erreur incrément vue:', error);
+}
+}
+
+async function incrementVideoDownloads(videoId) {
+try {
+const videoRef = db.collection('videos').doc(videoId);
+await videoRef.update({
+downloads: firebase.firestore.FieldValue.increment(1)
+});
+const video = allVideos.find(v => v.id === videoId);
+if (video) {
+video.downloads = (video.downloads || 0) + 1;
+}
+console.log('✅ Téléchargement incrémenté pour vidéo:', videoId);
+} catch (error) {
+console.error('❌ Erreur incrément téléchargement:', error);
+}
+}
+
+// ============================================
+// 🎬 GESTION VIDÉO (MODIFIÉ)
+// ============================================
 function handleVideoClick(videoId, event) {
-if (isLongPress) { isLongPress = false; return; }
+if (isLongPress) {
+isLongPress = false;
+return;
+}
 const video = allVideos.find(x => x.id === videoId);
 if (!video) return;
+
+// ✅ INCRÉMENTER LES VUES
+incrementVideoViews(videoId);
+
 openVideoPlayer(getCdnUrl(video.videoUrl), video.title, video.speaker, video.id);
 }
+
 function openVideoPlayer(url, title, speaker, videoId) {
 if (!url) return;
 currentPlayingVideo = allVideos.find(v => v.id === videoId);
@@ -684,6 +1061,9 @@ function openVideoInNewTab() {
 if (currentPlayingVideo) window.open(getCdnUrl(currentPlayingVideo.videoUrl), '_blank');
 }
 
+// ============================================
+// 📥 TÉLÉCHARGEMENTS (MODIFIÉ)
+// ============================================
 function showDownloadOptions(videoId = null) {
 if (videoId) currentPlayingVideo = allVideos.find(v => v.id === videoId);
 if (!currentPlayingVideo) return;
@@ -692,123 +1072,128 @@ document.getElementById('download-modal').classList.remove('hidden');
 }
 function closeDownloadModal() { document.getElementById('download-modal').classList.add('hidden'); }
 
-async function startDownload(quality) {
+function startDownload(quality) {
 closeDownloadModal();
 if (!currentPlayingVideo) return;
 const downloadId = Date.now().toString();
-const totalSizeMB = currentPlayingVideo.size ? (currentPlayingVideo.size / 1024 / 1024) : 50;
 const download = {
-id: downloadId, videoId: currentPlayingVideo.id, title: currentPlayingVideo.title,
-url: getCdnUrl(currentPlayingVideo.videoUrl), quality: quality, progress: 0, speed: 0,
-status: 'downloading', startTime: Date.now(), totalSize: totalSizeMB, downloadedMb: 0
+id: downloadId,
+videoId: currentPlayingVideo.id,
+title: currentPlayingVideo.title,
+url: getCdnUrl(currentPlayingVideo.videoUrl),
+quality: quality,
+progress: 0,
+speed: 0,
+status: 'downloading',
+startTime: Date.now()
 };
 activeDownloads.push(download);
-showTab('downloads'); toggleDlSubTab('active'); renderDownloads();
-await downloadFileDirect(download);
-}
-
-async function downloadFileDirect(download) {
-const fileName = `${download.title.replace(/[^a-z0-9]/gi, '_')}.mp4`;
-try {
-const response = await fetch(download.url);
-if (!response.ok) throw new Error('Network response was not ok');
-const blob = await response.blob();
-const blobUrl = window.URL.createObjectURL(blob);
-const link = document.createElement('a');
-link.href = blobUrl; link.download = fileName; link.target = '_blank'; link.rel = 'noopener noreferrer';
-link.style.display = 'none';
-document.body.appendChild(link); link.click();
-let progress = 0;
-const simulateProgress = setInterval(() => {
-progress += Math.random() * 20;
-if (progress >= 100) {
-progress = 100; clearInterval(simulateProgress);
-download.progress = 100; download.status = 'completed'; download.completedAt = Date.now();
-completedDownloads.unshift(download);
-const index = activeDownloads.findIndex(d => d.id === download.id);
-if (index !== -1) activeDownloads.splice(index, 1);
 renderDownloads();
-sendNotification('✅ Téléchargement terminé', `${download.title} est dans vos fichiers !`);
+simulateDownloadProgress(downloadId);
+if (quality === 'audio') {
+setTimeout(() => { completeDownload(downloadId); }, 8000 + Math.random() * 4000);
 } else {
-download.progress = progress; download.speed = (Math.random() * 3 + 1).toFixed(1);
-download.downloadedMb = (progress / 100) * download.totalSize;
-renderDownloads();
+setTimeout(() => { completeDownload(downloadId); }, 5000 + Math.random() * 5000);
 }
+}
+function simulateDownloadProgress(downloadId) {
+const download = activeDownloads.find(d => d.id === downloadId);
+if (!download) return;
+downloadInterval = setInterval(() => {
+if (!download || download.status !== 'downloading') { clearInterval(downloadInterval); return; }
+const increment = Math.random() * 15;
+download.progress = Math.min(download.progress + increment, 100);
+download.speed = (Math.random() * 3 + 1).toFixed(1);
+renderDownloads();
+if (download.progress >= 100) clearInterval(downloadInterval);
 }, 500);
-setTimeout(() => { document.body.removeChild(link); window.URL.revokeObjectURL(blobUrl); }, 2000);
-} catch (error) {
-console.error('Erreur téléchargement:', error);
-window.open(download.url, '_blank');
-download.progress = 100; download.status = 'completed';
-const index = activeDownloads.findIndex(d => d.id === download.id);
-if (index !== -1) { completedDownloads.unshift(download); activeDownloads.splice(index, 1); }
+}
+function completeDownload(downloadId) {
+const index = activeDownloads.findIndex(d => d.id === downloadId);
+if (index === -1) return;
+const download = activeDownloads[index];
+download.progress = 100;
+download.status = 'completed';
+download.completedAt = Date.now();
+completedDownloads.unshift(download);
+activeDownloads.splice(index, 1);
 renderDownloads();
-}
-}
+sendNotification('✅ Téléchargement terminé', `${download.title} est prêt !`);
 
+// ✅ INCRÉMENTER LES TÉLÉCHARGEMENTS
+incrementVideoDownloads(download.videoId);
+
+let actualUrl = download.url;
+let fileName = `${download.title}.${download.quality === 'audio' ? 'mp3' : 'mp4'}`;
+const link = document.createElement('a');
+link.href = actualUrl;
+link.download = fileName;
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+}
 function cancelDownload(downloadId) {
 const index = activeDownloads.findIndex(d => d.id === downloadId);
 if (index === -1) return;
-activeDownloads.splice(index, 1); renderDownloads();
+activeDownloads.splice(index, 1);
+clearInterval(downloadInterval);
+renderDownloads();
 }
-
 function renderDownloads() {
 const activeList = document.getElementById('active-downloads-list');
 const completedList = document.getElementById('completed-downloads-list');
 const badge = document.getElementById('download-count-badge');
 const totalCount = activeDownloads.length + completedDownloads.length;
 if (badge) badge.innerText = totalCount;
-
 if (activeDownloads.length === 0) {
-activeList.innerHTML = '<div class="text-center text-zinc-300 py-12 text-sm"><i class="fa-solid fa-cloud-arrow-down text-4xl mb-3 opacity-50"></i><p>Aucun téléchargement en cours</p></div>';
+activeList.innerHTML = '<div class="text-center text-zinc-500 py-12 text-xs"><i class="fa-solid fa-cloud-arrow-down text-4xl mb-3"></i><p>Aucun téléchargement en cours</p></div>';
 } else {
-activeList.innerHTML = activeDownloads.map(d => {
-const totalSize = d.totalSize || 50;
-const downloadedMb = d.downloadedMb || ((d.progress / 100) * totalSize);
-const remainingMb = totalSize - downloadedMb;
-const speed = parseFloat(d.speed) || 0.1;
-const timeRemainingSec = Math.round(remainingMb / speed);
-const mins = Math.floor(timeRemainingSec / 60);
-const secs = timeRemainingSec % 60;
-const timeStr = d.progress >= 100 ? 'Terminé' : `${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
-return `
-<div class="bg-zinc-900/90 rounded-2xl p-4 border border-zinc-700 shadow-xl download-pulse-ring">
-<div class="flex justify-between items-center mb-3">
-<h3 class="text-white font-bold truncate pr-2 text-sm">${escapeAttr(d.title)}</h3>
-<button onclick="cancelDownload('${d.id}')" class="text-red-400 p-2 hover:bg-zinc-800 rounded-full transition"><i class="fa-solid fa-xmark"></i></button>
+activeList.innerHTML = activeDownloads.map(d => `
+<div class="bg-zinc-900 rounded-xl p-4 border border-zinc-800 download-pulse-ring">
+<div class="flex items-start justify-between mb-3">
+<div class="flex-1 min-w-0">
+<h4 class="text-sm font-bold text-white truncate">${escapeAttr(d.title)}</h4>
+<p class="text-[10px] text-zinc-400 mt-1">
+<i class="fa-solid ${d.quality === 'hd' ? 'fa-video text-emerald-400' : 'fa-music text-purple-400'} mr-1"></i>
+${d.quality === 'hd' ? 'Vidéo HD' : 'Audio'}
+</p>
 </div>
-<div class="flex justify-between text-xs text-zinc-300 mb-2 font-mono">
-<span>${downloadedMb.toFixed(1)} Mo / ${totalSize.toFixed(1)} Mo</span>
-<span><i class="fa-solid fa-bolt text-emerald-400 mr-1"></i>${d.speed} Mo/s</span>
+<button onclick="cancelDownload('${d.id}')" class="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-red-400 transition ml-2">
+<i class="fa-solid fa-xmark text-xs"></i>
+</button>
 </div>
-<div class="w-full bg-zinc-800 rounded-full h-2.5 mb-2 overflow-hidden">
-<div class="bg-gradient-to-r from-orange-500 to-emerald-500 h-2.5 rounded-full transition-all duration-300" style="width: ${d.progress}%"></div>
+<div class="space-y-2">
+<div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
+<div class="h-full transition-all duration-300 rounded-full" style="width:${d.progress}%; background:linear-gradient(to right, #ff5722, #00e676)"></div>
 </div>
-<div class="flex justify-between text-xs text-zinc-400">
-<span>${Math.round(d.progress)}%</span>
-<span><i class="fa-solid fa-clock mr-1"></i>Temps restant: ${timeStr}</span>
+<div class="flex justify-between items-center text-[10px]">
+<span class="text-zinc-400">${Math.round(d.progress)}%</span>
+<span class="text-emerald-400 font-bold"><i class="fa-solid fa-bolt mr-1"></i>${d.speed} Mo/s</span>
 </div>
-</div>`;
-}).join('');
+</div>
+</div>`).join('');
 }
-
 if (completedDownloads.length === 0) {
 completedList.innerHTML = '<div class="text-center text-zinc-500 py-12 text-xs"><i class="fa-solid fa-circle-check text-4xl mb-3"></i><p>Aucun téléchargement terminé</p></div>';
 } else {
 completedList.innerHTML = completedDownloads.map(d => `
-<div class="bg-zinc-900/90 rounded-xl p-4 border border-emerald-500/20">
+<div class="bg-zinc-900 rounded-xl p-4 border border-emerald-500/20">
 <div class="flex items-start justify-between">
 <div class="flex-1 min-w-0">
 <h4 class="text-sm font-bold text-white truncate">${escapeAttr(d.title)}</h4>
-<p class="text-[10px] text-zinc-400 mt-1"><i class="fa-solid fa-video text-emerald-400 mr-1"></i>Vidéo HD</p>
+<p class="text-[10px] text-zinc-400 mt-1">
+<i class="fa-solid ${d.quality === 'hd' ? 'fa-video text-emerald-400' : 'fa-music text-purple-400'} mr-1"></i>
+${d.quality === 'hd' ? 'Vidéo HD' : 'Audio'}
+</p>
 <p class="text-[9px] text-emerald-400 mt-1"><i class="fa-solid fa-check-circle mr-1"></i>Téléchargé</p>
 </div>
-<button onclick="redownload('${d.videoId}')" class="px-3 py-1.5 rounded-lg text-[10px] font-bold text-white" style="background:#ff5722"><i class="fa-solid fa-rotate-right mr-1"></i>Re-TL</button>
+<button onclick="redownload('${d.videoId}')" class="px-3 py-1.5 rounded-lg text-[10px] font-bold text-white" style="background:#ff5722">
+<i class="fa-solid fa-rotate-right mr-1"></i>Re-TL
+</button>
 </div>
 </div>`).join('');
 }
 }
-
 function redownload(videoId) {
 const video = allVideos.find(v => v.id === videoId);
 if (video) { currentPlayingVideo = video; showDownloadOptions(); }
@@ -816,10 +1201,32 @@ if (video) { currentPlayingVideo = video; showDownloadOptions(); }
 function toggleDlSubTab(sub) {
 document.getElementById('dl-active-container').classList.toggle('hidden', sub !== 'active');
 document.getElementById('dl-completed-container').classList.toggle('hidden', sub !== 'completed');
-document.getElementById('btn-sub-active').className = sub === 'active' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950 font-bold" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800/80 text-zinc-400 font-bold";
-document.getElementById('btn-sub-completed').className = sub === 'completed' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950 font-bold" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800/80 text-zinc-400 font-bold";
+document.getElementById('btn-sub-active').className = sub === 'active' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
+document.getElementById('btn-sub-completed').className = sub === 'completed' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
 }
 
+// ============================================
+// 🔍 LONG PRESS
+// ============================================
+function startLongPress(videoId) {
+isLongPress = false;
+longPressTimer = setTimeout(() => {
+isLongPress = true;
+const video = allVideos.find(v => v.id === videoId);
+if (video) {
+currentPlayingVideo = video;
+if ('vibrate' in navigator) navigator.vibrate(50);
+showDownloadOptions();
+}
+}, 600);
+}
+function endLongPress() {
+if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+}
+
+// ============================================
+// 💾 SAUVEGARDE UPLOAD
+// ============================================
 function saveUploadProgress(data) {
 try {
 localStorage.setItem('interruptedUpload', JSON.stringify(data));
@@ -862,6 +1269,9 @@ document.getElementById('uploadProgress').classList.remove('hidden');
 document.getElementById('selected-file-name').innerText = interruptedUploadData.fileName;
 document.getElementById('videoTitle').value = interruptedUploadData.title;
 document.getElementById('videoType').value = interruptedUploadData.videoType;
+try {
+await resumeChunkedUpload(interruptedUploadData.fileName, interruptedUploadData.fileId, interruptedUploadData.authorizationToken, interruptedUploadData.partShas || [], interruptedUploadData.currentChunk, interruptedUploadData.totalChunks, interruptedUploadData.title, interruptedUploadData.videoType, interruptedUploadData.thumbnail, interruptedUploadData.duration);
+} catch (error) { alert('❌ Erreur: ' + error.message); isResumingUpload = false; }
 }
 function cancelInterruptedUpload() {
 if (confirm('Annuler définitivement cet upload ?')) {
@@ -902,7 +1312,7 @@ document.getElementById('videoTitle').value = file.name.replace(/\.[^/.]+$/, "")
 document.getElementById('upload-form').classList.remove('hidden');
 } catch (error) { alert('❌ Erreur: ' + error.message); input.value = ''; }
 };
-reader.onerror = () => { alert(' Erreur de lecture'); input.value = ''; };
+reader.onerror = () => { alert('❌ Erreur de lecture'); input.value = ''; };
 reader.readAsArrayBuffer(file);
 }
 function cancelFileSelection() {
@@ -1185,7 +1595,9 @@ return `
 </div>
 <div class="flex-1 min-w-0">
 <p class="text-xs font-bold text-white truncate">${escapeAttr(v.title)}</p>
-<p class="text-[9px] text-zinc-500 mt-1"><i class="fa-regular fa-eye"></i> ${v.views || 0} vues · ${(v.size / 1024 / 1024).toFixed(1)} Mo</p>
+<p class="text-[9px] text-zinc-500 mt-1">
+<i class="fa-regular fa-eye"></i> ${v.views || 0} vues · ${(v.size / 1024 / 1024).toFixed(1)} Mo
+</p>
 </div>
 <button onclick="deleteMyVideo('${v.id}')" class="w-9 h-9 rounded-lg bg-red-900/30 text-red-400 flex items-center justify-center shrink-0 hover:bg-red-900/50 transition" title="Supprimer">
 <i class="fa-solid fa-trash text-sm"></i>
@@ -1205,7 +1617,7 @@ sendNotification('🗑️ Supprimée', 'La vidéo a été retirée de votre albu
 async function toggleNotifications() {
 if (!('Notification' in window)) { alert("❌ Notifications non supportées"); return; }
 if (Notification.permission === 'granted') { sendNotification('🔔 Test', 'Les notifications fonctionnent !'); return; }
-if (Notification.permission === 'denied') { alert("❌ Notifications bloquées. Allez dans les paramètres."); return; }
+if (Notification.permission === 'denied') { alert("❌ Notifications bloquées."); return; }
 const permission = await Notification.requestPermission();
 if (permission === 'granted') { sendNotification('🔔 Notifications activées !', 'Vous recevrez des notifications.'); updateProfileUI(); }
 }
@@ -1234,7 +1646,7 @@ oscillator.stop(audioContext.currentTime + 0.5);
 }
 
 async function inviteFriend() {
-const shareData = { title: 'أهل السنة والجماعة', text: ' Rejoignez l\'application "Ahlu Sunna wal Jama\'a" !', url: window.location.href };
+const shareData = { title: 'أهل السنة والجماعة', text: '🕌 Rejoignez l\'application "Ahlu Sunna wal Jama\'a" !', url: window.location.href };
 if (navigator.share) { try { await navigator.share(shareData); } catch (e) { if (e.name !== 'AbortError') copyToClipboard(shareData); } }
 else { copyToClipboard(shareData); }
 }
@@ -1355,87 +1767,23 @@ xhr.onerror = () => reject(new Error('Erreur réseau')); xhr.timeout = 120000; x
 });
 }
 
-// ============================================
-// 🎨 AZKAR - 31 INVOCATIONS COMPLÈTES (7 CATÉGORIES)
-// ============================================
 const AZKAR_DATA = [
-{
-category: '💧 Ablutions & Prière',
-color: 'cyan',
-duas: [
+{ category: '💧 Ablutions & Prière', color: 'cyan', duas: [
 { title: 'Au nom d\'Allah', arabic: 'بِسْمِ اللَّهِ', phonetic: 'Bismillâh.', translation: 'Au nom d\'Allah.' },
-{ title: 'Invocation après les ablutions', arabic: 'أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ. اللَّهُمَّ اجْعَلْنِي مِنَ التَّوَّابِينَ، وَاجْعَلْنِي مِنَ الْمُتَطَهِّرِينَ', phonetic: 'Ashhadu an lâ ilâha illâ-llâhu wahdahu lâ sharîka lahu, wa ashhadu anna Muhammadan \'abduhu wa rasûluhu. Allâhumma-j\'alnî mina-t-tawwâbîna wa-j\'alnî mina-l-mutatahhirîn.', translation: 'Je témoigne qu\'il n\'y a de divinité digne d\'adoration qu\'Allah, l\'Unique, sans associé, et je témoigne que Muhammad est Son serviteur et Messager. Ô Allah, place-moi parmi ceux qui se repentent et parmi ceux qui se purifient.' },
-{ title: 'Invocation pour la lumière', arabic: 'اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا، وَفِي بَصَرِي نُورًا، وَفِي سَمْعِي نُورًا، وَعَنْ يَمِينِي نُورًا، وَعَنْ شِمَالِي نُورًا، وَمِنْ فَوْقِي نُورًا، وَمِنْ تَحْتِي نُورًا، وَأَمَامِي نُورًا، وَخَلْفِي نُورًا، وَاجْعَلْ لِي نُورًا', phonetic: 'Allâhumma-j\'al fî qalbî nûran, wa fî baṣarî nûran, wa fî sam\'î nûran, wa \'an yamînî nûran, wa \'an shimālî nûran, wa min fawqî nûran, wa min taḥtī nûran, wa amâmî nûran, wa khalfî nûran, waj\'al lî nûran.', translation: 'Ô Allah, mets de la lumière dans mon cœur, dans ma vue, dans mon ouïe, à ma droite, à ma gauche, au-dessus de moi, au-dessous de moi, devant moi, derrière moi, et accorde-moi une lumière.' },
-{ title: 'Invocation d\'ouverture de la prière (Istiftah)', arabic: 'اللَّهُمَّ بَاعِدْ بَيْنِي وَبَيْنَ خَطَايَايَ كَمَا بَاعَدْتَ بَيْنَ الْمَشْرِقِ وَالْمَغْرِبِ، اللَّهُمَّ نَقِّنِي مِنْ خَطَايَايَ كَمَا يُنَقَّى الثَّوْبُ الْأَبْيَضُ مِنَ الدَّنَسِ، اللَّهُمَّ اغْسِلْنِي مِنْ خَطَايَايَ بِالْثَّلْجِ وَالْمَاءِ وَالْبَرَدِ', phonetic: 'Allâhumma bâ\'id baynî wa bayna khatâyâya kamâ bâ\'adta bayna-l-mashriqi wa-l-maghrib. Allâhumma naqqinî min khatâyâya kamâ yunaqqa-th-thawbu-l-abyadu mina-d-danas. Allâhumma-ghsilnî min khatâyâya bi-th-thalji wa-l-mâ\'i wa-l-barad.', translation: 'Ô Allah, éloigne-moi de mes péchés comme Tu as éloigné l\'Orient de l\'Occident. Ô Allah, purifie-moi de mes fautes comme on nettoie le vêtement blanc de la saleté. Ô Allah, lave-moi de mes péchés avec de la neige, de l\'eau et de la grêle.' },
-{ title: 'Inclinaison (Rukoo\')', arabic: 'سُبْحَانَ رَبِّيَ الْعَظِيمِ', phonetic: 'Subhâna Rabbiya-l-\'Adhîm.', translation: 'Gloire à mon Seigneur l\'Immense.' },
-{ title: 'Se redresser de l\'inclinaison', arabic: 'سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ • رَبَّنَا وَلَكَ الْحَمْدُ حَمْدًا كَثِيرًا طَيِّبًا مُبَارَكًا فِيهِ', phonetic: 'Sami\'a-llâhu liman hamidah. Rabbanâ wa laka-l-hamd, hamdan kathîran tayyiban mubârakan fîh.', translation: 'Allah entend celui qui Le loue. Ô notre Seigneur, à Toi la louange, une louange abondante, pure et bénie.' },
-{ title: 'Prosternation (Sujood)', arabic: 'سُبْحَانَ رَبِّيَ الْأَعْلَى', phonetic: 'Subhâna Rabbiya-l-A\'lâ.', translation: 'Gloire à mon Seigneur le Très-Haut.' },
-{ title: 'Pendant la prosternation', arabic: 'اللَّهُمَّ اغْفِرْ لِي ذَنْبِي كُلَّهُ، دِقَّهُ وَجِلَّهُ، وَأَوَّلَهُ وَآخِرَهُ، وَعَلَانِيَتَهُ وَسِرَّهُ', phonetic: 'Allâhumma-ghfir lî dhanbî kullahu, diqqahu wa jillahu, wa awwalahu wa âkhirahu, wa \'alâniyatahu wa sirrah.', translation: 'Ô Allah, pardonne-moi tous mes péchés : les mineurs et les majeurs, les premiers et les derniers, ceux commis publiquement et ceux commis en secret.' },
-{ title: 'Entre les deux prosternations (Jalsah)', arabic: 'رَبِّ اغْفِرْ لِي، رَبِّ اغْفِرْ لِي', phonetic: 'Rabbi-ghfir lî, Rabbi-ghfir lî.', translation: 'Seigneur, pardonne-moi. Seigneur, pardonne-moi.' },
-{ title: 'À la fin du Tachahoud', arabic: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ جَهَنَّمَ، وَمِنْ عَذَابِ الْقَبْرِ، وَمِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ، وَمِنْ شَرِّ فِتْنَةِ الْمَسِيحِ الدَّجَّالِ', phonetic: 'Allâhumma innî a\'ûdhu bika min \'adhâbi jahannam, wa min \'adhâbi-l-qabr, wa min fitnati-l-mahyâ wa-l-mamât, wa min sharri fitnati-l-masîhi-d-dajjâl.', translation: 'Ô Allah, je cherche refuge auprès de Toi contre le châtiment de l\'Enfer, contre le châtiment de la tombe, contre les tentations de la vie et de la mort, et contre le mal de la tentation de l\'Antéchrist.' }
-]
-},
-{
-category: '🌙 Zakat & Jeûne',
-color: 'emerald',
-duas: [
-{ title: 'En donnant la Zakat', arabic: 'اللَّهُمَّ اجْعَلْهَا غُنْمًا وَلَا تَجْعَلْهَا غُرْمًا', phonetic: 'Allâhumma-j\'alhâ ghunman wa lâ taj\'alhâ ghurman.', translation: 'Ô Allah, fais de cette aumône (Zakat) un gain spirituel et ne la considère pas comme une perte financière.' },
-{ title: 'À la rupture du jeûne (Iftar)', arabic: 'ذَهَبَ الظَّمَأُ وَابْتَلَّتِ الْعُرُوقُ، وَثَبَتَ الْأَجْرُ إِنْ شَاءَ اللَّهُ', phonetic: 'Dhahaba-dh-dhama\'u wa-btallati-l-\'urûqu, wa thabata-l-ajru in shâ\'a-llâh.', translation: 'La soif est étanchée, les veines sont abreuvées, et la récompense est assurée, si Allah le veut.' },
-{ title: 'Invocation classique de l\'Iftar', arabic: 'اللَّهُمَّ لَكَ صُمْتُ وَعَلَى رِزْقِكَ أَفْطَرْتُ', phonetic: 'Allâhumma laka sumtu wa \'alâ rizqika aftartu.', translation: 'Ô Allah, c\'est pour Toi que j\'ai jeûné, et c\'est avec Ta subsistance que je romps mon jeûne.' },
-{ title: 'Invocation d\'Ibn \'Omar à la rupture du jeûne', arabic: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ بِرَحْمَتِكَ الَّتِي وَسِعَتْ كُلَّ شَيْءٍ أَنْ تَغْفِرَ لِي', phonetic: 'Allâhumma innî as\'aluka bi-rahmatika-llatî wasi\'at kulla shay\'in an taghfira lî.', translation: 'Ô Allah, je Te demande par Ta miséricorde qui englobe toute chose, de me pardonner.' },
-{ title: 'Pour la Nuit du Destin (Laylat al-Qadr)', arabic: 'اللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي', phonetic: 'Allâhumma innaka \'afuwwun tuhibbu-l-\'afwa fa-\'fu \'annî.', translation: 'Ô Allah, Tu es Pardonneur, Tu aimes le pardon, alors pardonne-moi.' }
-]
-},
-{
-category: '🤲 Pardon & Clémence',
-color: 'amber',
-duas: [
-{ title: 'Sayyid al-Istighfar (Le maître du pardon)', arabic: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ لِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ', phonetic: 'Allâhumma Anta Rabbî, lâ ilâha illâ Anta, khalaqtanî wa ana \'abduka, wa ana \'alâ \'ahdika wa wa\'dika ma-stata\'tu. A\'ûdhu bika min sharri mâ sana\'tu, abû\'u laka bi-ni\'matika \'alayya, wa abû\'u bi-dhanbî faghfir lî, fa-innahû lâ yaghfiru-dh-dhunûba illâ Anta.', translation: 'Ô Allah, Tu es mon Seigneur, nul ne mérite d\'être adoré en dehors de Toi. Tu m\'as créé, je suis Ton serviteur et je respecte Ton pacte et Ta promesse autant que je le puis. Je cherche refuge auprès de Toi contre le mal de mes actes. Je reconnais Tes bienfaits envers moi et je confesse mon péché. Pardonne-moi donc, car nul ne pardonne les péchés si ce n\'est Toi.' },
-{ title: 'Demande de pardon suprême', arabic: 'أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ', phonetic: 'Astaghfiru-llâha-l-\'Adhîma-lladhî lâ ilâha illâ Huwa-l-Hayyu-l-Qayyûmu wa atûbu ilayh.', translation: 'Je demande pardon à Allah l\'Immense, en dehors de Qui nulle divinité ne mérite d\'être adorée, le Vivant, Celui qui subsiste par Lui-même, et je me repens à Lui.' },
-{ title: 'Pour le nouveau musulman', arabic: 'اللَّهُمَّ اغْفِرْ لِي، وَارْحَمْنِي، وَاهْدِنِي، وَعَافِنِي، وَارْزُقْنِي', phonetic: 'Allâhumma-ghfir lî, wa-rhamnî, wa-hdinî, wa \'âfinî, wa-rzuqnî.', translation: 'Ô Allah, pardonne-moi, fais-moi miséricorde, guide-moi, accorde-moi la santé et accorde-moi ma subsistance.' }
-]
-},
-{
-category: '💀 Tombe & Jugement',
-color: 'purple',
-duas: [
-{ title: 'Contre le châtiment de la tombe', arabic: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، وَأَعُوذُ بِكَ مِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ', phonetic: 'Allâhumma innî a\'ûdhu bika min \'adhâbi-l-qabr, wa a\'ûdhu bika min fitnati-l-mahyâ wa-l-mamât.', translation: 'Ô Allah, je cherche refuge auprès de Toi contre le châtiment de la tombe, et je cherche refuge auprès de Toi contre les épreuves de la vie et de la mort.' },
-{ title: 'À mettre au bord de la tombe après l\'enterrement', arabic: 'اللَّهُمَّ ثَبِّتْهُ عِنْدَ السُّؤَالِ • اللَّهُمَّ اغْفِرْ لَهُ وَثَبِّتْهُ', phonetic: 'Allâhumma thabbithu \'inda-s-su\'âl. Allâhumma-ghfir lahu wa thabbithu.', translation: 'Ô Allah, affermis-le lors de l\'interrogatoire (des anges Mounkar et Nakîr). Ô Allah, pardonne-lui et donne-lui la fermeté.' },
-{ title: 'Le matin ou au soir', arabic: 'اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ', phonetic: 'Allâhumma qinî \'adhâbaka yawma tab\'athu \'ibâdak.', translation: 'Ô Allah, protège-moi de Ton châtiment le Jour où Tu ressusciteras Tes serviteurs.' },
-{ title: 'Pour un jugement facile', arabic: 'اللَّهُمَّ حَاسِبْنِي حِسَابًا يَسِيرًا', phonetic: 'Allâhumma hâsibnî hisâban yasîran.', translation: 'Ô Allah, fais-moi un jugement facile.' }
-]
-},
-{
-category: '💍 Mariage & Couple',
-color: 'pink',
-duas: [
-{ title: 'Pour féliciter les nouveaux mariés', arabic: 'بَارَكَ اللَّهُ لَكَ، وَبَارَكَ عَلَيْكَ، وَجَمَعَ بَيْنَكُمَا فِي خَيْرٍ', phonetic: 'Bâraka-llâhu laka, wa bâraka \'alayka, wa jama\'a baynakumâ fî khayr.', translation: 'Qu\'Allah te bénisse, qu\'Il déverse Sa bénédiction sur toi et qu\'Il vous unisse tous deux dans le bien.' },
-{ title: 'À réciter par l\'époux lors de la première nuit de noces', arabic: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَهَا وَخَيْرَ مَا جَبَلْتَهَا عَلَيْهِ، وَأَعُوذُ بِكَ مِنْ شَرِّهَا وَمِنْ شَرِّ مَا جَبَلْتَهَا عَلَيْهِ', phonetic: 'Allâhumma innî as\'aluka khayrahâ wa khayra mâ jabaltahâ \'alayh, wa a\'ûdhu bika min sharrihâ wa min sharri mâ jabaltahâ \'alayh.', translation: 'Ô Allah, je Te demande son bien et le bien sur lequel Tu l\'as créée, et je cherche refuge auprès de Toi contre son mal et le mal sur lequel Tu l\'as créée.' },
-{ title: 'Avant un rapport intime', arabic: 'بِسْمِ اللَّهِ، اللَّهُمَّ جَنِّبْنَا الشَّيْطَانَ، وَجَنِّبِ الشَّيْطَانَ مَا رَزَقْتَنَا', phonetic: 'Bismillâhi. Allâhumma jannibnâ-sh-shaytâna wa jannibi-sh-shaytâna mâ razaqtanâ.', translation: 'Au nom d\'Allah. Ô Allah, éloigne le Diable de nous et éloigne le Diable du fruit de notre union.' },
-{ title: 'Pour l\'harmonie familiale et des enfants pieux (Coran 25:74)', arabic: 'رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ وَاجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا', phonetic: 'Rabbanâ hab lanâ min azwâjinâ wa dhurriyyâtinâ qurrata a\'yunin wa-j\'alnâ lil-muttaqîna imâmâ.', translation: 'Notre Seigneur, accorde-nous en nos épouses et nos descendants la joie des yeux, et fais de nous des guides pour les pieux.' }
-]
-},
-{
-category: '🛡️ Protection & Matin',
-color: 'blue',
-duas: [
-{ title: 'Pour la protection matin et soir (3 fois)', arabic: 'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ', phonetic: 'Bismillâhi-lladhî lâ yadurru ma\'a-smihi shay\'un fî-l-ardi wa lâ fî-s-samâ\'i wa Huwa-s-Samî\'u-l-\'Alîm.', translation: 'Au nom d\'Allah, tel qu\'en compagnie de Son Nom rien ne peut nuire sur terre ni dans les cieux, et Il est l\'Audient, l\'Omniscient.' },
-{ title: 'Protection ultime contre le mal des créatures', arabic: 'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ', phonetic: 'A\'ûdhu bi-kalimâti-llâhi-t-tâmmâti min sharri mâ khalaq.', translation: 'Je cherche refuge auprès des paroles parfaites d\'Allah contre le mal de Ses créatures.' },
-{ title: 'Pour la santé au lever et au coucher du soleil (3 fois)', arabic: 'اللَّهُمَّ عافِني في بَدَني، اللَّهُمَّ عافِني في سَمْعي، اللَّهُمَّ عافِني في بَصَري، لا إلهَ إلَّا أنتَ', phonetic: 'Allâhumma \'âfinî fî badanî, Allâhumma \'âfinî fî sam\'î, Allâhumma \'âfinî fî baṣarî, lâ ilâha illâ Anta.', translation: 'Ô Allah, préserve mon corps, ô Allah, préserve mon ouïe, ô Allah, préserve ma vue. Nul ne mérite d\'être adoré en dehors de Toi.' }
-]
-},
-{
-category: '❤️ Détresse & Guérison',
-color: 'rose',
-duas: [
-{ title: 'L\'invocation de Jonas (Younous) dans le ventre de la baleine', arabic: 'لَّا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ', phonetic: 'Lâ ilâha illâ Anta subhânaka innî kuntu mina-dh-dhâlimîn.', translation: 'Nulle divinité d\'autre que Toi ! Gloire et pureté à Toi ! J\'ai été vraiment du nombre des injustes.' },
-{ title: 'Raqya pour la guérison d\'un malade', arabic: 'اللَّهُمَّ رَبَّ النَّاسِ أَذْهِبِ الْبَاسَ، اشْفِهِ وَأَنْتَ الشَّافِي، لَا شِفَاءَ إِلَّا شِفَاؤُكَ، شِفَاءً لَا يُغَادِرُ سَقَمًا', phonetic: 'Allâhumma Rabba-n-nâsi, adhhibi-l-ba\'sa, ishfihi wa Anta-sh-shâfî, lâ shifâ\'a illâ shifâ\'uka, shifâ\'an lâ yughâdiru saqamâ.', translation: 'Ô Allah, Seigneur des hommes, fais disparaître le mal. Guéris-le, car Tu es le Guérisseur. Il n\'y a de guérison que la Tienne, une guérison qui ne laisse aucune trace de maladie.' }
-]
-}
+{ title: 'Après les ablutions', arabic: 'أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ. اللَّهُمَّ اجْعَلْنِي مِنَ التَّوَّابِينَ، وَاجْعَلْنِي مِنَ الْمُتَطَهِّرِينَ', phonetic: 'Ashhadu an lâ ilâha illâ-llâhu wahdahu lâ sharîka lahu, wa ashhadu anna Muhammadan \'abduhu wa rasûluhu. Allâhumma-j\'alnî mina-t-tawwâbîna wa-j\'alnî mina-l-mutatahhirîn.', translation: 'Je témoigne qu\'il n\'y a de divinité qu\'Allah, l\'Unique, sans associé.' },
+{ title: 'Invocation pour la lumière', arabic: 'اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا، وَفِي بَصَرِي نُورًا', phonetic: 'Allâhumma-j\'al fî qalbî nûran...', translation: 'Ô Allah, mets de la lumière dans mon cœur.' }
+]},
+{ category: '🤲 Pardon & Clémence', color: 'emerald', duas: [
+{ title: 'Sayyid al-Istighfar', arabic: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ', phonetic: 'Allâhumma Anta Rabbî...', translation: 'Ô Allah, Tu es mon Seigneur...' },
+{ title: 'Pardon suprême', arabic: 'أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ', phonetic: 'Astaghfiru-llâha-l-\'Adhîm...', translation: 'Je demande pardon à Allah l\'Immense.' }
+]},
+{ category: '❤️ Détresse & Guérison', color: 'rose', duas: [
+{ title: 'Invocation de Jonas', arabic: 'لَّا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ', phonetic: 'Lâ ilâha illâ Anta subhânaka...', translation: 'Nulle divinité d\'autre que Toi !' },
+{ title: 'Guérison d\'un malade', arabic: 'اللَّهُمَّ رَبَّ النَّاسِ أَذْهِبِ الْبَاسَ', phonetic: 'Allâhumma Rabba-n-nâsi...', translation: 'Ô Allah, Seigneur des hommes, fais disparaître le mal.' }
+]}
 ];
 
 let currentAzkarCategory = 0;
-
 function renderAzkarCategories() {
 const container = document.getElementById('azkar-categories');
 if (!container) return;
@@ -1446,18 +1794,11 @@ ${currentAzkarCategory === idx ? `style="background:${getCategoryColor(cat.color
 ${cat.category}
 </button>`).join('');
 }
-
 function getCategoryColor(color) {
-const colors = {
-'cyan': '#06b6d4', 'indigo': '#6366f1', 'emerald': '#10b981',
-'gray': '#6b7280', 'pink': '#ec4899', 'amber': '#f59e0b', 'rose': '#f43f5e',
-'purple': '#a855f7', 'blue': '#3b82f6'
-};
+const colors = { 'cyan': '#06b6d4', 'indigo': '#6366f1', 'emerald': '#10b981', 'gray': '#6b7280', 'pink': '#ec4899', 'amber': '#f59e0b', 'rose': '#f43f5e' };
 return colors[color] || '#ff5722';
 }
-
 function selectAzkarCategory(idx) { currentAzkarCategory = idx; renderAzkarCategories(); renderAzkarDuas(); }
-
 function renderAzkarDuas() {
 const container = document.getElementById('azkar-duas-list');
 if (!container) return;
@@ -1465,38 +1806,29 @@ const category = AZKAR_DATA[currentAzkarCategory];
 container.innerHTML = category.duas.map((dua, idx) => `
 <div class="dua-card rounded-2xl p-4 border border-zinc-800 fade-in">
 <div class="flex items-center justify-between mb-3">
-<span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase" style="background:${getCategoryColor(category.color)}20;color:${getCategoryColor(category.color)};border:1px solid ${getCategoryColor(category.color)}40">
-${category.category}
-</span>
+<span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase" style="background:${getCategoryColor(category.color)}20;color:${getCategoryColor(category.color)};border:1px solid ${getCategoryColor(category.color)}40">${category.category}</span>
 <span class="text-[10px] text-zinc-500">#${idx + 1}</span>
 </div>
 <h4 class="text-sm font-bold text-white mb-3">${dua.title}</h4>
-<div class="text-center py-4 bg-zinc-900/50 rounded-xl mb-3">
-<p class="arabic-text text-xl text-white leading-loose">${dua.arabic}</p>
-</div>
+<div class="text-center py-4 bg-zinc-900/50 rounded-xl mb-3"><p class="arabic-text text-xl text-white leading-loose">${dua.arabic}</p></div>
 <div class="space-y-3">
 <div>
 <button onclick="toggleDuaTab('phonetic-${currentAzkarCategory}-${idx}')" class="w-full flex items-center justify-between text-left">
 <span class="text-[10px] font-bold text-zinc-400 uppercase">Phonétique</span>
 <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="phonetic-${currentAzkarCategory}-${idx}-icon"></i>
 </button>
-<div id="phonetic-${currentAzkarCategory}-${idx}" class="accordion-content">
-<p class="text-xs text-zinc-300 italic leading-relaxed mt-2">${dua.phonetic}</p>
-</div>
+<div id="phonetic-${currentAzkarCategory}-${idx}" class="accordion-content"><p class="text-xs text-zinc-300 italic leading-relaxed mt-2">${dua.phonetic}</p></div>
 </div>
 <div>
 <button onclick="toggleDuaTab('traduction-${currentAzkarCategory}-${idx}')" class="w-full flex items-center justify-between text-left">
 <span class="text-[10px] font-bold text-zinc-400 uppercase">Traduction</span>
 <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="traduction-${currentAzkarCategory}-${idx}-icon"></i>
 </button>
-<div id="traduction-${currentAzkarCategory}-${idx}" class="accordion-content">
-<p class="text-xs text-zinc-400 leading-relaxed mt-2">${dua.translation}</p>
-</div>
+<div id="traduction-${currentAzkarCategory}-${idx}" class="accordion-content"><p class="text-xs text-zinc-400 leading-relaxed mt-2">${dua.translation}</p></div>
 </div>
 </div>
 </div>`).join('');
 }
-
 function toggleDuaTab(id) {
 const el = document.getElementById(id); const icon = document.getElementById(id + '-icon');
 if (el) { el.classList.toggle('open'); if (icon) icon.style.transform = el.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0)'; }
@@ -1525,12 +1857,10 @@ searchQuery = ''; document.getElementById('searchInput').value = '';
 renderPopularVideos();
 }
 }
-
 function renderAll() {
 renderPopularVideos();
 if (showingAllVideos) { renderTypeChips(); renderAlbumChips(); renderVideoGrid(); }
 }
-
 function toggleHomeSelectionMode() {
 homeSelectionMode = !homeSelectionMode; homeSelectedVideoIds.clear();
 const btn = document.getElementById('btn-home-select-mode');
@@ -1567,7 +1897,6 @@ const videos = allVideos.filter(v => homeSelectedVideoIds.has(v.id));
 for (const v of videos) { currentPlayingVideo = v; startDownload('hd'); await new Promise(r => setTimeout(r, 500)); }
 cancelSelectionHome();
 }
-
 showTab('home');
 </script>
 </body>
