@@ -826,7 +826,6 @@ document.getElementById('userAvatar').innerText = (currentUser.email?.charAt(0) 
 const myVids = allVideos.filter(v => v.userId === currentUser.uid);
 document.getElementById('statVideos').innerText = myVids.length;
 document.getElementById('statViews').innerText = myVids.reduce((s, v) => s + (v.views || 0), 0);
-document.getElementById('statDownloads').innerText = myVids.reduce((s, v) => s + (v.downloads || 0), 0);
 const notifStatus = document.getElementById('notif-status');
 if (notifStatus) {
 if ('Notification' in window && Notification.permission === 'granted') notifStatus.innerText = 'Notifications activées ✓';
@@ -1070,7 +1069,8 @@ totalSize: video.size ? (video.size / 1024 / 1024) : 50, downloadedMb: 0
 activeDownloads.push(download);
 sendNotification('📥 Téléchargement démarré', `${video.title} est en cours`);
 simulateDownloadProgress(downloadId);
-setTimeout(() => { completeDownload(downloadId); }, 5000 + Math.random() * 5000);
+// ✅ LANCER LE VRAI TÉLÉCHARGEMENT VIA FETCH + BLOB
+executeRealDownload(download);
 showTab('downloads');
 }
 }, 800);
@@ -1080,7 +1080,7 @@ if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
 }
 
 // ============================================
-// 📥 TÉLÉCHARGEMENTS - MÉTHODE FETCH + BLOB
+// 📥 TÉLÉCHARGEMENTS (MÉTHODE FETCH + BLOB)
 // ============================================
 function showDownloadOptions(videoId = null) {
 if (videoId) currentPlayingVideo = allVideos.find(v => v.id === videoId);
@@ -1103,7 +1103,8 @@ totalSize: currentPlayingVideo.size ? (currentPlayingVideo.size / 1024 / 1024) :
 activeDownloads.push(download);
 renderDownloads();
 simulateDownloadProgress(downloadId);
-setTimeout(() => { completeDownload(downloadId); }, 5000 + Math.random() * 5000);
+// ✅ LANCER LE VRAI TÉLÉCHARGEMENT VIA FETCH + BLOB
+executeRealDownload(download);
 }
 
 function simulateDownloadProgress(downloadId) {
@@ -1121,139 +1122,73 @@ if (download.progress >= 100) clearInterval(downloadInterval);
 }
 
 // ✅ NOUVELLE MÉTHODE : FETCH + BLOB (FONCTIONNE DANS MEDIAN APK)
-async function completeDownload(downloadId) {
+async function executeRealDownload(download) {
+const fileName = `${download.title.replace(/[^a-z0-9]/gi, '_')}.mp4`;
+const fileUrl = download.url;
+    
+console.log('📥 Démarrage téléchargement réel:', fileName);
+    
+try {
+// Étape 1 : Télécharger la vidéo en mémoire via fetch
+const response = await fetch(fileUrl);
+        
+if (!response.ok) {
+throw new Error(`Erreur HTTP ${response.status}`);
+}
+        
+// Étape 2 : Convertir en Blob
+const blob = await response.blob();
+console.log('✅ Blob créé:', (blob.size / 1024 / 1024).toFixed(2), 'Mo');
+        
+// Étape 3 : Créer une URL locale pour le blob
+const blobUrl = URL.createObjectURL(blob);
+        
+// Étape 4 : Créer le lien de téléchargement
+const link = document.createElement('a');
+link.href = blobUrl;
+link.download = fileName;
+link.style.display = 'none';
+document.body.appendChild(link);
+        
+// Étape 5 : Déclencher le téléchargement
+link.click();
+        
+// Étape 6 : Nettoyer
+setTimeout(() => {
+document.body.removeChild(link);
+URL.revokeObjectURL(blobUrl);
+}, 1000);
+        
+// Étape 7 : Marquer comme terminé
+completeDownload(download.id);
+        
+console.log('✅ Téléchargement déclenché ! Vérifiez vos téléchargements.');
+        
+} catch (error) {
+console.error('❌ Erreur téléchargement:', error);
+alert('❌ Erreur lors du téléchargement : ' + error.message);
+        
+// En cas d'erreur, annuler le téléchargement dans la liste
+const index = activeDownloads.findIndex(d => d.id === download.id);
+if (index !== -1) {
+activeDownloads.splice(index, 1);
+renderDownloads();
+}
+}
+}
+
+function completeDownload(downloadId) {
 const index = activeDownloads.findIndex(d => d.id === downloadId);
 if (index === -1) return;
-
 const download = activeDownloads[index];
 download.progress = 100;
 download.status = 'completed';
 download.completedAt = Date.now();
-
 completedDownloads.unshift(download);
 activeDownloads.splice(index, 1);
-
 renderDownloads();
 sendNotification('✅ Téléchargement terminé', `${download.title} est prêt !`);
-
-// ✅ INCRÉMENTER LES TÉLÉCHARGEMENTS
 incrementVideoDownloads(download.videoId);
-
-const fileName = `${download.title.replace(/[^a-z0-9]/gi, '_')}.mp4`;
-const fileUrl = download.url;
-
-console.log('📥 Début du téléchargement:', fileName);
-
-try {
-    // ✅ MÉTHODE QUI FONCTIONNE DANS MEDIAN APK
-    const response = await fetch(fileUrl);
-    
-    if (!response.ok) {
-        throw new Error(`Erreur HTTP ${response.status}`);
-    }
-    
-    const blob = await response.blob();
-    const blobUrl = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    URL.revokeObjectURL(blobUrl);
-    
-    console.log('✅ Téléchargement déclenché ! Vérifiez vos téléchargements.');
-    
-} catch (error) {
-    console.error('❌ Erreur fetch/blob:', error);
-    // Fallback vers méthode alternative
-    fallbackDownload(fileUrl, fileName);
-}
-}
-
-// ✅ FALLBACK SI FETCH ÉCHOUE
-function fallbackDownload(url, filename) {
-console.log('🔄 Tentative de fallback...');
-
-// Méthode 1 : window.open
-try {
-    const newWindow = window.open(url, '_blank');
-    if (newWindow) {
-        console.log('✅ window.open réussi');
-        setTimeout(() => { 
-            if (newWindow && !newWindow.closed) { 
-                try { newWindow.close(); } catch(e) {} 
-            } 
-        }, 5000);
-        return;
-    }
-} catch (e) {
-    console.error('❌ window.open échoué:', e);
-}
-
-// Méthode 2 : iframe
-try {
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = url;
-    document.body.appendChild(iframe);
-    setTimeout(() => { 
-        try { document.body.removeChild(iframe); } catch(e) {} 
-    }, 8000);
-    console.log('✅ iframe créé');
-    return;
-} catch (e) {
-    console.error('❌ iframe échoué:', e);
-}
-
-// Méthode 3 : Modal d'instructions
-showDownloadInstructions(url, filename);
-}
-
-function showDownloadInstructions(url, filename) {
-const modal = document.createElement('div');
-modal.id = 'download-instructions-modal';
-modal.className = 'fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4';
-modal.innerHTML = `
-<div class="bg-zinc-900 rounded-2xl p-6 max-w-sm w-full border border-zinc-700 shadow-2xl">
-    <div class="text-center mb-4">
-        <div class="w-16 h-16 mx-auto rounded-full bg-orange-500/20 flex items-center justify-center mb-3">
-            <i class="fa-solid fa-download text-3xl" style="color:#ff5722"></i>
-        </div>
-        <h3 class="text-lg font-bold text-white">Téléchargement</h3>
-        <p class="text-[10px] text-zinc-400 mt-1">Le téléchargement automatique a échoué</p>
-    </div>
-    <div class="space-y-3">
-        <div class="bg-zinc-800 rounded-xl p-3">
-            <p class="text-[10px] font-bold text-zinc-400 uppercase mb-2">Options disponibles :</p>
-            <ol class="list-decimal list-inside space-y-2 text-xs text-zinc-300">
-                <li>Ouvrir dans le navigateur externe (Chrome)</li>
-                <li>Copier le lien pour le télécharger ailleurs</li>
-            </ol>
-        </div>
-        <div class="bg-zinc-800 rounded-lg p-2">
-            <p class="text-[9px] text-zinc-500 mb-1">Fichier :</p>
-            <p class="text-[10px] text-white font-mono truncate">${filename}</p>
-        </div>
-    </div>
-    <div class="flex gap-2 mt-4">
-        <button onclick="window.open('${url}', '_system'); closeDownloadInstructionsModal();" class="flex-1 py-3 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1" style="background:#ff5722">
-            <i class="fa-solid fa-external-link"></i> Ouvrir dans Chrome
-        </button>
-        <button onclick="navigator.clipboard.writeText('${url}'); alert('✅ Lien copié !'); closeDownloadInstructionsModal();" class="px-4 py-3 rounded-xl text-xs font-bold bg-zinc-700 text-white">
-            <i class="fa-solid fa-copy"></i>
-        </button>
-    </div>
-    <button onclick="closeDownloadInstructionsModal();" class="w-full mt-2 py-2 rounded-lg text-xs text-zinc-400 hover:text-white transition">Fermer</button>
-</div>`;
-document.body.appendChild(modal);
-}
-
-function closeDownloadInstructionsModal() {
-const modal = document.getElementById('download-instructions-modal');
-if (modal) modal.remove();
 }
 
 function cancelDownload(downloadId) {
