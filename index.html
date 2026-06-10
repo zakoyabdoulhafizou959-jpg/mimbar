@@ -90,6 +90,28 @@
             70% { box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); }
             100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); }
         }
+        
+        /* Section "Les plus populaires" */
+        .popular-section {
+            margin-bottom: 20px;
+        }
+        .popular-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .popular-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ff5722;
+        }
+        .view-all-link {
+            font-size: 11px;
+            color: #ff5722;
+            text-decoration: underline;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="h-full bg-slate-900 flex justify-center items-center overflow-hidden font-sans">
@@ -119,34 +141,47 @@
                 <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher Imam, titre, ville..." class="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
             </div>
-            <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="type-chips"></div>
-            <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="album-chips"></div>
             
-            <div class="flex justify-between items-center mb-2">
-                <h3 class="text-xs font-black text-zinc-400 uppercase">Vidéos disponibles</h3>
-                <button onclick="toggleHomeSelectionMode()" id="btn-home-select-mode" class="text-[10px] px-3 py-1.5 rounded-full bg-zinc-800 text-white">
-                    <i class="fa-regular fa-square-check mr-1"></i>Sélectionner
-                </button>
+            <!-- Section Les plus populaires -->
+            <div class="popular-section">
+                <div class="popular-header">
+                    <h3 class="popular-title">🔥 Les plus populaires</h3>
+                    <span class="view-all-link" onclick="showAllVideos()">Voir tout</span>
+                </div>
+                <div id="popular-videos-grid" class="grid grid-cols-2 gap-3"></div>
             </div>
             
-            <div id="home-selection-bar" class="hidden bg-zinc-900 rounded-xl p-3 border border-orange-500/30 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <button onclick="toggleSelectAllHome()" class="text-[10px] px-2 py-1 bg-zinc-800 rounded text-white">
-                        <i class="fa-regular fa-square-check mr-1"></i>Tout
-                    </button>
-                    <span class="text-xs text-white"><span id="home-selected-count">0</span> sélectionnée(s)</span>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="downloadSelectedHome()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold text-white" style="background:#ff5722">
-                        <i class="fa-solid fa-download mr-1"></i>DL
-                    </button>
-                    <button onclick="cancelSelectionHome()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-zinc-800 text-white">
-                        <i class="fa-solid fa-xmark mr-1"></i>Annuler
+            <!-- Toutes les vidéos (caché par défaut) -->
+            <div id="all-videos-section" class="hidden">
+                <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="type-chips"></div>
+                <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="album-chips"></div>
+                
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xs font-black text-zinc-400 uppercase">Toutes les vidéos</h3>
+                    <button onclick="toggleHomeSelectionMode()" id="btn-home-select-mode" class="text-[10px] px-3 py-1.5 rounded-full bg-zinc-800 text-white">
+                        <i class="fa-regular fa-square-check mr-1"></i>Sélectionner
                     </button>
                 </div>
+                
+                <div id="home-selection-bar" class="hidden bg-zinc-900 rounded-xl p-3 border border-orange-500/30 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleSelectAllHome()" class="text-[10px] px-2 py-1 bg-zinc-800 rounded text-white">
+                            <i class="fa-regular fa-square-check mr-1"></i>Tout
+                        </button>
+                        <span class="text-xs text-white"><span id="home-selected-count">0</span> sélectionnée(s)</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="downloadSelectedHome()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold text-white" style="background:#ff5722">
+                            <i class="fa-solid fa-download mr-1"></i>DL
+                        </button>
+                        <button onclick="cancelSelectionHome()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-zinc-800 text-white">
+                            <i class="fa-solid fa-xmark mr-1"></i>Annuler
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="video-grid" class="space-y-4"></div>
             </div>
-            
-            <div id="video-grid" class="space-y-4"></div>
         </div>
 
         <div id="tab-create" class="hidden p-4 space-y-4">
@@ -737,6 +772,7 @@ let currentPlayingVideo = null;
 let activeDownloads = [];
 let completedDownloads = [];
 let downloadInterval = null;
+let showingAllVideos = false;
 
 // ============================================
 // 🔧 FONCTIONS UTILITAIRES
@@ -1098,11 +1134,63 @@ function getFilteredVideos() {
     return filtered;
 }
 
-function handleSearch(val) { searchQuery = val; renderVideoGrid(); }
+function handleSearch(val) {
+    searchQuery = val;
+    if (showingAllVideos) {
+        renderVideoGrid();
+    } else {
+        // Si on est sur la page d'accueil avec seulement les populaires
+        // et qu'on tape dans la recherche, on affiche automatiquement toutes les vidéos
+        if (val.trim() !== '') {
+            showAllVideos();
+        }
+        renderPopularVideos();
+    }
+}
 
 // ============================================
 // 🎬 VIDÉO GRID
 // ============================================
+function renderPopularVideos() {
+    const container = document.getElementById('popular-videos-grid');
+    // Trier par vues décroissantes et prendre les 4 premiers
+    const popularVideos = [...allVideos]
+        .sort((a, b) => (b.views || 0) - (a.views || 0))
+        .slice(0, 4);
+    
+    if (popularVideos.length === 0) {
+        container.innerHTML = `<div class="col-span-2 text-center py-8"><i class="fa-solid fa-video-slash text-3xl text-zinc-700"></i><p class="text-sm text-zinc-500 mt-2">Aucune vidéo populaire</p></div>`;
+        return;
+    }
+    
+    const defaultThumb = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIgZmlsbD0iIzE4MTgxYiIvPjxjaXJjbGUgY3g9IjI0MCIgY3k9IjEzNSIgcj0iNDAiIGZpbGw9IiNmZjU3MjIiLz48cG9seWdvbiBwb2ludHM9IjIyNSwxMTUgMjI1LDE1NSAyNjUsMTM1IiBmaWxsPSIjZmZmIi8+PC9zdmc+';
+    
+    container.innerHTML = popularVideos.map(v => {
+        const album = allAlbums.find(a => a.id === v.albumId);
+        const thumb = v.thumbnail || defaultThumb;
+        
+        return `
+        <div class="video-card bg-zinc-900 rounded-xl overflow-hidden cursor-pointer fade-in" 
+             onclick="handleVideoClick('${v.id}', event)"
+             onmousedown="startLongPress('${v.id}')"
+             onmouseup="endLongPress()"
+             onmouseleave="endLongPress()"
+             ontouchstart="startLongPress('${v.id}')"
+             ontouchend="endLongPress()"
+             ontouchcancel="endLongPress()">
+            <div class="relative aspect-video bg-zinc-800">
+                <img src="${thumb}" class="w-full h-full object-cover" onerror="this.src='${defaultThumb}'">
+                <div class="duration-badge">${v.duration}</div>
+            </div>
+            <div class="p-2">
+                <h4 class="text-xs font-bold text-white line-clamp-2">${escapeAttr(v.title)}</h4>
+                <p class="text-[9px] mt-1 text-zinc-400">${escapeAttr(album?.imamName || v.speaker)}</p>
+            </div>
+        </div>
+        `;
+    }).join('');
+}
+
 function renderVideoGrid() {
     const container = document.getElementById('video-grid');
     const filtered = getFilteredVideos();
@@ -1141,22 +1229,20 @@ function renderVideoGrid() {
     }).join('');
 }
 
-let longPressTimer = null;
-let isLongPress = false;
-
-function startLongPress(videoId) {
-    isLongPress = false;
-    longPressTimer = setTimeout(() => {
-        isLongPress = true;
-        showDownloadOptions(videoId);
-    }, 500);
+function showAllVideos() {
+    showingAllVideos = true;
+    document.getElementById('all-videos-section').classList.remove('hidden');
+    document.getElementById('popular-section').classList.add('hidden');
+    renderTypeChips();
+    renderAlbumChips();
+    renderVideoGrid();
 }
 
-function endLongPress() {
-    if (longPressTimer) {
-        clearTimeout(longPressTimer);
-        longPressTimer = null;
-    }
+function showPopularOnly() {
+    showingAllVideos = false;
+    document.getElementById('all-videos-section').classList.add('hidden');
+    document.getElementById('popular-section').classList.remove('hidden');
+    renderPopularVideos();
 }
 
 function handleVideoClick(videoId, event) {
@@ -1230,10 +1316,19 @@ function startDownload(quality) {
     renderDownloads();
     simulateDownloadProgress(downloadId);
     
-    // Simuler le téléchargement réel
-    setTimeout(() => {
-        completeDownload(downloadId);
-    }, 5000 + Math.random() * 5000); // 5-10 secondes
+    // Pour le téléchargement audio, on va créer un lien vers un service de conversion
+    // Dans une vraie implémentation, vous auriez besoin d'un backend qui convertit la vidéo en audio
+    if (quality === 'audio') {
+        // Simuler la conversion vidéo → audio
+        setTimeout(() => {
+            completeDownload(downloadId);
+        }, 8000 + Math.random() * 4000); // 8-12 secondes pour la conversion
+    } else {
+        // Téléchargement vidéo normal
+        setTimeout(() => {
+            completeDownload(downloadId);
+        }, 5000 + Math.random() * 5000); // 5-10 secondes
+    }
 }
 
 function simulateDownloadProgress(downloadId) {
@@ -1278,9 +1373,16 @@ function completeDownload(downloadId) {
     sendNotification('✅ Téléchargement terminé', `${download.title} est prêt !`);
     
     // Simuler le téléchargement réel du fichier
+    let actualUrl = download.url;
+    let fileName = `${download.title}.${download.quality === 'audio' ? 'mp3' : 'mp4'}`;
+    
+    // Pour l'audio, on pourrait rediriger vers un service de conversion
+    // Mais ici on télécharge directement la vidéo car la conversion côté client n'est pas possible
+    // Dans une vraie app, vous auriez besoin d'un backend pour cela
+    
     const link = document.createElement('a');
-    link.href = download.url;
-    link.download = `${download.title}.${download.quality === 'audio' ? 'mp3' : 'mp4'}`;
+    link.href = actualUrl;
+    link.download = fileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -2394,12 +2496,25 @@ function showTab(tab) {
     if (tab === 'azkar') { renderAzkarCategories(); renderAzkarDuas(); }
     if (tab === 'myalbum' && currentUser) { updateProfileUI(); renderMyVideos(); checkForInterruptedUpload(); }
     if (tab === 'profile' && currentUser) updateProfileUI();
+    
+    // Réinitialiser l'affichage de la page d'accueil
+    if (tab === 'home') {
+        showingAllVideos = false;
+        document.getElementById('all-videos-section').classList.add('hidden');
+        document.getElementById('popular-section').classList.remove('hidden');
+        searchQuery = '';
+        document.getElementById('searchInput').value = '';
+        renderPopularVideos();
+    }
 }
 
 function renderAll() {
-    renderTypeChips();
-    renderAlbumChips();
-    renderVideoGrid();
+    renderPopularVideos();
+    if (showingAllVideos) {
+        renderTypeChips();
+        renderAlbumChips();
+        renderVideoGrid();
+    }
 }
 
 function toggleHomeSelectionMode() {
@@ -2460,4 +2575,4 @@ async function downloadSelectedHome() {
 showTab('home');
 </script>
 </body>
-      </html>
+</html>
