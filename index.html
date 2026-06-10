@@ -19,15 +19,10 @@ background-position: center;
 background-attachment: fixed;
 background-repeat: no-repeat;
 }
-
-/* Overlay sombre pour la lisibilité */
 body::before {
 content: '';
 position: fixed;
-top: 0;
-left: 0;
-right: 0;
-bottom: 0;
+top: 0; left: 0; right: 0; bottom: 0;
 background: rgba(0, 0, 0, 0.70);
 z-index: -1;
 pointer-events: none;
@@ -44,13 +39,20 @@ pointer-events: none;
 .duration-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.85); color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; }
 @keyframes pulse-speed { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 .speed-pulse { animation: pulse-speed 1.5s infinite; }
-.type-badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
-.type-coran { background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
-.type-hadith { background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
-.type-tafsir { background: rgba(59,130,246,0.2); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
-.type-preche { background: rgba(168,85,247,0.2); color: #a855f7; border: 1px solid rgba(168,85,247,0.3); }
-.profile-gradient { background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%); }
-.stat-card { background: linear-gradient(135deg, rgba(255,87,34,0.1) 0%, rgba(255,152,0,0.05) 100%); border: 1px solid rgba(255,87,34,0.2); }
+.profile-gradient { 
+background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%);
+padding-bottom: 3rem;
+}
+.stats-container {
+margin-top: -2.5rem;
+position: relative;
+z-index: 20;
+}
+.stat-card { 
+background: linear-gradient(135deg, rgba(255,87,34,0.1) 0%, rgba(255,152,0,0.05) 100%); 
+border: 1px solid rgba(255,87,34,0.2); 
+box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
 .menu-item { transition: all 0.2s ease; }
 .menu-item:hover { background: rgba(255,87,34,0.1); transform: translateX(4px); }
 .dua-card { background: linear-gradient(135deg, #18181b 0%, #27272a 100%); transition: all 0.3s ease; }
@@ -64,52 +66,13 @@ background: linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(239,68,68,0.1)
 border: 2px solid rgba(245,158,11,0.4);
 animation: pulse-border 2s infinite;
 }
-@keyframes pulse-border {
-0%, 100% { border-color: rgba(245,158,11,0.4); }
-50% { border-color: rgba(245,158,11,0.8); }
-}
-.upload-active-indicator {
-animation: upload-pulse 2s infinite;
-}
-@keyframes upload-pulse {
-0%, 100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.7); }
-50% { box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); }
-}
-.recording-pulse {
-animation: rec-pulse 1s infinite;
-}
-@keyframes rec-pulse {
-0%, 100% { opacity: 1; }
-50% { opacity: 0.5; }
-}
-.downloads-bg-animation {
-position: relative;
-overflow: hidden;
-}
-.downloads-bg-animation::before {
-content: '';
-position: absolute;
-top: -50%;
-left: -50%;
-width: 200%;
-height: 200%;
-background: radial-gradient(circle, rgba(255,87,34,0.03) 1px, transparent 1px);
-background-size: 50px 50px;
-animation: downloadGridMove 20s linear infinite;
-pointer-events: none;
-}
-@keyframes downloadGridMove {
-0% { transform: translate(0, 0); }
-100% { transform: translate(50px, 50px); }
-}
-.download-pulse-ring {
-animation: downloadPulse 2s ease-out infinite;
-}
-@keyframes downloadPulse {
-0% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.4); }
-70% { box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); }
-100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); }
-}
+@keyframes pulse-border { 0%, 100% { border-color: rgba(245,158,11,0.4); } 50% { border-color: rgba(245,158,11,0.8); } }
+.upload-active-indicator { animation: upload-pulse 2s infinite; }
+@keyframes upload-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); } }
+.recording-pulse { animation: rec-pulse 1s infinite; }
+@keyframes rec-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.download-pulse-ring { animation: downloadPulse 2s ease-out infinite; }
+@keyframes downloadPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); } }
 .popular-section { margin-bottom: 20px; }
 .popular-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .popular-title { font-size: 14px; font-weight: bold; color: #ff5722; }
@@ -404,7 +367,7 @@ animation: downloadPulse 2s ease-out infinite;
 </div>
 </div>
 <div id="profile-auth" class="hidden">
-<div class="profile-gradient p-6 pb-12 relative">
+<div class="profile-gradient p-6 pb-16 relative">
 <div class="flex items-center gap-4">
 <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-2xl text-white border-2 border-white/30 shadow-lg" id="userAvatar">U</div>
 <div class="flex-1">
@@ -416,17 +379,17 @@ animation: downloadPulse 2s ease-out infinite;
 </button>
 </div>
 </div>
-<div class="px-4 -mt-8 relative z-10">
+<div class="px-4 stats-container">
 <div class="grid grid-cols-3 gap-3">
-<div class="stat-card rounded-xl p-3 text-center">
+<div class="stat-card rounded-xl p-3 text-center bg-zinc-900 shadow-xl border border-zinc-700">
 <p class="text-lg font-bold text-white" id="statVideos">0</p>
 <p class="text-[9px] text-zinc-400 uppercase">Vidéos</p>
 </div>
-<div class="stat-card rounded-xl p-3 text-center">
+<div class="stat-card rounded-xl p-3 text-center bg-zinc-900 shadow-xl border border-zinc-700">
 <p class="text-lg font-bold text-white" id="statViews">0</p>
 <p class="text-[9px] text-zinc-400 uppercase">Vues</p>
 </div>
-<div class="stat-card rounded-xl p-3 text-center">
+<div class="stat-card rounded-xl p-3 text-center bg-zinc-900 shadow-xl border border-zinc-700">
 <p class="text-lg font-bold text-white" id="statDownloads">0</p>
 <p class="text-[9px] text-zinc-400 uppercase">DL</p>
 </div>
@@ -664,9 +627,6 @@ Notre équipe vous répondra dans les 24-48h.
 <p class="text-xs text-zinc-400" id="download-modal-title"></p>
 <button onclick="startDownload('hd')" class="w-full py-3 bg-zinc-800 rounded-xl text-sm font-bold text-white hover:bg-zinc-700 transition">
 <i class="fa-solid fa-video text-emerald-400 mr-2"></i>Vidéo HD
-</button>
-<button onclick="startDownload('audio')" class="w-full py-3 bg-zinc-800 rounded-xl text-sm font-bold text-white hover:bg-zinc-700 transition">
-<i class="fa-solid fa-music text-purple-400 mr-2"></i>Audio
 </button>
 <button onclick="closeDownloadModal()" class="w-full py-2 bg-zinc-800 rounded-xl text-xs text-zinc-400">Annuler</button>
 </div>
@@ -1103,6 +1063,60 @@ if (currentPlayingVideo) window.open(getCdnUrl(currentPlayingVideo.videoUrl), '_
 }
 
 // ============================================
+// ✅ LONG PRESS - TÉLÉCHARGEMENT DIRECT
+// ============================================
+function startLongPress(videoId) {
+isLongPress = false;
+longPressTimer = setTimeout(() => {
+isLongPress = true;
+const video = allVideos.find(v => v.id === videoId);
+if (video) {
+// ✅ VIBRATION POUR CONFIRMER LE LONG PRESS
+if ('vibrate' in navigator) navigator.vibrate([50, 50, 50]);
+
+// ✅ AJOUTER DIRECTEMENT AUX TÉLÉCHARGEMENTS
+currentPlayingVideo = video;
+const downloadId = Date.now().toString();
+const download = {
+id: downloadId,
+videoId: video.id,
+title: video.title,
+url: getCdnUrl(video.videoUrl),
+quality: 'hd',
+progress: 0,
+speed: 0,
+status: 'downloading',
+startTime: Date.now(),
+totalSize: video.size ? (video.size / 1024 / 1024) : 50,
+downloadedMb: 0
+};
+activeDownloads.push(download);
+
+// ✅ NOTIFICATION
+sendNotification('📥 Téléchargement démarré', `${video.title} est en cours de téléchargement`);
+
+// ✅ LANCER LA SIMULATION DE PROGRESSION
+simulateDownloadProgress(downloadId);
+
+// ✅ COMPLÉTER APRÈS UN DÉLAI
+setTimeout(() => {
+completeDownload(downloadId);
+}, 5000 + Math.random() * 5000);
+
+// ✅ AFFICHER LA PAGE DOWNLOADS
+showTab('downloads');
+}
+}, 800); // 800ms pour le long press
+}
+
+function endLongPress() {
+if (longPressTimer) {
+clearTimeout(longPressTimer);
+longPressTimer = null;
+}
+}
+
+// ============================================
 // 📥 TÉLÉCHARGEMENTS
 // ============================================
 function showDownloadOptions(videoId = null) {
@@ -1126,17 +1140,16 @@ quality: quality,
 progress: 0,
 speed: 0,
 status: 'downloading',
-startTime: Date.now()
+startTime: Date.now(),
+totalSize: currentPlayingVideo.size ? (currentPlayingVideo.size / 1024 / 1024) : 50,
+downloadedMb: 0
 };
 activeDownloads.push(download);
 renderDownloads();
 simulateDownloadProgress(downloadId);
-if (quality === 'audio') {
-setTimeout(() => { completeDownload(downloadId); }, 8000 + Math.random() * 4000);
-} else {
 setTimeout(() => { completeDownload(downloadId); }, 5000 + Math.random() * 5000);
 }
-}
+
 function simulateDownloadProgress(downloadId) {
 const download = activeDownloads.find(d => d.id === downloadId);
 if (!download) return;
@@ -1148,10 +1161,12 @@ return;
 const increment = Math.random() * 15;
 download.progress = Math.min(download.progress + increment, 100);
 download.speed = (Math.random() * 3 + 1).toFixed(1);
+download.downloadedMb = (download.progress / 100) * download.totalSize;
 renderDownloads();
 if (download.progress >= 100) clearInterval(downloadInterval);
 }, 500);
 }
+
 function completeDownload(downloadId) {
 const index = activeDownloads.findIndex(d => d.id === downloadId);
 if (index === -1) return;
@@ -1167,15 +1182,17 @@ sendNotification('✅ Téléchargement terminé', `${download.title} est prêt !
 // ✅ INCRÉMENTER LES TÉLÉCHARGEMENTS
 incrementVideoDownloads(download.videoId);
 
-let actualUrl = download.url;
-let fileName = `${download.title}.${download.quality === 'audio' ? 'mp3' : 'mp4'}`;
+// ✅ TÉLÉCHARGER LE FICHIER
 const link = document.createElement('a');
-link.href = actualUrl;
-link.download = fileName;
+link.href = download.url;
+link.download = `${download.title}.mp4`;
+link.target = '_blank';
+link.rel = 'noopener noreferrer';
 document.body.appendChild(link);
 link.click();
 document.body.removeChild(link);
 }
+
 function cancelDownload(downloadId) {
 const index = activeDownloads.findIndex(d => d.id === downloadId);
 if (index === -1) return;
@@ -1183,12 +1200,14 @@ activeDownloads.splice(index, 1);
 clearInterval(downloadInterval);
 renderDownloads();
 }
+
 function renderDownloads() {
 const activeList = document.getElementById('active-downloads-list');
 const completedList = document.getElementById('completed-downloads-list');
 const badge = document.getElementById('download-count-badge');
 const totalCount = activeDownloads.length + completedDownloads.length;
 if (badge) badge.innerText = totalCount;
+
 if (activeDownloads.length === 0) {
 activeList.innerHTML = '<div class="text-center text-zinc-500 py-12 text-xs"><i class="fa-solid fa-cloud-arrow-down text-4xl mb-3"></i><p>Aucun téléchargement en cours</p></div>';
 } else {
@@ -1220,6 +1239,7 @@ style="width:${d.progress}%; background:linear-gradient(to right, #ff5722, #00e6
 </div>
 </div>`).join('');
 }
+
 if (completedDownloads.length === 0) {
 completedList.innerHTML = '<div class="text-center text-zinc-500 py-12 text-xs"><i class="fa-solid fa-circle-check text-4xl mb-3"></i><p>Aucun téléchargement terminé</p></div>';
 } else {
@@ -1243,10 +1263,12 @@ ${d.quality === 'hd' ? 'Vidéo HD' : 'Audio'}
 </div>`).join('');
 }
 }
+
 function redownload(videoId) {
 const video = allVideos.find(v => v.id === videoId);
 if (video) { currentPlayingVideo = video; showDownloadOptions(); }
 }
+
 function toggleDlSubTab(sub) {
 document.getElementById('dl-active-container').classList.toggle('hidden', sub !== 'active');
 document.getElementById('dl-completed-container').classList.toggle('hidden', sub !== 'completed');
