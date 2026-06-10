@@ -11,7 +11,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <style>
-/* IMAGE DE FOND SUR TOUTES LES PAGES */
 body {
 background-image: url('https://raw.githubusercontent.com/zakoyabdoulhafizou959-jpg/mimbar/main/cb2e33de2bac83bd108a2cbff725bb7c.jpg');
 background-size: cover;
@@ -315,6 +314,10 @@ animation: pulse-border 2s infinite;
 <div class="text-center mb-4">
 <h2 class="text-2xl font-bold text-white mb-1">أذكار وأدعية</h2>
 <p class="text-xs text-zinc-400">Azkar & Invocations</p>
+<div class="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30">
+<i class="fa-solid fa-book-open text-orange-400 text-xs"></i>
+<span class="text-[11px] text-orange-300 font-bold">31 invocations · 7 catégories</span>
+</div>
 </div>
 <div class="flex gap-2 overflow-x-auto no-scrollbar py-2" id="azkar-categories"></div>
 <div id="azkar-duas-list" class="space-y-4"></div>
@@ -1002,45 +1005,29 @@ renderPopularVideos();
 async function incrementVideoViews(videoId) {
 try {
 const videoRef = db.collection('videos').doc(videoId);
-await videoRef.update({
-views: firebase.firestore.FieldValue.increment(1)
-});
+await videoRef.update({ views: firebase.firestore.FieldValue.increment(1) });
 const video = allVideos.find(v => v.id === videoId);
 if (video) video.views = (video.views || 0) + 1;
-console.log('✅ Vue incrémentée pour vidéo:', videoId);
-} catch (error) {
-console.error('❌ Erreur incrément vue:', error);
-}
+} catch (error) { console.error('❌ Erreur incrément vue:', error); }
 }
 
 async function incrementVideoDownloads(videoId) {
 try {
 const videoRef = db.collection('videos').doc(videoId);
-await videoRef.update({
-downloads: firebase.firestore.FieldValue.increment(1)
-});
+await videoRef.update({ downloads: firebase.firestore.FieldValue.increment(1) });
 const video = allVideos.find(v => v.id === videoId);
 if (video) video.downloads = (video.downloads || 0) + 1;
-console.log('✅ Téléchargement incrémenté pour vidéo:', videoId);
-} catch (error) {
-console.error('❌ Erreur incrément téléchargement:', error);
-}
+} catch (error) { console.error('❌ Erreur incrément téléchargement:', error); }
 }
 
 // ============================================
 // 🎬 GESTION VIDÉO
 // ============================================
 function handleVideoClick(videoId, event) {
-if (isLongPress) {
-isLongPress = false;
-return;
-}
+if (isLongPress) { isLongPress = false; return; }
 const video = allVideos.find(x => x.id === videoId);
 if (!video) return;
-
-// ✅ INCRÉMENTER LES VUES
 incrementVideoViews(videoId);
-
 openVideoPlayer(getCdnUrl(video.videoUrl), video.title, video.speaker, video.id);
 }
 
@@ -1071,53 +1058,28 @@ longPressTimer = setTimeout(() => {
 isLongPress = true;
 const video = allVideos.find(v => v.id === videoId);
 if (video) {
-// ✅ VIBRATION POUR CONFIRMER LE LONG PRESS
 if ('vibrate' in navigator) navigator.vibrate([50, 50, 50]);
-
-// ✅ AJOUTER DIRECTEMENT AUX TÉLÉCHARGEMENTS
 currentPlayingVideo = video;
 const downloadId = Date.now().toString();
 const download = {
-id: downloadId,
-videoId: video.id,
-title: video.title,
-url: getCdnUrl(video.videoUrl),
-quality: 'hd',
-progress: 0,
-speed: 0,
-status: 'downloading',
-startTime: Date.now(),
-totalSize: video.size ? (video.size / 1024 / 1024) : 50,
-downloadedMb: 0
+id: downloadId, videoId: video.id, title: video.title, url: getCdnUrl(video.videoUrl),
+quality: 'hd', progress: 0, speed: 0, status: 'downloading', startTime: Date.now(),
+totalSize: video.size ? (video.size / 1024 / 1024) : 50, downloadedMb: 0
 };
 activeDownloads.push(download);
-
-// ✅ NOTIFICATION
-sendNotification('📥 Téléchargement démarré', `${video.title} est en cours de téléchargement`);
-
-// ✅ LANCER LA SIMULATION DE PROGRESSION
+sendNotification('📥 Téléchargement démarré', `${video.title} est en cours`);
 simulateDownloadProgress(downloadId);
-
-// ✅ COMPLÉTER APRÈS UN DÉLAI
-setTimeout(() => {
-completeDownload(downloadId);
-}, 5000 + Math.random() * 5000);
-
-// ✅ AFFICHER LA PAGE DOWNLOADS
+setTimeout(() => { completeDownload(downloadId); }, 5000 + Math.random() * 5000);
 showTab('downloads');
 }
-}, 800); // 800ms pour le long press
+}, 800);
 }
-
 function endLongPress() {
-if (longPressTimer) {
-clearTimeout(longPressTimer);
-longPressTimer = null;
-}
+if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
 }
 
 // ============================================
-// 📥 TÉLÉCHARGEMENTS
+// 📥 TÉLÉCHARGEMENTS (CORRECTION MEDIAN APK)
 // ============================================
 function showDownloadOptions(videoId = null) {
 if (videoId) currentPlayingVideo = allVideos.find(v => v.id === videoId);
@@ -1132,17 +1094,10 @@ closeDownloadModal();
 if (!currentPlayingVideo) return;
 const downloadId = Date.now().toString();
 const download = {
-id: downloadId,
-videoId: currentPlayingVideo.id,
-title: currentPlayingVideo.title,
-url: getCdnUrl(currentPlayingVideo.videoUrl),
-quality: quality,
-progress: 0,
-speed: 0,
-status: 'downloading',
-startTime: Date.now(),
-totalSize: currentPlayingVideo.size ? (currentPlayingVideo.size / 1024 / 1024) : 50,
-downloadedMb: 0
+id: downloadId, videoId: currentPlayingVideo.id, title: currentPlayingVideo.title,
+url: getCdnUrl(currentPlayingVideo.videoUrl), quality: quality, progress: 0, speed: 0,
+status: 'downloading', startTime: Date.now(),
+totalSize: currentPlayingVideo.size ? (currentPlayingVideo.size / 1024 / 1024) : 50, downloadedMb: 0
 };
 activeDownloads.push(download);
 renderDownloads();
@@ -1154,10 +1109,7 @@ function simulateDownloadProgress(downloadId) {
 const download = activeDownloads.find(d => d.id === downloadId);
 if (!download) return;
 downloadInterval = setInterval(() => {
-if (!download || download.status !== 'downloading') {
-clearInterval(downloadInterval);
-return;
-}
+if (!download || download.status !== 'downloading') { clearInterval(downloadInterval); return; }
 const increment = Math.random() * 15;
 download.progress = Math.min(download.progress + increment, 100);
 download.speed = (Math.random() * 3 + 1).toFixed(1);
@@ -1167,6 +1119,94 @@ if (download.progress >= 100) clearInterval(downloadInterval);
 }, 500);
 }
 
+// ✅ DÉTECTION WEBVIEW ANDROID
+function isWebView() {
+const ua = navigator.userAgent.toLowerCase();
+return (ua.includes('wv') || ua.includes('webview') || ua.includes('median') || (ua.includes('android') && !ua.includes('chrome')));
+}
+
+// ✅ TÉLÉCHARGEMENT UNIVERSEL (Chrome + WebView)
+function universalDownload(url, filename) {
+console.log('📥 Tentative:', filename, '| WebView:', isWebView());
+if (isWebView()) {
+console.log('🤖 Mode WebView détecté');
+try {
+const newWindow = window.open(url, '_blank');
+if (newWindow) {
+console.log('✅ window.open réussi');
+setTimeout(() => { if (newWindow && !newWindow.closed) { try { newWindow.close(); } catch(e) {} } }, 5000);
+return true;
+}
+} catch (e) { console.error('❌ window.open échoué:', e); }
+try {
+const iframe = document.createElement('iframe');
+iframe.style.display = 'none'; iframe.src = url; iframe.setAttribute('download', filename);
+document.body.appendChild(iframe);
+setTimeout(() => { try { document.body.removeChild(iframe); } catch(e) {} }, 8000);
+return true;
+} catch (e) { console.error('❌ iframe échoué:', e); }
+try { window.location.href = url; return true; } catch (e) { console.error('❌ redirection échouée:', e); }
+showDownloadInstructions(url, filename);
+return false;
+}
+console.log('🌐 Mode navigateur normal');
+try {
+const link = document.createElement('a');
+link.href = url; link.download = filename; link.target = '_blank';
+link.rel = 'noopener noreferrer'; link.style.display = 'none';
+document.body.appendChild(link); link.click(); document.body.removeChild(link);
+return true;
+} catch (e) {
+console.error('❌ Méthode standard échouée:', e);
+window.open(url, '_blank');
+return true;
+}
+}
+
+function showDownloadInstructions(url, filename) {
+const modal = document.createElement('div');
+modal.id = 'download-instructions-modal';
+modal.className = 'fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4';
+modal.innerHTML = `
+<div class="bg-zinc-900 rounded-2xl p-6 max-w-sm w-full border border-zinc-700 shadow-2xl">
+<div class="text-center mb-4">
+<div class="w-16 h-16 mx-auto rounded-full bg-orange-500/20 flex items-center justify-center mb-3">
+<i class="fa-solid fa-download text-3xl" style="color:#ff5722"></i>
+</div>
+<h3 class="text-lg font-bold text-white">Téléchargement</h3>
+<p class="text-[10px] text-zinc-400 mt-1">Le téléchargement automatique n'est pas disponible</p>
+</div>
+<div class="space-y-3">
+<div class="bg-zinc-800 rounded-xl p-3">
+<p class="text-[10px] font-bold text-zinc-400 uppercase mb-2">Options disponibles :</p>
+<ol class="list-decimal list-inside space-y-2 text-xs text-zinc-300">
+<li>Ouvrir dans le navigateur externe (Chrome)</li>
+<li>Copier le lien pour le télécharger ailleurs</li>
+</ol>
+</div>
+<div class="bg-zinc-800 rounded-lg p-2">
+<p class="text-[9px] text-zinc-500 mb-1">Fichier :</p>
+<p class="text-[10px] text-white font-mono truncate">${filename}</p>
+</div>
+</div>
+<div class="flex gap-2 mt-4">
+<button onclick="window.open('${url}', '_system'); closeDownloadModal();" class="flex-1 py-3 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1" style="background:#ff5722">
+<i class="fa-solid fa-external-link"></i> Ouvrir dans Chrome
+</button>
+<button onclick="navigator.clipboard.writeText('${url}'); alert('✅ Lien copié !'); closeDownloadModal();" class="px-4 py-3 rounded-xl text-xs font-bold bg-zinc-700 text-white">
+<i class="fa-solid fa-copy"></i>
+</button>
+</div>
+<button onclick="closeDownloadModal();" class="w-full mt-2 py-2 rounded-lg text-xs text-zinc-400 hover:text-white transition">Fermer</button>
+</div>`;
+document.body.appendChild(modal);
+}
+function closeDownloadModal() {
+const modal = document.getElementById('download-instructions-modal');
+if (modal) modal.remove();
+}
+
+// ✅ NOUVELLE FONCTION completeDownload CORRIGÉE
 function completeDownload(downloadId) {
 const index = activeDownloads.findIndex(d => d.id === downloadId);
 if (index === -1) return;
@@ -1178,19 +1218,14 @@ completedDownloads.unshift(download);
 activeDownloads.splice(index, 1);
 renderDownloads();
 sendNotification('✅ Téléchargement terminé', `${download.title} est prêt !`);
-
-// ✅ INCRÉMENTER LES TÉLÉCHARGEMENTS
 incrementVideoDownloads(download.videoId);
 
-// ✅ TÉLÉCHARGER LE FICHIER
-const link = document.createElement('a');
-link.href = download.url;
-link.download = `${download.title}.mp4`;
-link.target = '_blank';
-link.rel = 'noopener noreferrer';
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
+const fileName = `${download.title.replace(/[^a-z0-9]/gi, '_')}.mp4`;
+const fileUrl = download.url;
+
+setTimeout(() => {
+universalDownload(fileUrl, fileName);
+}, 300);
 }
 
 function cancelDownload(downloadId) {
@@ -1227,14 +1262,11 @@ ${d.quality === 'hd' ? 'Vidéo HD' : 'Audio'}
 </div>
 <div class="space-y-2">
 <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
-<div class="h-full transition-all duration-300 rounded-full"
-style="width:${d.progress}%; background:linear-gradient(to right, #ff5722, #00e676)"></div>
+<div class="h-full transition-all duration-300 rounded-full" style="width:${d.progress}%; background:linear-gradient(to right, #ff5722, #00e676)"></div>
 </div>
 <div class="flex justify-between items-center text-[10px]">
 <span class="text-zinc-400">${Math.round(d.progress)}%</span>
-<span class="text-emerald-400 font-bold">
-<i class="fa-solid fa-bolt mr-1"></i>${d.speed} Mo/s
-</span>
+<span class="text-emerald-400 font-bold"><i class="fa-solid fa-bolt mr-1"></i>${d.speed} Mo/s</span>
 </div>
 </div>
 </div>`).join('');
@@ -1252,9 +1284,7 @@ completedList.innerHTML = completedDownloads.map(d => `
 <i class="fa-solid ${d.quality === 'hd' ? 'fa-video text-emerald-400' : 'fa-music text-purple-400'} mr-1"></i>
 ${d.quality === 'hd' ? 'Vidéo HD' : 'Audio'}
 </p>
-<p class="text-[9px] text-emerald-400 mt-1">
-<i class="fa-solid fa-check-circle mr-1"></i>Téléchargé
-</p>
+<p class="text-[9px] text-emerald-400 mt-1"><i class="fa-solid fa-check-circle mr-1"></i>Téléchargé</p>
 </div>
 <button onclick="redownload('${d.videoId}')" class="px-3 py-1.5 rounded-lg text-[10px] font-bold text-white" style="background:#ff5722">
 <i class="fa-solid fa-rotate-right mr-1"></i>Re-TL
@@ -1819,20 +1849,55 @@ xhr.onerror = () => reject(new Error('Erreur réseau')); xhr.timeout = 120000; x
 });
 }
 
+// ============================================
+// 📿 AZKAR DATA - 31 INVOCATIONS COMPLÈTES
+// ============================================
 const AZKAR_DATA = [
-{ category: '💧 Ablutions & Prière', color: 'cyan', duas: [
-{ title: 'Au nom d\'Allah', arabic: 'بِسْمِ اللَّهِ', phonetic: 'Bismillâh.', translation: 'Au nom d\'Allah.' },
-{ title: 'Après les ablutions', arabic: 'أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ. اللَّهُمَّ اجْعَلْنِي مِنَ التَّوَّابِينَ، وَاجْعَلْنِي مِنَ الْمُتَطَهِّرِينَ', phonetic: 'Ashhadu an lâ ilâha illâ-llâhu wahdahu lâ sharîka lahu, wa ashhadu anna Muhammadan \'abduhu wa rasûluhu. Allâhumma-j\'alnî mina-t-tawwâbîna wa-j\'alnî mina-l-mutatahhirîn.', translation: 'Je témoigne qu\'il n\'y a de divinité qu\'Allah, l\'Unique, sans associé.' },
-{ title: 'Invocation pour la lumière', arabic: 'اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا، وَفِي بَصَرِي نُورًا', phonetic: 'Allâhumma-j\'al fî qalbî nûran...', translation: 'Ô Allah, mets de la lumière dans mon cœur.' }
-]},
-{ category: '🤲 Pardon & Clémence', color: 'emerald', duas: [
-{ title: 'Sayyid al-Istighfar', arabic: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ', phonetic: 'Allâhumma Anta Rabbî...', translation: 'Ô Allah, Tu es mon Seigneur...' },
-{ title: 'Pardon suprême', arabic: 'أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ', phonetic: 'Astaghfiru-llâha-l-\'Adhîm...', translation: 'Je demande pardon à Allah l\'Immense.' }
-]},
-{ category: '❤️ Détresse & Guérison', color: 'rose', duas: [
-{ title: 'Invocation de Jonas', arabic: 'لَّا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ', phonetic: 'Lâ ilâha illâ Anta subhânaka...', translation: 'Nulle divinité d\'autre que Toi !' },
-{ title: 'Guérison d\'un malade', arabic: 'اللَّهُمَّ رَبَّ النَّاسِ أَذْهِبِ الْبَاسَ', phonetic: 'Allâhumma Rabba-n-nâsi...', translation: 'Ô Allah, Seigneur des hommes, fais disparaître le mal.' }
-]}
+    { category: '💧 Ablutions & Prière', color: 'cyan', duas: [
+        { title: 'Au nom d\'Allah', arabic: 'بِسْمِ اللَّهِ', phonetic: 'Bismillâh.', translation: 'Au nom d\'Allah.' },
+        { title: 'Invocation après les ablutions', arabic: 'أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ. اللَّهُمَّ اجْعَلْنِي مِنَ التَّوَّابِينَ، وَاجْعَلْنِي مِنَ الْمُتَطَهِّرِينَ', phonetic: 'Ashhadu an lâ ilâha illâ-llâhu wahdahu lâ sharîka lahu, wa ashhadu anna Muhammadan \'abduhu wa rasûluhu. Allâhumma-j\'alnî mina-t-tawwâbîna wa-j\'alnî mina-l-mutatahhirîn.', translation: 'Je témoigne qu\'il n\'y a de divinité digne d\'adoration qu\'Allah, l\'Unique, sans associé, et je témoigne que Muhammad est Son serviteur et Messager. Ô Allah, place-moi parmi ceux qui se repentent et parmi ceux qui se purifient.' },
+        { title: 'Invocation pour la lumière', arabic: 'اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا، وَفِي بَصَرِي نُورًا، وَفِي سَمْعِي نُورًا، وَعَنْ يَمِينِي نُورًا، وَعَنْ شِمَالِي نُورًا، وَمِنْ فَوْقِي نُورًا، وَمِنْ تَحْتِي نُورًا، وَأَمَامِي نُورًا، وَخَلْفِي نُورًا، وَاجْعَلْ لِي نُورًا', phonetic: 'Allâhumma-j\'al fî qalbî nûran, wa fî baṣarî nûran, wa fî sam\'î nûran, wa \'an yamînî nûran, wa \'an shimâlî nûran, wa min fawqî nûran, wa min taḥtī nûran, wa amâmî nûran, wa khalfî nûran, waj\'al lî nûran.', translation: 'Ô Allah, mets de la lumière dans mon cœur, dans ma vue, dans mon ouïe, à ma droite, à ma gauche, au-dessus de moi, au-dessous de moi, devant moi, derrière moi, et accorde-moi une lumière.' },
+        { title: 'Invocation d\'ouverture de la prière (Istiftah)', arabic: 'اللَّهُمَّ بَاعِدْ بَيْنِي وَبَيْنَ خَطَايَايَ كَمَا بَاعَدْتَ بَيْنَ الْمَشْرِقِ وَالْمَغْرِبِ، اللَّهُمَّ نَقِّنِي مِنْ خَطَايَايَ كَمَا يُنَقَّى الثَّوْبُ الْأَبْيَضُ مِنَ الدَّنَسِ، اللَّهُمَّ اغْسِلْنِي مِنْ خَطَايَايَ بِالْثَّلْجِ وَالْمَاءِ وَالْبَرَدِ', phonetic: 'Allâhumma bâ\'id baynî wa bayna khatâyâya kamâ bâ\'adta bayna-l-mashriqi wa-l-maghrib. Allâhumma naqqinî min khatâyâya kamâ yunaqqa-th-thawbu-l-abyadu mina-d-danas. Allâhumma-ghsilnî min khatâyâya bi-th-thalji wa-l-mâ\'i wa-l-barad.', translation: 'Ô Allah, éloigne-moi de mes péchés comme Tu as éloigné l\'Orient de l\'Occident. Ô Allah, purifie-moi de mes fautes comme on nettoie le vêtement blanc de la saleté. Ô Allah, lave-moi de mes péchés avec de la neige, de l\'eau et de la grêle.' },
+        { title: 'Inclinaison (Rukoo\')', arabic: 'سُبْحَانَ رَبِّيَ الْعَظِيمِ', phonetic: 'Subhâna Rabbiya-l-\'Adhîm.', translation: 'Gloire à mon Seigneur l\'Immense.' },
+        { title: 'Se redresser de l\'inclinaison', arabic: 'سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ • رَبَّنَا وَلَكَ الْحَمْدُ حَمْدًا كَثِيرًا طَيِّبًا مُبَارَكًا فِيهِ', phonetic: 'Sami\'a-llâhu liman hamidah. Rabbanâ wa laka-l-hamd, hamdan kathîran tayyiban mubârakan fîh.', translation: 'Allah entend celui qui Le loue. Ô notre Seigneur, à Toi la louange, une louange abondante, pure et bénie.' },
+        { title: 'Prosternation (Sujood)', arabic: 'سُبْحَانَ رَبِّيَ الْأَعْلَى', phonetic: 'Subhâna Rabbiya-l-A\'lâ.', translation: 'Gloire à mon Seigneur le Très-Haut.' },
+        { title: 'Pendant la prosternation (Sujood)', arabic: 'اللَّهُمَّ اغْفِرْ لِي ذَنْبِي كُلَّهُ، دِقَّهُ وَجِلَّهُ، وَأَوَّلَهُ وَآخِرَهُ، وَعَلَانِيَتَهُ وَسِرَّهُ', phonetic: 'Allâhumma-ghfir lî dhanbî kullahu, diqqahu wa jillahu, wa awwalahu wa âkhirahu, wa \'alâniyatahu wa sirrah.', translation: 'Ô Allah, pardonne-moi tous mes péchés : les mineurs et les majeurs, les premiers et les derniers, ceux commis publiquement et ceux commis en secret.' },
+        { title: 'Entre les deux prosternations (Jalsah)', arabic: 'رَبِّ اغْفِرْ لِي، رَبِّ اغْفِرْ لِي', phonetic: 'Rabbi-ghfir lî, Rabbi-ghfir lî.', translation: 'Seigneur, pardonne-moi. Seigneur, pardonne-moi.' },
+        { title: 'À la fin du Tachahoud', arabic: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ جَهَنَّمَ، وَمِنْ عَذَابِ الْقَبْرِ، وَمِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ، وَمِنْ شَرِّ فِتْنَةِ الْمَسِيحِ الدَّجَّالِ', phonetic: 'Allâhumma innî a\'ûdhu bika min \'adhâbi jahannam, wa min \'adhâbi-l-qabr, wa min fitnati-l-mahyâ wa-l-mamât, wa min sharri fitnati-l-masîhi-d-dajjâl.', translation: 'Ô Allah, je cherche refuge auprès de Toi contre le châtiment de l\'Enfer, contre le châtiment de la tombe, contre les tentations de la vie et de la mort, et contre le mal de la tentation de l\'Antéchrist.' }
+    ]},
+    { category: '🌙 Zakat & Jeûne', color: 'amber', duas: [
+        { title: 'En donnant la Zakat', arabic: 'اللَّهُمَّ اجْعَلْهَا غُنْمًا وَلَا تَجْعَلْهَا غُرْمًا', phonetic: 'Allâhumma-j\'alhâ ghunman wa lâ taj\'alhâ ghurman.', translation: 'Ô Allah, fais de cette aumône (Zakat) un gain spirituel et ne la considère pas comme une perte financière.' },
+        { title: 'À la rupture du jeûne (Iftar)', arabic: 'ذَهَبَ الظَّمَأُ وَابْتَلَّتِ الْعُرُوقُ، وَثَبَتَ الْأَجْرُ إِنْ شَاءَ اللَّهُ', phonetic: 'Dhahaba-dh-dhama\'u wa-btallati-l-\'urûqu, wa thabata-l-ajru in shâ\'a-llâh.', translation: 'La soif est étanchée, les veines sont abreuvées, et la récompense est assurée, si Allah le veut.' },
+        { title: 'Invocation classique de l\'Iftar', arabic: 'اللَّهُمَّ لَكَ صُمْتُ وَعَلَى رِزْقِكَ أَفْطَرْتُ', phonetic: 'Allâhumma laka sumtu wa \'alâ rizqika aftartu.', translation: 'Ô Allah, c\'est pour Toi que j\'ai jeûné, et c\'est avec Ta subsistance que je romps mon jeûne.' },
+        { title: 'Invocation d\'Ibn \'Omar à la rupture du jeûne', arabic: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ بِرَحْمَتِكَ الَّتِي وَسِعَتْ كُلَّ شَيْءٍ أَنْ تَغْفِرَ لِي', phonetic: 'Allâhumma innî as\'aluka bi-rahmatika-llatî wasi\'at kulla shay\'in an taghfira lî.', translation: 'Ô Allah, je Te demande par Ta miséricorde qui englobe toute chose, de me pardonner.' },
+        { title: 'Pour la Nuit du Destin (Laylat al-Qadr)', arabic: 'اللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي', phonetic: 'Allâhumma innaka \'afuwwun tuhibbu-l-\'afwa fa-\'fu \'annî.', translation: 'Ô Allah, Tu es Pardonneur, Tu aimes le pardon, alors pardonne-moi.' }
+    ]},
+    { category: '🤲 Pardon & Clémence', color: 'emerald', duas: [
+        { title: 'Sayyid al-Istighfar (Le maître du pardon)', arabic: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ لِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ', phonetic: 'Allâhumma Anta Rabbî, lâ ilâha illâ Anta, khalaqtanî wa ana \'abduka, wa ana \'alâ \'ahdika wa wa\'dika ma-stata\'tu. A\'ûdhu bika min sharri mâ sana\'tu, abû\'u laka bi-ni\'matika \'alayya, wa abû\'u bi-dhanbî faghfir lî, fa-innahû lâ yaghfiru-dh-dhunûba illâ Anta.', translation: 'Ô Allah, Tu es mon Seigneur, nul ne mérite d\'être adoré en dehors de Toi. Tu m\'as créé, je suis Ton serviteur et je respecte Ton pacte et Ta promesse autant que je le puis. Je cherche refuge auprès de Toi contre le mal de mes actes. Je reconnais Tes bienfaits envers moi et je confesse mon péché. Pardonne-moi donc, car nul ne pardonne les péchés si ce n\'est Toi.' },
+        { title: 'Demande de pardon suprême', arabic: 'أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ', phonetic: 'Astaghfiru-llâha-l-\'Adhîma-lladhî lâ ilâha illâ Huwa-l-Hayyu-l-Qayyûmu wa atûbu ilayh.', translation: 'Je demande pardon à Allah l\'Immense, en dehors de Qui nulle divinité ne mérite d\'être adorée, le Vivant, Celui qui subsiste par Lui-même, et je me repens à Lui.' },
+        { title: 'Pour le nouveau musulman', arabic: 'اللَّهُمَّ اغْفِرْ لِي، وَارْحَمْنِي، وَاهْدِنِي، وَعَافِنِي، وَارْزُقْنِي', phonetic: 'Allâhumma-ghfir lî, wa-rhamnî, wa-hdinî, wa \'âfinî, wa-rzuqnî.', translation: 'Ô Allah, pardonne-moi, fais-moi miséricorde, guide-moi, accorde-moi la santé et accorde-moi ma subsistance.' }
+    ]},
+    { category: '💀 Tombe & Jugement', color: 'gray', duas: [
+        { title: 'Contre le châtiment de la tombe', arabic: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، وَأَعُوذُ بِكَ مِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ', phonetic: 'Allâhumma innî a\'ûdhu bika min \'adhâbi-l-qabr, wa a\'ûdhu bika min fitnati-l-mahyâ wa-l-mamât.', translation: 'Ô Allah, je cherche refuge auprès de Toi contre le châtiment de la tombe, et je cherche refuge auprès de Toi contre les épreuves de la vie et de la mort.' },
+        { title: 'À mettre au bord de la tombe après l\'enterrement', arabic: 'اللَّهُمَّ ثَبِّتْهُ عِنْدَ السُّؤَالِ • اللَّهُمَّ اغْفِرْ لَهُ وَثَبِّتْهُ', phonetic: 'Allâhumma thabbithu \'inda-s-su\'âl. Allâhumma-ghfir lahu wa thabbithu.', translation: 'Ô Allah, affermis-le lors de l\'interrogatoire (des anges Mounkar et Nakîr). Ô Allah, pardonne-lui et donne-lui la fermeté.' },
+        { title: 'Le matin ou au soir', arabic: 'اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ', phonetic: 'Allâhumma qinî \'adhâbaka yawma tab\'athu \'ibâdak.', translation: 'Ô Allah, protège-moi de Ton châtiment le Jour où Tu ressusciteras Tes serviteurs.' },
+        { title: 'Pour un jugement facile', arabic: 'اللَّهُمَّ حَاسِبْنِي حِسَابًا يَسِيرًا', phonetic: 'Allâhumma hâsibnî hisâban yasîran.', translation: 'Ô Allah, fais-moi un jugement facile.' }
+    ]},
+    { category: '💍 Mariage & Couple', color: 'pink', duas: [
+        { title: 'Pour féliciter les nouveaux mariés', arabic: 'بَارَكَ اللَّهُ لَكَ، وَبَارَكَ عَلَيْكَ، وَجَمَعَ بَيْنَكُمَا فِي خَيْرٍ', phonetic: 'Bâraka-llâhu laka, wa bâraka \'alayka, wa jama\'a baynakumâ fî khayr.', translation: 'Qu\'Allah te bénisse, qu\'Il déverse Sa bénédiction sur toi et qu\'Il vous unisse tous deux dans le bien.' },
+        { title: 'À réciter par l\'époux lors de la première nuit de noces', arabic: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَهَا وَخَيْرَ مَا جَبَلْتَهَا عَلَيْهِ، وَأَعُوذُ بِكَ مِنْ شَرِّهَا وَمِنْ شَرِّ مَا جَبَلْتَهَا عَلَيْهِ', phonetic: 'Allâhumma innî as\'aluka khayrahâ wa khayra mâ jabaltahâ \'alayh, wa a\'ûdhu bika min sharrihâ wa min sharri mâ jabaltahâ \'alayh.', translation: 'Ô Allah, je Te demande son bien et le bien sur lequel Tu l\'as créée, et je cherche refuge auprès de Toi contre son mal et le mal sur lequel Tu l\'as créée.' },
+        { title: 'Avant un rapport intime', arabic: 'بِسْمِ اللَّهِ، اللَّهُمَّ جَنِّبْنَا الشَّيْطَانَ، وَجَنِّبِ الشَّيْطَانَ مَا رَزَقْتَنَا', phonetic: 'Bismillâhi. Allâhumma jannibnâ-sh-shaytâna wa jannibi-sh-shaytâna mâ razaqtanâ.', translation: 'Au nom d\'Allah. Ô Allah, éloigne le Diable de nous et éloigne le Diable du fruit de notre union.' },
+        { title: 'Pour l\'harmonie familiale et des enfants pieux (Coran 25:74)', arabic: 'رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ وَاجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا', phonetic: 'Rabbanâ hab lanâ min azwâjinâ wa dhurriyyâtinâ qurrata a\'yunin wa-j\'alnâ lil-muttaqîna imâmâ.', translation: 'Notre Seigneur, accorde-nous en nos épouses et nos descendants la joie des yeux, et fais de nous des guides pour les pieux.' }
+    ]},
+    { category: '🛡️ Protection & Matin', color: 'indigo', duas: [
+        { title: 'Pour la protection matin et soir (3 fois)', arabic: 'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ', phonetic: 'Bismillâhi-lladhî lâ yadurru ma\'a-smihi shay\'un fî-l-ardi wa lâ fî-s-samâ\'i wa Huwa-s-Samî\'u-l-\'Alîm.', translation: 'Au nom d\'Allah, tel qu\'en compagnie de Son Nom rien ne peut nuire sur terre ni dans les cieux, et Il est l\'Audient, l\'Omniscient.' },
+        { title: 'Protection ultime contre le mal des créatures', arabic: 'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ', phonetic: 'A\'ûdhu bi-kalimâti-llâhi-t-tâmmâti min sharri mâ khalaq.', translation: 'Je cherche refuge auprès des paroles parfaites d\'Allah contre le mal de Ses créatures.' },
+        { title: 'Pour la santé au lever et au coucher du soleil (3 fois)', arabic: 'اللَّهُمَّ عافِني في بَدَني، اللَّهُمَّ عافِني في سَمْعي، اللَّهُمَّ عافِني في بَصَري، لا إلهَ إلَّا أنتَ', phonetic: 'Allâhumma \'âfinî fî badanî, Allâhumma \'âfinî fî sam\'î, Allâhumma \'âfinî fî baṣarî, lâ ilâha illâ Anta.', translation: 'Ô Allah, préserve mon corps, ô Allah, préserve mon ouïe, ô Allah, préserve ma vue. Nul ne mérite d\'être adoré en dehors de Toi.' }
+    ]},
+    { category: '❤️ Détresse & Guérison', color: 'rose', duas: [
+        { title: 'L\'invocation de Jonas (Younous) dans le ventre de la baleine', arabic: 'لَّا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ', phonetic: 'Lâ ilâha illâ Anta subhânaka innî kuntu mina-dh-dhâlimîn.', translation: 'Nulle divinité d\'autre que Toi ! Gloire et pureté à Toi ! J\'ai été vraiment du nombre des injustes.' },
+        { title: 'Raqya pour la guérison d\'un malade', arabic: 'اللَّهُمَّ رَبَّ النَّاسِ أَذْهِبِ الْبَاسَ، اشْفِهِ وَأَنْتَ الشَّافِي، لَا شِفَاءَ إِلَّا شِفَاؤُكَ، شِفَاءً لَا يُغَادِرُ سَقَمًا', phonetic: 'Allâhumma Rabba-n-nâsi, adhhibi-l-ba\'s, ishfihi wa Anta-sh-shâfî, lâ shifâ\'a illâ shifâ\'uka, shifâ\'an lâ yughâdiru saqamâ.', translation: 'Ô Allah, Seigneur des hommes, fais disparaître le mal. Guéris-le, car Tu es le Guérisseur. Il n\'y a de guérison que la Tienne, une guérison qui ne laisse aucune trace de maladie.' }
+    ]}
 ];
 
 let currentAzkarCategory = 0;
@@ -1843,7 +1908,7 @@ container.innerHTML = AZKAR_DATA.map((cat, idx) => `
 <button onclick="selectAzkarCategory(${idx})"
 class="category-chip shrink-0 px-3 py-2 rounded-xl text-[11px] font-bold whitespace-nowrap ${currentAzkarCategory === idx ? 'active text-white' : 'bg-zinc-800 text-zinc-400'}"
 ${currentAzkarCategory === idx ? `style="background:${getCategoryColor(cat.color)}"` : ''}>
-${cat.category}
+${cat.category} <span class="ml-1 opacity-70">(${cat.duas.length})</span>
 </button>`).join('');
 }
 function getCategoryColor(color) {
