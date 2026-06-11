@@ -26,7 +26,6 @@ background: rgba(0, 0, 0, 0.70);
 z-index: -1;
 pointer-events: none;
 }
-
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .fade-in { animation: fadeIn 0.3s ease; }
@@ -38,20 +37,9 @@ pointer-events: none;
 .duration-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.85); color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; }
 @keyframes pulse-speed { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 .speed-pulse { animation: pulse-speed 1.5s infinite; }
-.profile-gradient { 
-background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%);
-padding-bottom: 3rem;
-}
-.stats-container {
-margin-top: -2.5rem;
-position: relative;
-z-index: 20;
-}
-.stat-card { 
-background: linear-gradient(135deg, rgba(255,87,34,0.1) 0%, rgba(255,152,0,0.05) 100%); 
-border: 1px solid rgba(255,87,34,0.2); 
-box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-}
+.profile-gradient { background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%); padding-bottom: 3rem; }
+.stats-container { margin-top: -2.5rem; position: relative; z-index: 20; }
+.stat-card { background: linear-gradient(135deg, rgba(255,87,34,0.1) 0%, rgba(255,152,0,0.05) 100%); border: 1px solid rgba(255,87,34,0.2); box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
 .menu-item { transition: all 0.2s ease; }
 .menu-item:hover { background: rgba(255,87,34,0.1); transform: translateX(4px); }
 .dua-card { background: linear-gradient(135deg, #18181b 0%, #27272a 100%); transition: all 0.3s ease; }
@@ -76,6 +64,11 @@ animation: pulse-border 2s infinite;
 .popular-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .popular-title { font-size: 14px; font-weight: bold; color: #ff5722; }
 .view-all-link { font-size: 11px; color: #ff5722; text-decoration: underline; cursor: pointer; }
+.pending-banner {
+background: linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(251,191,36,0.08) 100%);
+border: 2px solid rgba(245,158,11,0.4);
+animation: pulse-border 2.5s infinite;
+}
 </style>
 </head>
 <body class="h-full bg-slate-900 flex justify-center items-center overflow-hidden font-sans">
@@ -188,6 +181,40 @@ animation: pulse-border 2s infinite;
 <button onclick="showTab('create')" class="mt-4 px-4 py-2 rounded-xl text-sm font-bold text-white" style="background:#ff5722">Créer un album</button>
 </div>
 <div id="myalbum-content" class="hidden space-y-4">
+<!-- ✅ BANNIÈRE "EN ATTENTE DE VALIDATION" -->
+<div id="album-pending-banner" class="hidden pending-banner rounded-2xl p-4 space-y-3">
+<div class="flex items-start gap-3">
+<div class="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0">
+<i class="fa-solid fa-hourglass-half text-yellow-400 text-xl"></i>
+</div>
+<div class="flex-1">
+<h3 class="text-sm font-bold text-white">Album en attente de validation</h3>
+<p class="text-[11px] text-zinc-300 mt-1">Votre album a été soumis à l'administrateur. Vous pourrez uploader des vidéos une fois qu'il sera approuvé.</p>
+<div class="mt-3 flex items-center gap-2">
+<div class="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-yellow-500 to-orange-500 animate-pulse" style="width: 60%"></div>
+</div>
+<span class="text-[10px] text-yellow-400 font-bold">En cours d'examen</span>
+</div>
+</div>
+</div>
+<div class="bg-zinc-900/50 rounded-xl p-3 space-y-2">
+<div class="flex justify-between text-[10px]">
+<span class="text-zinc-400">Statut :</span>
+<span class="text-yellow-400 font-bold"><i class="fa-solid fa-clock mr-1"></i>En attente</span>
+</div>
+<div class="flex justify-between text-[10px]">
+<span class="text-zinc-400">Soumis le :</span>
+<span class="text-white font-bold" id="pending-submission-date">-</span>
+</div>
+</div>
+<div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 text-[11px] text-blue-300">
+<i class="fa-solid fa-circle-info mr-1"></i>
+Vous recevrez une notification dès que votre album sera validé. En général, cela prend 24 à 48 heures.
+</div>
+</div>
+
+<!-- ✅ BANNIÈRE UPLOAD INTERROMPU (existante) -->
 <div id="interrupted-upload-banner" class="hidden interrupted-upload-banner rounded-2xl p-4 space-y-3">
 <div class="flex items-start gap-3">
 <div class="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0">
@@ -220,6 +247,8 @@ animation: pulse-border 2s infinite;
 </button>
 </div>
 </div>
+
+<!-- ✅ CARTE DE L'ALBUM -->
 <div class="bg-gradient-to-br from-orange-950/90 to-zinc-900/90 rounded-2xl p-4 border border-orange-500/30">
 <div class="flex items-center justify-between mb-2">
 <span class="px-2 py-0.5 rounded bg-orange-500 text-zinc-950 text-[9px] font-black uppercase" id="album-status-badge">APPROUVÉ</span>
@@ -229,6 +258,8 @@ animation: pulse-border 2s infinite;
 <span id="my-album-imam"></span> · <span id="my-album-location"></span>
 </p>
 </div>
+
+<!-- ✅ SECTION UPLOAD (sera cachée si album pending) -->
 <div id="upload-section" class="bg-zinc-900/90 rounded-2xl p-4 border-2 border-dashed" style="border-color:rgba(255,87,34,0.5)">
 <input type="file" id="videoUpload" accept="video/*" class="hidden" onchange="handleFileSelected(this)">
 <button onclick="document.getElementById('videoUpload').click()" class="w-full py-3 rounded-xl text-sm font-bold" style="background:rgba(255,87,34,0.2);color:#ff5722">
@@ -303,6 +334,7 @@ animation: pulse-border 2s infinite;
 </div>
 </div>
 </div>
+
 <div>
 <h3 class="text-xs font-black text-zinc-400 uppercase mb-2">Mes vidéos</h3>
 <div id="my-videos-list" class="space-y-2"></div>
@@ -694,6 +726,25 @@ const s = Math.floor(seconds % 60);
 if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
+function safeGetElement(id) {
+return document.getElementById(id);
+}
+function safeAddClass(id, className) {
+const el = safeGetElement(id);
+if (el) el.classList.add(className);
+}
+function safeRemoveClass(id, className) {
+const el = safeGetElement(id);
+if (el) el.classList.remove(className);
+}
+function safeSetText(id, text) {
+const el = safeGetElement(id);
+if (el) el.innerText = text;
+}
+function safeSetHTML(id, html) {
+const el = safeGetElement(id);
+if (el) el.innerHTML = html;
+}
 
 // ============================================
 // 🔐 AUTH
@@ -701,14 +752,14 @@ return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 auth.onAuthStateChanged(async (user) => {
 currentUser = user;
 if (user) {
-document.getElementById('header-user-status').textContent = user.email?.split('@')[0] || 'Connecté';
+safeSetText('header-user-status', user.email?.split('@')[0] || 'Connecté');
 try {
 const token = await user.getIdToken();
 try { localStorage.setItem('firebaseToken', token); localStorage.setItem('firebaseUser', JSON.stringify({ uid: user.uid, email: user.email })); } catch (storageError) {}
 await loadUserData();
 } catch (error) { currentUser = null; }
 } else {
-document.getElementById('header-user-status').textContent = 'Déconnecté';
+safeSetText('header-user-status', 'Déconnecté');
 userAlbum = null;
 try { localStorage.removeItem('firebaseToken'); localStorage.removeItem('firebaseUser'); } catch (e) {}
 }
@@ -773,7 +824,11 @@ if (!currentUser) return;
 try {
 const albumQuery = await db.collection('albums').where('userId', '==', currentUser.uid).limit(1).get();
 userAlbum = albumQuery.empty ? null : { id: albumQuery.docs[0].id, ...albumQuery.docs[0].data() };
-} catch(e) { userAlbum = null; }
+console.log('📦 Album chargé:', userAlbum ? { id: userAlbum.id, status: userAlbum.status } : 'null');
+} catch(e) { 
+console.error('❌ Erreur loadUserData:', e);
+userAlbum = null; 
+}
 }
 async function loadAllAlbums() {
 try {
@@ -803,46 +858,140 @@ videoType: v.videoType || ''
 });
 } catch(e) { allVideos = []; }
 }
+
+// ✅ FONCTION CORRIGÉE : Gestion du statut de l'album
 function updateProfileUI() {
-const unauth = document.getElementById('profile-unauth');
-const authDiv = document.getElementById('profile-auth');
-const myalbumEmpty = document.getElementById('myalbum-empty');
-const myalbumContent = document.getElementById('myalbum-content');
+const unauth = safeGetElement('profile-unauth');
+const authDiv = safeGetElement('profile-auth');
+const myalbumEmpty = safeGetElement('myalbum-empty');
+const myalbumContent = safeGetElement('myalbum-content');
+const pendingBanner = safeGetElement('album-pending-banner');
+const uploadSection = safeGetElement('upload-section');
+const statusBadge = safeGetElement('album-status-badge');
 const appInstalled = localStorage.getItem('appInstalled') === 'true';
-const btnInstallUnauth = document.getElementById('btn-install-app-unauth');
-const btnInstallAuthContainer = document.getElementById('btn-install-app-auth-container');
+const btnInstallUnauth = safeGetElement('btn-install-app-unauth');
+const btnInstallAuthContainer = safeGetElement('btn-install-app-auth-container');
+
 if (btnInstallUnauth) btnInstallUnauth.style.display = appInstalled ? 'none' : 'flex';
 if (btnInstallAuthContainer) btnInstallAuthContainer.style.display = appInstalled ? 'none' : 'block';
+
 if (!currentUser) {
-unauth.classList.remove('hidden'); authDiv.classList.add('hidden');
+if (unauth) unauth.classList.remove('hidden');
+if (authDiv) authDiv.classList.add('hidden');
 if (myalbumEmpty) myalbumEmpty.classList.remove('hidden');
 if (myalbumContent) myalbumContent.classList.add('hidden');
 return;
 }
-unauth.classList.add('hidden'); authDiv.classList.remove('hidden');
-document.getElementById('userName').innerText = currentUser.email?.split('@')[0] || 'User';
-document.getElementById('userEmail').innerText = currentUser.email || '';
-document.getElementById('userAvatar').innerText = (currentUser.email?.charAt(0) || 'U').toUpperCase();
+
+if (unauth) unauth.classList.add('hidden');
+if (authDiv) authDiv.classList.remove('hidden');
+safeSetText('userName', currentUser.email?.split('@')[0] || 'User');
+safeSetText('userEmail', currentUser.email || '');
+const avatarEl = safeGetElement('userAvatar');
+if (avatarEl) avatarEl.innerText = (currentUser.email?.charAt(0) || 'U').toUpperCase();
+
 const myVids = allVideos.filter(v => v.userId === currentUser.uid);
-document.getElementById('statVideos').innerText = myVids.length;
-document.getElementById('statViews').innerText = myVids.reduce((s, v) => s + (v.views || 0), 0);
-const notifStatus = document.getElementById('notif-status');
+safeSetText('statVideos', myVids.length);
+safeSetText('statViews', myVids.reduce((s, v) => s + (v.views || 0), 0));
+
+const notifStatus = safeGetElement('notif-status');
 if (notifStatus) {
 if ('Notification' in window && Notification.permission === 'granted') notifStatus.innerText = 'Notifications activées ✓';
 else notifStatus.innerText = 'Activer notifications';
 }
+
+// ✅ GESTION DES 3 ÉTATS DE L'ALBUM
 if (myalbumEmpty && myalbumContent) {
-if (userAlbum) {
-myalbumEmpty.classList.add('hidden'); myalbumContent.classList.remove('hidden');
-document.getElementById('my-album-title').innerText = userAlbum.imamName || 'Mon Album';
-document.getElementById('my-album-imam').innerText = userAlbum.imamName || '';
-document.getElementById('my-album-location').innerText = `${userAlbum.city || ''}, ${userAlbum.country || ''}`;
+if (!userAlbum) {
+// ❌ Aucun album
+if (myalbumEmpty) myalbumEmpty.classList.remove('hidden');
+if (myalbumContent) myalbumContent.classList.add('hidden');
+if (pendingBanner) pendingBanner.classList.add('hidden');
+if (uploadSection) uploadSection.style.display = 'none';
+} 
+else if (userAlbum.status === 'pending') {
+// ⏳ Album en attente de validation
+if (myalbumEmpty) myalbumEmpty.classList.add('hidden');
+if (myalbumContent) myalbumContent.classList.remove('hidden');
+if (pendingBanner) pendingBanner.classList.remove('hidden');
+if (uploadSection) uploadSection.style.display = 'none'; // ❌ BLOQUER L'UPLOAD
+    
+// Mettre à jour le badge
+if (statusBadge) {
+statusBadge.innerText = 'EN ATTENTE';
+statusBadge.className = 'px-2 py-0.5 rounded bg-yellow-500 text-zinc-950 text-[9px] font-black uppercase';
+}
+    
+// Afficher les infos de l'album
+safeSetText('my-album-title', userAlbum.imamName || 'Mon Album');
+safeSetText('my-album-imam', userAlbum.imamName || '');
+safeSetText('my-album-location', `${userAlbum.city || ''}, ${userAlbum.country || ''}`);
+    
+// Afficher la date de soumission
+const pendingDate = safeGetElement('pending-submission-date');
+if (pendingDate && userAlbum.createdAt) {
+const date = userAlbum.createdAt.toDate ? userAlbum.createdAt.toDate() : new Date(userAlbum.createdAt);
+pendingDate.innerText = date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+    
+// Cacher la liste des vidéos (pas encore de vidéos)
+const myVideosList = safeGetElement('my-videos-list');
+if (myVideosList) {
+myVideosList.innerHTML = '<div class="text-center py-8"><i class="fa-solid fa-hourglass-half text-3xl text-yellow-500/50"></i><p class="text-xs text-zinc-500 mt-2">Aucune vidéo pour le moment</p></div>';
+}
+} 
+else if (userAlbum.status === 'approved') {
+// ✅ Album approuvé
+if (myalbumEmpty) myalbumEmpty.classList.add('hidden');
+if (myalbumContent) myalbumContent.classList.remove('hidden');
+if (pendingBanner) pendingBanner.classList.add('hidden');
+if (uploadSection) uploadSection.style.display = 'block'; // ✅ AUTORISER L'UPLOAD
+    
+// Mettre à jour le badge
+if (statusBadge) {
+statusBadge.innerText = 'APPROUVÉ';
+statusBadge.className = 'px-2 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-black uppercase';
+}
+    
+// Afficher les infos de l'album
+safeSetText('my-album-title', userAlbum.imamName || 'Mon Album');
+safeSetText('my-album-imam', userAlbum.imamName || '');
+safeSetText('my-album-location', `${userAlbum.city || ''}, ${userAlbum.country || ''}`);
+    
 renderMyVideos();
-} else {
-myalbumEmpty.classList.remove('hidden'); myalbumContent.classList.add('hidden');
+}
+else if (userAlbum.status === 'rejected') {
+// ❌ Album rejeté
+if (myalbumEmpty) myalbumEmpty.classList.add('hidden');
+if (myalbumContent) myalbumContent.classList.remove('hidden');
+if (pendingBanner) pendingBanner.classList.add('hidden');
+if (uploadSection) uploadSection.style.display = 'none';
+    
+if (statusBadge) {
+statusBadge.innerText = 'REJETÉ';
+statusBadge.className = 'px-2 py-0.5 rounded bg-red-500 text-white text-[9px] font-black uppercase';
+}
+    
+safeSetText('my-album-title', userAlbum.imamName || 'Mon Album');
+safeSetText('my-album-imam', userAlbum.imamName || '');
+safeSetText('my-album-location', `${userAlbum.city || ''}, ${userAlbum.country || ''}`);
+    
+const myVideosList = safeGetElement('my-videos-list');
+if (myVideosList) {
+myVideosList.innerHTML = `
+<div class="text-center py-8 bg-red-900/20 border border-red-500/30 rounded-xl">
+<i class="fa-solid fa-circle-xmark text-3xl text-red-400"></i>
+<p class="text-xs text-red-300 mt-2">Votre album a été rejeté</p>
+<p class="text-[10px] text-zinc-500 mt-1">Contactez le support pour plus d'informations</p>
+<button onclick="showTab('support')" class="mt-3 px-4 py-2 rounded-lg text-xs font-bold text-white bg-red-600">
+<i class="fa-solid fa-headset mr-1"></i>Contacter le support
+</button>
+</div>`;
 }
 }
 }
+}
+
 async function submitAlbumRequest() {
 if (!currentUser) { alert("Connectez-vous"); return; }
 const imamName = document.getElementById('imamName').value.trim();
@@ -857,8 +1006,10 @@ imamName, city, country, type,
 status: 'pending',
 createdAt: firebase.firestore.FieldValue.serverTimestamp()
 });
-alert("✅ Demande soumise !");
-await loadUserData(); updateProfileUI();
+alert("✅ Demande soumise !\n\nVotre album est en attente de validation par l'administrateur.\nVous pourrez uploader des vidéos une fois l'album approuvé.");
+await loadUserData(); 
+updateProfileUI();
+showTab('myalbum'); // Rediriger vers la page "Mon album" pour voir le statut
 } catch(error) { alert("❌ Erreur: " + error.message); }
 }
 
@@ -879,7 +1030,8 @@ setTimeout(() => { updateProfileUI(); sendNotification('✅ Application téléch
 function filterByType(typeId) { selectedTypeFilter = typeId; renderTypeChips(); renderAlbumChips(); renderVideoGrid(); }
 function filterByAlbum(albumId) { selectedAlbumFilter = albumId; renderAlbumChips(); renderVideoGrid(); }
 function renderTypeChips() {
-const container = document.getElementById('type-chips');
+const container = safeGetElement('type-chips');
+if (!container) return;
 const types = [
 { id: null, name: '🔥 Tout' },
 { id: 'preche', name: '📢 Prêche' },
@@ -895,7 +1047,8 @@ ${t.name}
 </button>`).join('');
 }
 function renderAlbumChips() {
-const container = document.getElementById('album-chips');
+const container = safeGetElement('album-chips');
+if (!container) return;
 let filteredAlbums = selectedTypeFilter ? allAlbums.filter(a => a.type === selectedTypeFilter) : allAlbums;
 const chips = [{ id: null, name: '👥 Tous' }, ...filteredAlbums.map(a => ({ id: a.id, name: a.imamName || 'Album' }))];
 container.innerHTML = chips.map(c => `
@@ -932,7 +1085,8 @@ else { if (val.trim() !== '') showAllVideos(); renderPopularVideos(); }
 // 🎬 VIDÉO GRID
 // ============================================
 function renderPopularVideos() {
-const container = document.getElementById('popular-videos-grid');
+const container = safeGetElement('popular-videos-grid');
+if (!container) return;
 const popularVideos = [...allVideos].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 4);
 if (popularVideos.length === 0) {
 container.innerHTML = `<div class="col-span-2 text-center py-8"><i class="fa-solid fa-video-slash text-3xl text-zinc-700"></i><p class="text-sm text-zinc-500 mt-2">Aucune vidéo</p></div>`;
@@ -959,7 +1113,8 @@ ontouchstart="startLongPress('${v.id}')" ontouchend="endLongPress()" ontouchcanc
 }).join('');
 }
 function renderVideoGrid() {
-const container = document.getElementById('video-grid');
+const container = safeGetElement('video-grid');
+if (!container) return;
 const filtered = getFilteredVideos();
 if (filtered.length === 0) {
 container.innerHTML = `<div class="text-center py-12"><i class="fa-solid fa-video-slash text-4xl text-zinc-700"></i><p class="text-sm text-zinc-500 mt-3">Aucune vidéo</p></div>`;
@@ -988,14 +1143,18 @@ ontouchstart="startLongPress('${v.id}')" ontouchend="endLongPress()" ontouchcanc
 }
 function showAllVideos() {
 showingAllVideos = true;
-document.getElementById('all-videos-section').classList.remove('hidden');
-document.getElementById('popular-section').classList.add('hidden');
+const allSection = safeGetElement('all-videos-section');
+const popularSection = safeGetElement('popular-section');
+if (allSection) allSection.classList.remove('hidden');
+if (popularSection) popularSection.classList.add('hidden');
 renderTypeChips(); renderAlbumChips(); renderVideoGrid();
 }
 function showPopularOnly() {
 showingAllVideos = false;
-document.getElementById('all-videos-section').classList.add('hidden');
-document.getElementById('popular-section').classList.remove('hidden');
+const allSection = safeGetElement('all-videos-section');
+const popularSection = safeGetElement('popular-section');
+if (allSection) allSection.classList.add('hidden');
+if (popularSection) popularSection.classList.remove('hidden');
 renderPopularVideos();
 }
 
@@ -1034,16 +1193,20 @@ openVideoPlayer(getCdnUrl(video.videoUrl), video.title, video.speaker, video.id)
 function openVideoPlayer(url, title, speaker, videoId) {
 if (!url) return;
 currentPlayingVideo = allVideos.find(v => v.id === videoId);
-document.getElementById('video-player-title').innerText = title;
-document.getElementById('video-player-speaker').innerText = speaker;
-const video = document.getElementById('native-video');
-const source = document.getElementById('video-source');
-document.getElementById('video-overlay-player').classList.remove('hidden');
-source.src = url; video.load(); video.play().catch(() => {});
+safeSetText('video-player-title', title);
+safeSetText('video-player-speaker', speaker);
+const video = safeGetElement('native-video');
+const source = safeGetElement('video-source');
+const overlay = safeGetElement('video-overlay-player');
+if (overlay) overlay.classList.remove('hidden');
+if (source) source.src = url;
+if (video) { video.load(); video.play().catch(() => {}); }
 }
 function closeVideoPlayer() {
-document.getElementById('native-video').pause();
-document.getElementById('video-overlay-player').classList.add('hidden');
+const video = safeGetElement('native-video');
+const overlay = safeGetElement('video-overlay-player');
+if (video) video.pause();
+if (overlay) overlay.classList.add('hidden');
 }
 function openVideoInNewTab() {
 if (currentPlayingVideo) window.open(getCdnUrl(currentPlayingVideo.videoUrl), '_blank');
@@ -1069,7 +1232,6 @@ totalSize: video.size ? (video.size / 1024 / 1024) : 50, downloadedMb: 0
 activeDownloads.push(download);
 sendNotification('📥 Téléchargement démarré', `${video.title} est en cours`);
 simulateDownloadProgress(downloadId);
-// ✅ LANCER LE VRAI TÉLÉCHARGEMENT VIA FETCH + BLOB
 executeRealDownload(download);
 showTab('downloads');
 }
@@ -1085,10 +1247,12 @@ if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
 function showDownloadOptions(videoId = null) {
 if (videoId) currentPlayingVideo = allVideos.find(v => v.id === videoId);
 if (!currentPlayingVideo) return;
-document.getElementById('download-modal-title').innerText = currentPlayingVideo.title || '';
-document.getElementById('download-modal').classList.remove('hidden');
+safeSetText('download-modal-title', currentPlayingVideo.title || '');
+safeAddClass('download-modal', 'hidden');
+const modal = safeGetElement('download-modal');
+if (modal) modal.classList.remove('hidden');
 }
-function closeDownloadModal() { document.getElementById('download-modal').classList.add('hidden'); }
+function closeDownloadModal() { safeAddClass('download-modal', 'hidden'); }
 
 function startDownload(quality) {
 closeDownloadModal();
@@ -1103,7 +1267,6 @@ totalSize: currentPlayingVideo.size ? (currentPlayingVideo.size / 1024 / 1024) :
 activeDownloads.push(download);
 renderDownloads();
 simulateDownloadProgress(downloadId);
-// ✅ LANCER LE VRAI TÉLÉCHARGEMENT VIA FETCH + BLOB
 executeRealDownload(download);
 }
 
@@ -1121,54 +1284,31 @@ if (download.progress >= 100) clearInterval(downloadInterval);
 }, 500);
 }
 
-// ✅ NOUVELLE MÉTHODE : FETCH + BLOB (FONCTIONNE DANS MEDIAN APK)
 async function executeRealDownload(download) {
 const fileName = `${download.title.replace(/[^a-z0-9]/gi, '_')}.mp4`;
 const fileUrl = download.url;
-    
 console.log('📥 Démarrage téléchargement réel:', fileName);
-    
 try {
-// Étape 1 : Télécharger la vidéo en mémoire via fetch
 const response = await fetch(fileUrl);
-        
-if (!response.ok) {
-throw new Error(`Erreur HTTP ${response.status}`);
-}
-        
-// Étape 2 : Convertir en Blob
+if (!response.ok) throw new Error(`Erreur HTTP ${response.status}`);
 const blob = await response.blob();
 console.log('✅ Blob créé:', (blob.size / 1024 / 1024).toFixed(2), 'Mo');
-        
-// Étape 3 : Créer une URL locale pour le blob
 const blobUrl = URL.createObjectURL(blob);
-        
-// Étape 4 : Créer le lien de téléchargement
 const link = document.createElement('a');
 link.href = blobUrl;
 link.download = fileName;
 link.style.display = 'none';
 document.body.appendChild(link);
-        
-// Étape 5 : Déclencher le téléchargement
 link.click();
-        
-// Étape 6 : Nettoyer
 setTimeout(() => {
 document.body.removeChild(link);
 URL.revokeObjectURL(blobUrl);
 }, 1000);
-        
-// Étape 7 : Marquer comme terminé
 completeDownload(download.id);
-        
-console.log('✅ Téléchargement déclenché ! Vérifiez vos téléchargements.');
-        
+console.log('✅ Téléchargement déclenché !');
 } catch (error) {
 console.error('❌ Erreur téléchargement:', error);
 alert('❌ Erreur lors du téléchargement : ' + error.message);
-        
-// En cas d'erreur, annuler le téléchargement dans la liste
 const index = activeDownloads.findIndex(d => d.id === download.id);
 if (index !== -1) {
 activeDownloads.splice(index, 1);
@@ -1200,11 +1340,13 @@ renderDownloads();
 }
 
 function renderDownloads() {
-const activeList = document.getElementById('active-downloads-list');
-const completedList = document.getElementById('completed-downloads-list');
-const badge = document.getElementById('download-count-badge');
+const activeList = safeGetElement('active-downloads-list');
+const completedList = safeGetElement('completed-downloads-list');
+const badge = safeGetElement('download-count-badge');
 const totalCount = activeDownloads.length + completedDownloads.length;
 if (badge) badge.innerText = totalCount;
+
+if (!activeList) return;
 
 if (activeDownloads.length === 0) {
 activeList.innerHTML = '<div class="text-center text-zinc-500 py-12 text-xs"><i class="fa-solid fa-cloud-arrow-down text-4xl mb-3"></i><p>Aucun téléchargement en cours</p></div>';
@@ -1235,6 +1377,8 @@ ${d.quality === 'hd' ? 'Vidéo HD' : 'Audio'}
 </div>`).join('');
 }
 
+if (!completedList) return;
+
 if (completedDownloads.length === 0) {
 completedList.innerHTML = '<div class="text-center text-zinc-500 py-12 text-xs"><i class="fa-solid fa-circle-check text-4xl mb-3"></i><p>Aucun téléchargement terminé</p></div>';
 } else {
@@ -1263,10 +1407,15 @@ if (video) { currentPlayingVideo = video; showDownloadOptions(); }
 }
 
 function toggleDlSubTab(sub) {
-document.getElementById('dl-active-container').classList.toggle('hidden', sub !== 'active');
-document.getElementById('dl-completed-container').classList.toggle('hidden', sub !== 'completed');
-document.getElementById('btn-sub-active').className = sub === 'active' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
-document.getElementById('btn-sub-completed').className = sub === 'completed' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
+const activeContainer = safeGetElement('dl-active-container');
+const completedContainer = safeGetElement('dl-completed-container');
+const btnActive = safeGetElement('btn-sub-active');
+const btnCompleted = safeGetElement('btn-sub-completed');
+
+if (activeContainer) activeContainer.classList.toggle('hidden', sub !== 'active');
+if (completedContainer) completedContainer.classList.toggle('hidden', sub !== 'completed');
+if (btnActive) btnActive.className = sub === 'active' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
+if (btnCompleted) btnCompleted.className = sub === 'completed' ? "px-3.5 py-1 text-xs rounded-full bg-white text-zinc-950" : "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
 }
 
 // ============================================
@@ -1275,25 +1424,26 @@ document.getElementById('btn-sub-completed').className = sub === 'completed' ? "
 function saveUploadProgress(data) {
 try {
 localStorage.setItem('interruptedUpload', JSON.stringify(data));
-const statusEl = document.getElementById('autosave-status');
+const statusEl = safeGetElement('autosave-status');
 if (statusEl) statusEl.innerHTML = `<i class="fa-solid fa-check mr-1"></i>Sauvegardé: chunk ${data.currentChunk}/${data.totalChunks}`;
 } catch (e) {}
 }
 function loadUploadProgress() { try { const data = localStorage.getItem('interruptedUpload'); return data ? JSON.parse(data) : null; } catch (e) { return null; } }
 function clearUploadProgress() { try { localStorage.removeItem('interruptedUpload'); } catch (e) {} }
 function checkForInterruptedUpload() {
-if (!currentUser || !userAlbum) return;
+if (!currentUser || !userAlbum || userAlbum.status !== 'approved') return; // ✅ Vérifier le statut
 const savedData = loadUploadProgress();
 if (savedData && savedData.userId === currentUser.uid && savedData.status === 'processing') {
 interruptedUploadData = savedData;
-const banner = document.getElementById('interrupted-upload-banner');
+const banner = safeGetElement('interrupted-upload-banner');
 if (banner) {
 banner.classList.remove('hidden');
-document.getElementById('interrupted-file-name').innerText = savedData.fileName || 'Fichier inconnu';
-document.getElementById('interrupted-progress').innerText = `${savedData.currentChunk}/${savedData.totalChunks} chunks`;
+safeSetText('interrupted-file-name', savedData.fileName || 'Fichier inconnu');
+safeSetText('interrupted-progress', `${savedData.currentChunk}/${savedData.totalChunks} chunks`);
 const percent = Math.round((savedData.currentChunk / savedData.totalChunks) * 100);
-document.getElementById('interrupted-progress-bar').style.width = `${percent}%`;
-document.getElementById('interrupted-upload-info').innerText = `Dernière sauvegarde: ${getTimeAgo(savedData.lastUpdate)}`;
+const progressBar = safeGetElement('interrupted-progress-bar');
+if (progressBar) progressBar.style.width = `${percent}%`;
+safeSetText('interrupted-upload-info', `Dernière sauvegarde: ${getTimeAgo(savedData.lastUpdate)}`);
 }
 }
 }
@@ -1308,12 +1458,14 @@ async function resumeInterruptedUpload() {
 if (!interruptedUploadData) { alert('Aucune donnée'); return; }
 if (!currentFileBlob) { alert('❌ Le fichier original n\'est plus disponible.'); cancelInterruptedUpload(); return; }
 isResumingUpload = true;
-document.getElementById('interrupted-upload-banner').classList.add('hidden');
-document.getElementById('upload-form').classList.remove('hidden');
-document.getElementById('uploadProgress').classList.remove('hidden');
-document.getElementById('selected-file-name').innerText = interruptedUploadData.fileName;
-document.getElementById('videoTitle').value = interruptedUploadData.title;
-document.getElementById('videoType').value = interruptedUploadData.videoType;
+safeAddClass('interrupted-upload-banner', 'hidden');
+safeRemoveClass('upload-form', 'hidden');
+safeRemoveClass('uploadProgress', 'hidden');
+safeSetText('selected-file-name', interruptedUploadData.fileName);
+const titleInput = safeGetElement('videoTitle');
+if (titleInput) titleInput.value = interruptedUploadData.title;
+const typeSelect = safeGetElement('videoType');
+if (typeSelect) typeSelect.value = interruptedUploadData.videoType;
 try {
 await resumeChunkedUpload(interruptedUploadData.fileName, interruptedUploadData.fileId, interruptedUploadData.authorizationToken, interruptedUploadData.partShas || [], interruptedUploadData.currentChunk, interruptedUploadData.totalChunks, interruptedUploadData.title, interruptedUploadData.videoType, interruptedUploadData.thumbnail, interruptedUploadData.duration);
 } catch (error) { alert('❌ Erreur: ' + error.message); isResumingUpload = false; }
@@ -1321,7 +1473,7 @@ await resumeChunkedUpload(interruptedUploadData.fileName, interruptedUploadData.
 function cancelInterruptedUpload() {
 if (confirm('Annuler définitivement cet upload ?')) {
 clearUploadProgress(); interruptedUploadData = null;
-document.getElementById('interrupted-upload-banner').classList.add('hidden');
+safeAddClass('interrupted-upload-banner', 'hidden');
 }
 }
 
@@ -1345,52 +1497,70 @@ if (wakeLock !== null) { try { await wakeLock.release(); wakeLock = null; } catc
 function handleFileSelected(input) {
 if (!input.files?.length) return;
 const file = input.files[0];
-if (!currentUser || !userAlbum) { alert("Album non trouvé"); input.value = ''; return; }
+if (!currentUser || !userAlbum || userAlbum.status !== 'approved') { 
+alert("⏳ Votre album doit être approuvé par l'administrateur avant de pouvoir uploader des vidéos.");
+input.value = ''; 
+return; 
+}
 const reader = new FileReader();
 reader.onload = (e) => {
 try {
 currentFileBlob = new Blob([e.target.result], { type: file.type });
 currentFileName = file.name; currentFileSize = file.size; currentFileType = file.type;
-document.getElementById('selected-file-name').innerText = file.name;
-document.getElementById('selected-file-size').innerText = `(${(file.size / 1024 / 1024).toFixed(1)} Mo)`;
-document.getElementById('videoTitle').value = file.name.replace(/\.[^/.]+$/, "");
-document.getElementById('upload-form').classList.remove('hidden');
+safeSetText('selected-file-name', file.name);
+safeSetText('selected-file-size', `(${(file.size / 1024 / 1024).toFixed(1)} Mo)`);
+const titleInput = safeGetElement('videoTitle');
+if (titleInput) titleInput.value = file.name.replace(/\.[^/.]+$/, "");
+safeRemoveClass('upload-form', 'hidden');
 } catch (error) { alert('❌ Erreur: ' + error.message); input.value = ''; }
 };
 reader.onerror = () => { alert('❌ Erreur de lecture'); input.value = ''; };
 reader.readAsArrayBuffer(file);
 }
 function cancelFileSelection() {
-currentFileBlob = null; document.getElementById('videoUpload').value = '';
-document.getElementById('upload-form').classList.add('hidden');
+currentFileBlob = null; 
+const videoUpload = safeGetElement('videoUpload');
+if (videoUpload) videoUpload.value = '';
+safeAddClass('upload-form', 'hidden');
 }
+
+// ✅ FONCTION CORRIGÉE : Vérification du statut avant upload
 async function uploadVideoWithChunking() {
+// ✅ VÉRIFICATION CRITIQUE : Album doit être approuvé
+if (!userAlbum || userAlbum.status !== 'approved') {
+alert("⏳ Votre album n'est pas encore validé par l'administrateur.\n\nVous ne pouvez pas uploader de vidéos tant que votre album n'est pas approuvé.\n\nVeuillez patienter jusqu'à la validation de votre album.");
+return;
+}
+
 if (!currentFileBlob) { alert("Aucun fichier"); return; }
 const title = document.getElementById('videoTitle').value.trim();
 const videoType = document.getElementById('videoType').value;
 if (!title) { alert("Titre requis"); return; }
 if (!videoType) { alert("Type requis"); return; }
-const progressDiv = document.getElementById('uploadProgress');
-const uploadBtn = document.getElementById('btn-upload');
-const cancelBtn = document.getElementById('btn-cancel-upload');
-uploadBtn.disabled = true; uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Préparation...';
-cancelBtn.classList.remove('hidden'); progressDiv.classList.remove('hidden');
+const progressDiv = safeGetElement('uploadProgress');
+const uploadBtn = safeGetElement('btn-upload');
+const cancelBtn = safeGetElement('btn-cancel-upload');
+if (uploadBtn) { uploadBtn.disabled = true; uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Préparation...'; }
+if (cancelBtn) cancelBtn.classList.remove('hidden');
+if (progressDiv) progressDiv.classList.remove('hidden');
 uploadAborted = false; await requestWakeLock();
 try {
-document.getElementById('progressPercent').innerText = 'Miniature...';
+safeSetText('progressPercent', 'Miniature...');
 const { thumbnail, duration } = await generateThumbnailFromBlob(currentFileBlob);
 const fileName = `videos/${Date.now()}_${currentFileName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
 const CHUNK_THRESHOLD = 10 * 1024 * 1024;
 if (currentFileBlob.size < CHUNK_THRESHOLD) await uploadSimpleFile(fileName, currentFileBlob, thumbnail, duration, title, videoType);
 else await startChunkedUpload(fileName, currentFileBlob, thumbnail, duration, title, videoType);
 } catch(error) {
-alert("Erreur: " + error.message); progressDiv.classList.add('hidden');
-uploadBtn.disabled = false; uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
-cancelBtn.classList.add('hidden'); await releaseWakeLock();
+alert("Erreur: " + error.message); 
+safeAddClass('uploadProgress', 'hidden');
+if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier'; }
+if (cancelBtn) cancelBtn.classList.add('hidden');
+await releaseWakeLock();
 }
 }
 async function startChunkedUpload(fileName, fileBlob, thumbnail, duration, title, videoType) {
-document.getElementById('progressPercent').innerText = 'Init...';
+safeSetText('progressPercent', 'Init...');
 const initResponse = await fetch('/api/upload-b2-chunked', {
 method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
 credentials: 'include', body: JSON.stringify({ fileName: fileName, fileSize: fileBlob.size, contentType: fileBlob.type || 'video/mp4' })
@@ -1402,28 +1572,28 @@ saveUploadProgress({ userId: currentUser.uid, fileName, originalFileName: curren
 await uploadChunks(fileName, fileBlob, fileId, authorizationToken, 1, totalChunks, [], title, videoType, thumbnail, duration);
 }
 async function resumeChunkedUpload(fileName, fileId, authorizationToken, partShas, lastChunk, totalChunks, title, videoType, thumbnail, duration) {
-document.getElementById('progressPercent').innerText = 'Reprise...';
+safeSetText('progressPercent', 'Reprise...');
 await uploadChunks(fileName, currentFileBlob, fileId, authorizationToken, lastChunk, totalChunks, partShas, title, videoType, thumbnail, duration);
 }
 async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, startChunk, totalChunks, partShas, title, videoType, thumbnail, duration) {
-const progressBar = document.getElementById('progressBar');
-const progressPercent = document.getElementById('progressPercent');
-const progressDetail = document.getElementById('progressDetail');
-const currentChunkEl = document.getElementById('currentChunk');
-const speedText = document.getElementById('speedText');
-const timeRemaining = document.getElementById('timeRemaining');
-const uploadBtn = document.getElementById('btn-upload');
-const cancelBtn = document.getElementById('btn-cancel-upload');
+const progressBar = safeGetElement('progressBar');
+const progressPercent = safeGetElement('progressPercent');
+const progressDetail = safeGetElement('progressDetail');
+const currentChunkEl = safeGetElement('currentChunk');
+const speedText = safeGetElement('speedText');
+const timeRemaining = safeGetElement('timeRemaining');
+const uploadBtn = safeGetElement('btn-upload');
+const cancelBtn = safeGetElement('btn-cancel-upload');
 let uploadedChunks = startChunk - 1;
 let lastLoaded = uploadedChunks * CHUNK_SIZE;
 let lastTime = Date.now();
 let speeds = [];
 const totalSizeMB = (fileBlob.size / 1024 / 1024).toFixed(1);
-progressDetail.innerText = `${(lastLoaded / 1024 / 1024).toFixed(1)} Mo / ${totalSizeMB} Mo`;
-currentChunkEl.innerText = `${uploadedChunks}/${totalChunks}`;
+if (progressDetail) progressDetail.innerText = `${(lastLoaded / 1024 / 1024).toFixed(1)} Mo / ${totalSizeMB} Mo`;
+if (currentChunkEl) currentChunkEl.innerText = `${uploadedChunks}/${totalChunks}`;
 const initialPercent = (uploadedChunks / totalChunks) * 100;
-progressBar.style.width = `${initialPercent}%`;
-progressPercent.innerText = `${Math.round(initialPercent)}%`;
+if (progressBar) progressBar.style.width = `${initialPercent}%`;
+if (progressPercent) progressPercent.innerText = `${Math.round(initialPercent)}%`;
 for (let partNumber = startChunk; partNumber <= totalChunks; partNumber++) {
 if (uploadAborted) {
 saveUploadProgress({ userId: currentUser.uid, fileName, originalFileName: currentFileName, fileId, authorizationToken, totalChunks, currentChunk: partNumber, partShas, title, videoType, thumbnail, duration, status: 'processing', lastUpdate: Date.now() });
@@ -1432,7 +1602,7 @@ await releaseWakeLock(); throw new Error('Upload annulé');
 const start = (partNumber - 1) * CHUNK_SIZE;
 const end = Math.min(start + CHUNK_SIZE, fileBlob.size);
 const chunk = fileBlob.slice(start, end);
-currentChunkEl.innerText = `${partNumber}/${totalChunks}`;
+if (currentChunkEl) currentChunkEl.innerText = `${partNumber}/${totalChunks}`;
 const partUrlResponse = await fetch('/api/get-upload-part-url', {
 method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
 credentials: 'include', body: JSON.stringify({ fileId, authorizationToken })
@@ -1446,22 +1616,24 @@ try {
 const result = await uploadChunkWithProgress(chunkUploadUrl, chunkAuthToken, chunk, partNumber, sha1, (loaded) => {
 const currentTotalLoaded = (uploadedChunks * CHUNK_SIZE) + loaded;
 const percent = (currentTotalLoaded / fileBlob.size) * 100;
-progressBar.style.width = `${percent}%`;
-progressPercent.innerText = `${Math.round(percent)}%`;
-progressDetail.innerText = `${(currentTotalLoaded / 1024 / 1024).toFixed(1)} Mo / ${totalSizeMB} Mo`;
+if (progressBar) progressBar.style.width = `${percent}%`;
+if (progressPercent) progressPercent.innerText = `${Math.round(percent)}%`;
+if (progressDetail) progressDetail.innerText = `${(currentTotalLoaded / 1024 / 1024).toFixed(1)} Mo / ${totalSizeMB} Mo`;
 const now = Date.now();
 const timeDiff = (now - lastTime) / 1000;
 if (timeDiff >= 0.5) {
 const speedMBps = (currentTotalLoaded - lastLoaded) / 1024 / 1024 / timeDiff;
 speeds.push(speedMBps); if (speeds.length > 5) speeds.shift();
 const avg = speeds.reduce((a, b) => a + b, 0) / speeds.length;
-speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${avg >= 1 ? avg.toFixed(2) + ' Mo/s' : (avg*1024).toFixed(0) + ' Ko/s'}`;
+if (speedText) speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${avg >= 1 ? avg.toFixed(2) + ' Mo/s' : (avg*1024).toFixed(0) + ' Ko/s'}`;
 if (avg > 0) {
 const remainingBytes = fileBlob.size - currentTotalLoaded;
 const rem = remainingBytes / (avg * 1024 * 1024);
+if (timeRemaining) {
 if (rem < 60) timeRemaining.innerText = `${Math.ceil(rem)}s`;
 else if (rem < 3600) timeRemaining.innerText = `${Math.floor(rem/60)}m ${Math.ceil(rem%60)}s`;
 else timeRemaining.innerText = `${Math.floor(rem/3600)}h`;
+}
 }
 lastTime = now; lastLoaded = currentTotalLoaded;
 }
@@ -1479,7 +1651,7 @@ await new Promise(r => setTimeout(r, 2000 * retryCount));
 }
 }
 }
-progressPercent.innerText = 'Finalisation...';
+if (progressPercent) progressPercent.innerText = 'Finalisation...';
 const finalizeResponse = await fetch('/api/finish-b2-chunked', {
 method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
 credentials: 'include', body: JSON.stringify({ fileId, partShas, fileName })
@@ -1496,16 +1668,21 @@ thumbnail, uploadedAt: new Date(), size: fileBlob.size,
 storage: 'backblaze_b2', cdn: 'bunny_net', videoType, uploadMethod: 'chunked'
 });
 clearUploadProgress();
-progressBar.style.width = '100%'; progressPercent.innerText = '100%';
-speedText.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Terminé'; timeRemaining.innerText = '✅ Terminé';
+if (progressBar) progressBar.style.width = '100%';
+if (progressPercent) progressPercent.innerText = '100%';
+if (speedText) speedText.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Terminé';
+if (timeRemaining) timeRemaining.innerText = '✅ Terminé';
 await releaseWakeLock();
 setTimeout(() => {
-document.getElementById('uploadProgress').classList.add('hidden');
-document.getElementById('upload-form').classList.add('hidden');
-document.getElementById('videoUpload').value = ''; document.getElementById('videoType').value = '';
+safeAddClass('uploadProgress', 'hidden');
+safeAddClass('upload-form', 'hidden');
+const videoUpload = safeGetElement('videoUpload');
+if (videoUpload) videoUpload.value = '';
+const videoTypeSelect = safeGetElement('videoType');
+if (videoTypeSelect) videoTypeSelect.value = '';
 currentFileBlob = null; currentFileName = '';
-uploadBtn.disabled = false; uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
-cancelBtn.classList.add('hidden');
+if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier'; }
+if (cancelBtn) cancelBtn.classList.add('hidden');
 }, 1500);
 await loadAllVideos(); updateProfileUI(); renderAll();
 sendNotification('✅ Vidéo publiée', 'Votre vidéo a été publiée avec succès !');
@@ -1530,12 +1707,12 @@ xhr.send(chunk);
 });
 }
 async function uploadSimpleFile(fileName, fileBlob, thumbnail, duration, title, videoType) {
-const progressPercent = document.getElementById('progressPercent');
-const progressBar = document.getElementById('progressBar');
-const progressDetail = document.getElementById('progressDetail');
-const speedText = document.getElementById('speedText');
-const timeRemaining = document.getElementById('timeRemaining');
-progressPercent.innerText = 'Init...';
+const progressPercent = safeGetElement('progressPercent');
+const progressBar = safeGetElement('progressBar');
+const progressDetail = safeGetElement('progressDetail');
+const speedText = safeGetElement('speedText');
+const timeRemaining = safeGetElement('timeRemaining');
+if (progressPercent) progressPercent.innerText = 'Init...';
 const initResponse = await fetch('/api/upload-b2', {
 method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, credentials: 'include'
 });
@@ -1548,17 +1725,18 @@ const xhr = new XMLHttpRequest(); xhr.timeout = 900000;
 xhr.upload.addEventListener('progress', (e) => {
 if (e.lengthComputable) {
 const percent = (e.loaded / e.total) * 100;
-progressBar.style.width = `${percent}%`; progressPercent.innerText = `${Math.round(percent)}%`;
-progressDetail.innerText = `${(e.loaded / 1024 / 1024).toFixed(1)} Mo / ${totalSizeMB} Mo`;
+if (progressBar) progressBar.style.width = `${percent}%`;
+if (progressPercent) progressPercent.innerText = `${Math.round(percent)}%`;
+if (progressDetail) progressDetail.innerText = `${(e.loaded / 1024 / 1024).toFixed(1)} Mo / ${totalSizeMB} Mo`;
 const now = Date.now(); const timeDiff = (now - lastTime) / 1000;
 if (timeDiff >= 0.5) {
 const speedMBps = (e.loaded - lastLoaded) / 1024 / 1024 / timeDiff;
 speeds.push(speedMBps); if (speeds.length > 5) speeds.shift();
 const avg = speeds.reduce((a, b) => a + b, 0) / speeds.length;
-speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${avg >= 1 ? avg.toFixed(2) + ' Mo/s' : (avg*1024).toFixed(0) + ' Ko/s'}`;
+if (speedText) speedText.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i>${avg >= 1 ? avg.toFixed(2) + ' Mo/s' : (avg*1024).toFixed(0) + ' Ko/s'}`;
 if (avg > 0) {
 const rem = (e.total - e.loaded) / (avg * 1024 * 1024);
-timeRemaining.innerText = rem < 60 ? `${Math.ceil(rem)}s` : `${Math.floor(rem/60)}m`;
+if (timeRemaining) timeRemaining.innerText = rem < 60 ? `${Math.ceil(rem)}s` : `${Math.floor(rem/60)}m`;
 }
 lastLoaded = e.loaded; lastTime = now;
 }
@@ -1583,14 +1761,17 @@ views: 0, downloads: 0, downloadURL: finalVideoUrl,
 thumbnail, uploadedAt: new Date(), size: fileBlob.size,
 storage: 'backblaze_b2', cdn: 'bunny_net', videoType, uploadMethod: 'simple'
 });
-progressBar.style.width = '100%'; progressPercent.innerText = '100%';
-speedText.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Terminé'; timeRemaining.innerText = '✅ Terminé';
+if (progressBar) progressBar.style.width = '100%';
+if (progressPercent) progressPercent.innerText = '100%';
+if (speedText) speedText.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Terminé';
+if (timeRemaining) timeRemaining.innerText = '✅ Terminé';
 await releaseWakeLock();
 setTimeout(() => {
-document.getElementById('uploadProgress').classList.add('hidden');
-document.getElementById('upload-form').classList.add('hidden');
-currentFileBlob = null; document.getElementById('btn-upload').disabled = false;
-document.getElementById('btn-upload').innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier';
+safeAddClass('uploadProgress', 'hidden');
+safeAddClass('upload-form', 'hidden');
+currentFileBlob = null;
+const uploadBtn = safeGetElement('btn-upload');
+if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier'; }
 }, 1500);
 await loadAllVideos(); updateProfileUI(); renderAll();
 sendNotification('✅ Vidéo publiée', 'Votre vidéo a été publiée avec succès !');
@@ -1623,7 +1804,7 @@ return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 function cancelUpload() { if (confirm("Annuler l'upload ? La progression sera sauvegardée.")) uploadAborted = true; }
 
 function renderMyVideos() {
-const container = document.getElementById('my-videos-list');
+const container = safeGetElement('my-videos-list');
 if (!container || !currentUser) return;
 const myVids = allVideos.filter(v => v.userId === currentUser.uid);
 if (myVids.length === 0) {
@@ -1710,7 +1891,9 @@ document.body.removeChild(textarea);
 
 function handleSupportImages(input) {
 supportImages = Array.from(input.files);
-const preview = document.getElementById('support-images-preview'); preview.innerHTML = '';
+const preview = safeGetElement('support-images-preview');
+if (!preview) return;
+preview.innerHTML = '';
 supportImages.forEach((img, i) => {
 const reader = new FileReader();
 reader.onload = (e) => {
@@ -1723,7 +1906,9 @@ reader.readAsDataURL(img);
 }
 function removeSupportImage(index) { supportImages.splice(index, 1); handleSupportImagesRefresh(); }
 function handleSupportImagesRefresh() {
-const preview = document.getElementById('support-images-preview'); preview.innerHTML = '';
+const preview = safeGetElement('support-images-preview');
+if (!preview) return;
+preview.innerHTML = '';
 supportImages.forEach((img, i) => {
 const reader = new FileReader();
 reader.onload = (e) => {
@@ -1742,54 +1927,59 @@ mediaRecorder = new MediaRecorder(stream); recordingChunks = [];
 mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordingChunks.push(e.data); };
 mediaRecorder.onstop = () => {
 supportVoiceBlob = new Blob(recordingChunks, { type: 'audio/webm' });
-document.getElementById('voice-preview').classList.remove('hidden');
-document.getElementById('btn-record').innerHTML = '<i class="fa-solid fa-microphone mr-1" style="color:#ef4444"></i>Enregistrer';
-document.getElementById('recording-timer').classList.add('hidden');
+safeRemoveClass('voice-preview', 'hidden');
+safeSetText('btn-record', '<i class="fa-solid fa-microphone mr-1" style="color:#ef4444"></i>Enregistrer');
+safeAddClass('recording-timer', 'hidden');
 clearInterval(recordingInterval); stream.getTracks().forEach(t => t.stop());
 };
 mediaRecorder.start(); recordingStartTime = Date.now();
-document.getElementById('btn-record').innerHTML = '<i class="fa-solid fa-stop mr-1" style="color:#ef4444"></i>Arrêter';
-document.getElementById('recording-timer').classList.remove('hidden');
+safeSetText('btn-record', '<i class="fa-solid fa-stop mr-1" style="color:#ef4444"></i>Arrêter');
+safeRemoveClass('recording-timer', 'hidden');
 recordingInterval = setInterval(() => {
 const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
 const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
 const s = (elapsed % 60).toString().padStart(2, '0');
-document.getElementById('rec-time').innerText = `${m}:${s}`;
+safeSetText('rec-time', `${m}:${s}`);
 }, 1000);
 } catch (e) { alert('❌ Microphone : ' + e.message); }
 }
-function removeVoice() { supportVoiceBlob = null; document.getElementById('voice-preview').classList.add('hidden'); }
+function removeVoice() { supportVoiceBlob = null; safeAddClass('voice-preview', 'hidden'); }
 async function submitSupport() {
 if (!currentUser) { alert("Connectez-vous"); return; }
 const subject = document.getElementById('supportSubject').value;
 const message = document.getElementById('supportMessage').value.trim();
 if (!message) { alert("Écrivez un message"); return; }
-const btn = document.getElementById('btn-submit-support');
-btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Envoi...';
+const btn = safeGetElement('btn-submit-support');
+if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Envoi...'; }
 try {
 const imageUrls = []; let voiceUrl = '';
 if (supportImages.length > 0) {
 for (let i = 0; i < supportImages.length; i++) {
-btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Image ${i+1}/${supportImages.length}...`;
+if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Image ${i+1}/${supportImages.length}...`;
 const url = await uploadSupportFile(supportImages[i], 'support-images'); imageUrls.push(url);
 }
 }
 if (supportVoiceBlob) {
-btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Note vocale...';
+if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Note vocale...';
 voiceUrl = await uploadSupportFile(supportVoiceBlob, 'support-voices', 'audio.webm');
 }
 await db.collection('support').add({
 userId: currentUser.uid, userEmail: currentUser.email, subject: subject, message: message,
 images: imageUrls, voice: voiceUrl, status: 'new', createdAt: firebase.firestore.FieldValue.serverTimestamp()
 });
-document.getElementById('support-success').classList.remove('hidden');
-document.getElementById('supportMessage').value = ''; supportImages = []; supportVoiceBlob = null;
-document.getElementById('support-images-preview').innerHTML = '';
-document.getElementById('voice-preview').classList.add('hidden');
+safeRemoveClass('support-success', 'hidden');
+const messageInput = safeGetElement('supportMessage');
+if (messageInput) messageInput.value = '';
+supportImages = []; supportVoiceBlob = null;
+const preview = safeGetElement('support-images-preview');
+if (preview) preview.innerHTML = '';
+safeAddClass('voice-preview', 'hidden');
 sendNotification('✅ Message envoyé', 'Nous vous répondrons bientôt.');
-setTimeout(() => { document.getElementById('support-success').classList.add('hidden'); showTab('profile'); }, 3000);
+setTimeout(() => { safeAddClass('support-success', 'hidden'); showTab('profile'); }, 3000);
 } catch (error) { alert('❌ Erreur : ' + error.message); }
-finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>Envoyer le message'; }
+finally { 
+if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>Envoyer le message'; }
+}
 }
 async function uploadSupportFile(file, folder, customName = null) {
 const response = await fetch('/api/upload-support', {
@@ -1865,7 +2055,7 @@ const AZKAR_DATA = [
 
 let currentAzkarCategory = 0;
 function renderAzkarCategories() {
-const container = document.getElementById('azkar-categories');
+const container = safeGetElement('azkar-categories');
 if (!container) return;
 container.innerHTML = AZKAR_DATA.map((cat, idx) => `
 <button onclick="selectAzkarCategory(${idx})"
@@ -1880,7 +2070,7 @@ return colors[color] || '#ff5722';
 }
 function selectAzkarCategory(idx) { currentAzkarCategory = idx; renderAzkarCategories(); renderAzkarDuas(); }
 function renderAzkarDuas() {
-const container = document.getElementById('azkar-duas-list');
+const container = safeGetElement('azkar-duas-list');
 if (!container) return;
 const category = AZKAR_DATA[currentAzkarCategory];
 container.innerHTML = category.duas.map((dua, idx) => `
@@ -1910,66 +2100,101 @@ container.innerHTML = category.duas.map((dua, idx) => `
 </div>`).join('');
 }
 function toggleDuaTab(id) {
-const el = document.getElementById(id); const icon = document.getElementById(id + '-icon');
-if (el) { el.classList.toggle('open'); if (icon) icon.style.transform = el.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0)'; }
+const el = safeGetElement(id); 
+const icon = safeGetElement(id + '-icon');
+if (el) { 
+el.classList.toggle('open'); 
+if (icon) icon.style.transform = el.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0)'; 
+}
 }
 function toggleAccordion(id) {
-const el = document.getElementById(id); const icon = document.getElementById(id + '-icon');
-if (el) { el.classList.toggle('open'); if (icon) icon.style.transform = el.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0)'; }
+const el = safeGetElement(id); 
+const icon = safeGetElement(id + '-icon');
+if (el) { 
+el.classList.toggle('open'); 
+if (icon) icon.style.transform = el.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0)'; 
+}
 }
 
+// ✅ FONCTION CORRIGÉE : showTab avec protection contre les erreurs classList
 function showTab(tab) {
-['home','downloads','azkar','profile','create','myalbum','support','privacy'].forEach(t => {
-const el = document.getElementById(`tab-${t}`); if (el) el.classList.add('hidden');
-const btn = document.getElementById(`nav-${t}`); if (btn) btn.style.color = '#71717a';
+const tabs = ['home','downloads','azkar','profile','create','myalbum','support','privacy'];
+tabs.forEach(t => {
+const el = safeGetElement(`tab-${t}`); 
+if (el) el.classList.add('hidden');
+const btn = safeGetElement(`nav-${t}`); 
+if (btn) btn.style.color = '#71717a';
 });
-const target = document.getElementById(`tab-${tab}`); if (target) target.classList.remove('hidden');
-const activeBtn = document.getElementById(`nav-${tab}`); if (activeBtn) activeBtn.style.color = '#ff5722';
+const target = safeGetElement(`tab-${tab}`); 
+if (target) target.classList.remove('hidden');
+const activeBtn = safeGetElement(`nav-${tab}`); 
+if (activeBtn) activeBtn.style.color = '#ff5722';
+
 if (tab === 'downloads') renderDownloads();
 if (tab === 'azkar') { renderAzkarCategories(); renderAzkarDuas(); }
-if (tab === 'myalbum' && currentUser) { updateProfileUI(); renderMyVideos(); checkForInterruptedUpload(); }
+if (tab === 'myalbum' && currentUser) { 
+updateProfileUI(); 
+// ✅ Ne rendre les vidéos que si l'album est approuvé
+if (userAlbum && userAlbum.status === 'approved') {
+renderMyVideos(); 
+checkForInterruptedUpload();
+}
+}
 if (tab === 'profile' && currentUser) updateProfileUI();
 if (tab === 'home') {
 showingAllVideos = false;
-document.getElementById('all-videos-section').classList.add('hidden');
-document.getElementById('popular-section').classList.remove('hidden');
-searchQuery = ''; document.getElementById('searchInput').value = '';
+safeAddClass('all-videos-section', 'hidden');
+safeRemoveClass('popular-section', 'hidden');
+searchQuery = ''; 
+const searchInput = safeGetElement('searchInput');
+if (searchInput) searchInput.value = '';
 renderPopularVideos();
 }
+
+// Scroll en haut
+const mainContent = safeGetElement('main-content');
+if (mainContent) mainContent.scrollTop = 0;
 }
+
 function renderAll() {
 renderPopularVideos();
 if (showingAllVideos) { renderTypeChips(); renderAlbumChips(); renderVideoGrid(); }
 }
 function toggleHomeSelectionMode() {
 homeSelectionMode = !homeSelectionMode; homeSelectedVideoIds.clear();
-const btn = document.getElementById('btn-home-select-mode');
-const bar = document.getElementById('home-selection-bar');
+const btn = safeGetElement('btn-home-select-mode');
+const bar = safeGetElement('home-selection-bar');
 if (homeSelectionMode) {
-btn.innerHTML = '<i class="fa-solid fa-xmark mr-1"></i>Annuler'; btn.style.background = '#ff5722'; bar.classList.remove('hidden');
+if (btn) { btn.innerHTML = '<i class="fa-solid fa-xmark mr-1"></i>Annuler'; btn.style.background = '#ff5722'; }
+if (bar) bar.classList.remove('hidden');
 } else {
-btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner'; btn.style.background = ''; bar.classList.add('hidden');
+if (btn) { btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner'; btn.style.background = ''; }
+if (bar) bar.classList.add('hidden');
 }
-document.getElementById('home-selected-count').innerText = '0'; renderVideoGrid();
+safeSetText('home-selected-count', '0');
+renderVideoGrid();
 }
 function toggleHomeVideoSelection(videoId) {
 if (homeSelectedVideoIds.has(videoId)) homeSelectedVideoIds.delete(videoId);
 else homeSelectedVideoIds.add(videoId);
-document.getElementById('home-selected-count').innerText = homeSelectedVideoIds.size; renderVideoGrid();
+safeSetText('home-selected-count', homeSelectedVideoIds.size);
+renderVideoGrid();
 }
 function toggleSelectAllHome() {
 const visibleVideos = getFilteredVideos();
 const allSelected = visibleVideos.length > 0 && visibleVideos.every(v => homeSelectedVideoIds.has(v.id));
 if (allSelected) visibleVideos.forEach(v => homeSelectedVideoIds.delete(v.id));
 else visibleVideos.forEach(v => homeSelectedVideoIds.add(v.id));
-document.getElementById('home-selected-count').innerText = homeSelectedVideoIds.size; renderVideoGrid();
+safeSetText('home-selected-count', homeSelectedVideoIds.size);
+renderVideoGrid();
 }
 function cancelSelectionHome() {
 homeSelectionMode = false; homeSelectedVideoIds.clear();
-const btn = document.getElementById('btn-home-select-mode');
-const bar = document.getElementById('home-selection-bar');
+const btn = safeGetElement('btn-home-select-mode');
+const bar = safeGetElement('home-selection-bar');
 if (btn) { btn.innerHTML = '<i class="fa-regular fa-square-check mr-1"></i>Sélectionner'; btn.style.background = ''; }
-if (bar) bar.classList.add('hidden'); renderVideoGrid();
+if (bar) bar.classList.add('hidden');
+renderVideoGrid();
 }
 async function downloadSelectedHome() {
 if (homeSelectedVideoIds.size === 0) { alert("Aucune vidéo"); return; }
