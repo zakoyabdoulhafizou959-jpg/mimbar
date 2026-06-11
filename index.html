@@ -1154,7 +1154,7 @@ function toggleDlSubTab(sub) {
 }
 
 // ============================================
-// 💾 UPLOAD (CORRECTION "ERREUR DE LECTURE")
+// 💾 UPLOAD (CORRECTION "ERREUR DE LECTURE" + LIMITE 2 GO)
 // ============================================
 function saveUploadProgress(data) {
     try {
@@ -1191,7 +1191,7 @@ function getTimeAgo(timestamp) {
     return `il y a ${Math.floor(seconds / 86400)} jour(s)`;
 }
 
-// ✅ CORRECTION : Plus de FileReader, utilisation directe de l'objet File
+// ✅ CORRECTION : Plus de FileReader, utilisation directe de l'objet File + LIMITE 2 GO
 function handleFileSelected(input) {
     if (!input.files?.length) return;
     const file = input.files[0];
@@ -1204,9 +1204,11 @@ function handleFileSelected(input) {
         alert("❌ Veuillez sélectionner un fichier vidéo valide (MP4, MOV, WebM, etc.)");
         input.value = ''; return;
     }
-    const MAX_SIZE = 500 * 1024 * 1024;
+    
+    // ✅ LIMITE AUGMENTÉE À 2000 Mo (2 Go)
+    const MAX_SIZE = 2000 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
-        alert(`❌ Fichier trop volumineux !\n\nTaille maximale : 500 Mo\nVotre fichier : ${(file.size / 1024 / 1024).toFixed(1)} Mo`);
+        alert(`❌ Fichier trop volumineux !\n\nTaille maximale autorisée : 2000 Mo (2 Go)\nVotre fichier : ${(file.size / 1024 / 1024).toFixed(1)} Mo`);
         input.value = ''; return;
     }
     
