@@ -162,7 +162,7 @@ body::before {
                     <select id="imamType" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
                         <option value="">-- Choisir --</option>
                         <option value="preche">📢 Prêche</option>
-                        <option value="tafsir">📖 Tafsir</option>
+                        <option value="tafsir"> Tafsir</option>
                         <option value="hadith">📜 Hadith</option>
                         <option value="coran">🕌 Coran</option>
                     </select>
@@ -491,7 +491,7 @@ body::before {
                     <option value="question">❓ Question générale</option>
                     <option value="suggestion">💡 Suggestion</option>
                     <option value="album">📁 Problème avec mon album</option>
-                    <option value="other">📝 Autre</option>
+                    <option value="other"> Autre</option>
                 </select>
             </div>
             <div>
@@ -861,7 +861,7 @@ function updateProfileUI() {
             if (myalbumEmpty) myalbumEmpty.classList.add('hidden');
             if (myalbumContent) myalbumContent.classList.remove('hidden');
             if (pendingBanner) pendingBanner.classList.remove('hidden');
-            if (uploadSection) uploadSection.style.display = 'none'; // BLOQUÉ
+            if (uploadSection) uploadSection.style.display = 'none';
             if (statusBadge) { statusBadge.innerText = 'EN ATTENTE'; statusBadge.className = 'px-2 py-0.5 rounded bg-yellow-500 text-zinc-950 text-[9px] font-black uppercase'; }
             safeSetText('my-album-title', userAlbum.imamName || 'Mon Album');
             safeSetText('my-album-imam', userAlbum.imamName || '');
@@ -877,7 +877,7 @@ function updateProfileUI() {
             if (myalbumEmpty) myalbumEmpty.classList.add('hidden');
             if (myalbumContent) myalbumContent.classList.remove('hidden');
             if (pendingBanner) pendingBanner.classList.add('hidden');
-            if (uploadSection) uploadSection.style.display = 'block'; // AUTORISÉ
+            if (uploadSection) uploadSection.style.display = 'block';
             if (statusBadge) { statusBadge.innerText = 'APPROUVÉ'; statusBadge.className = 'px-2 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-black uppercase'; }
             safeSetText('my-album-title', userAlbum.imamName || 'Mon Album');
             safeSetText('my-album-imam', userAlbum.imamName || '');
@@ -1106,7 +1106,7 @@ async function executeRealDownload(download) {
         completeDownload(download.id);
     } catch (error) {
         console.error('❌ Erreur téléchargement:', error);
-        alert('❌ Erreur lors du téléchargement : ' + error.message);
+        alert(' Erreur lors du téléchargement : ' + error.message);
         const index = activeDownloads.findIndex(d => d.id === download.id);
         if (index !== -1) { activeDownloads.splice(index, 1); renderDownloads(); }
     }
@@ -1191,13 +1191,18 @@ function getTimeAgo(timestamp) {
     return `il y a ${Math.floor(seconds / 86400)} jour(s)`;
 }
 
-// ✅ CORRECTION : Plus de FileReader, utilisation directe de l'objet File + LIMITE 2 GO
+// ✅ CORRECTION : Plus de FileReader, utilisation directe de l'objet File + LIMITE 2 GO + VALIDATION
 function handleFileSelected(input) {
-    if (!input.files?.length) return;
+    if (!input.files?.length) {
+        console.error('❌ Aucun fichier sélectionné');
+        return;
+    }
+    
     const file = input.files[0];
+    console.log(' Fichier sélectionné:', file.name, '| Taille:', (file.size / 1024 / 1024).toFixed(2), 'Mo');
     
     if (!currentUser || !userAlbum || userAlbum.status !== 'approved') { 
-        alert("⏳ Votre album doit être approuvé par l'administrateur avant de pouvoir uploader des vidéos.");
+        alert(" Votre album doit être approuvé par l'administrateur avant de pouvoir uploader des vidéos.");
         input.value = ''; return; 
     }
     if (!file.type.startsWith('video/')) {
@@ -1205,7 +1210,6 @@ function handleFileSelected(input) {
         input.value = ''; return;
     }
     
-    // ✅ LIMITE AUGMENTÉE À 2000 Mo (2 Go)
     const MAX_SIZE = 2000 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
         alert(`❌ Fichier trop volumineux !\n\nTaille maximale autorisée : 2000 Mo (2 Go)\nVotre fichier : ${(file.size / 1024 / 1024).toFixed(1)} Mo`);
@@ -1213,7 +1217,7 @@ function handleFileSelected(input) {
     }
     
     try {
-        currentFileBlob = file; // ✅ CONSERVATION DIRECTE DU FICHIER (pas de FileReader)
+        currentFileBlob = file;
         currentFileName = file.name;
         currentFileSize = file.size;
         currentFileType = file.type;
@@ -1238,7 +1242,32 @@ function cancelFileSelection() {
     safeAddClass('upload-form', 'hidden');
 }
 
-// ✅ CORRECTION : Fonctionne avec l'objet File direct, avec timeout de sécurité
+// ✅ VALIDATION AVANT UPLOAD
+function validateFileBeforeUpload() {
+    if (!currentFileBlob) {
+        alert('❌ Aucun fichier sélectionné. Veuillez resélectionner le fichier.');
+        return false;
+    }
+    
+    if (currentFileBlob.size === 0) {
+        alert('❌ Le fichier est vide ou corrompu. Veuillez resélectionner le fichier.');
+        currentFileBlob = null;
+        safeAddClass('upload-form', 'hidden');
+        return false;
+    }
+    
+    try {
+        const testSlice = currentFileBlob.slice(0, 1);
+        return true;
+    } catch (error) {
+        console.error(' Fichier inaccessible:', error);
+        alert(' Le fichier n\'est plus accessible. Veuillez le resélectionner.');
+        currentFileBlob = null;
+        safeAddClass('upload-form', 'hidden');
+        return false;
+    }
+}
+
 async function generateThumbnailFromBlob(fileBlob) {
     return new Promise((resolve) => {
         try {
@@ -1267,7 +1296,8 @@ async function generateThumbnailFromBlob(fileBlob) {
 }
 
 async function uploadVideoWithChunking() {
-    if (!currentFileBlob) { alert("❌ Aucun fichier sélectionné"); return; }
+    if (!validateFileBeforeUpload()) return;
+    
     if (!currentUser || !userAlbum || userAlbum.status !== 'approved') {
         alert("⏳ Votre album n'est pas encore validé par l'administrateur."); return;
     }
@@ -1364,7 +1394,7 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
         }
         const start = (partNumber - 1) * CHUNK_SIZE;
         const end = Math.min(start + CHUNK_SIZE, fileBlob.size);
-        const chunk = fileBlob.slice(start, end); // ✅ fileBlob.slice fonctionne nativement sur l'objet File
+        const chunk = fileBlob.slice(start, end);
         if (currentChunkEl) currentChunkEl.innerText = `${partNumber}/${totalChunks}`;
         
         const partUrlResponse = await fetch('/api/get-upload-part-url', {
@@ -1743,7 +1773,7 @@ async function downloadSelectedHome() {
 }
 
 async function toggleNotifications() {
-    if (!('Notification' in window)) { alert("❌ Notifications non supportées"); return; }
+    if (!('Notification' in window)) { alert(" Notifications non supportées"); return; }
     if (Notification.permission === 'granted') { sendNotification('🔔 Test', 'Les notifications fonctionnent !'); return; }
     if (Notification.permission === 'denied') { alert("❌ Notifications bloquées."); return; }
     const permission = await Notification.requestPermission();
