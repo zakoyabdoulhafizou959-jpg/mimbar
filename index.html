@@ -69,6 +69,59 @@ body::before {
     border: 2px solid rgba(245,158,11,0.4);
     animation: pulse-border 2.5s infinite;
 }
+
+/* 🎵 STYLES POUR LE SYSTÈME AUDIO */
+.audio-player-float {
+    position: fixed;
+    bottom: 80px;
+    right: 10px;
+    z-index: 100;
+    background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(255, 87, 34, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.audio-player-float:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(255, 87, 34, 0.7);
+}
+.audio-player-float.playing {
+    animation: audio-pulse 1.5s infinite;
+}
+@keyframes audio-pulse {
+    0%, 100% { box-shadow: 0 4px 15px rgba(255, 87, 34, 0.5); }
+    50% { box-shadow: 0 4px 25px rgba(255, 87, 34, 0.9); }
+}
+.audio-guide-card {
+    background: linear-gradient(135deg, rgba(255,87,34,0.15) 0%, rgba(255,152,0,0.08) 100%);
+    border: 1px solid rgba(255,87,34,0.3);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+.audio-guide-card.playing {
+    border-color: rgba(255,87,34,0.8);
+    box-shadow: 0 0 20px rgba(255, 87, 34, 0.3);
+}
+.audio-progress-bar {
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+.audio-progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, #ff5722, #ff9800);
+    width: 0%;
+    transition: width 0.3s ease;
+}
 </style>
 </head>
 <body class="h-full bg-slate-900 flex justify-center items-center overflow-hidden font-sans">
@@ -85,15 +138,40 @@ body::before {
             <p class="text-[8px] text-zinc-400 uppercase">Vidéos & Prêches</p>
         </div>
     </div>
-    <div class="bg-zinc-800/80 px-2 py-1 rounded-full text-[10px] text-zinc-300">
-        <i class="fa-solid fa-user-check text-[8px]" style="color:#ff5722"></i>
-        <span id="header-user-status">Déconnecté</span>
+    <div class="flex items-center gap-2">
+        <!-- 🎵 BOUTON MUTE/UNMUTE -->
+        <button onclick="AudioManager.toggleMute()" id="btn-mute" class="w-8 h-8 rounded-full bg-zinc-800/80 flex items-center justify-center" title="Activer/Désactiver le son">
+            <i class="fa-solid fa-volume-high text-xs" style="color:#ff5722" id="mute-icon"></i>
+        </button>
+        <div class="bg-zinc-800/80 px-2 py-1 rounded-full text-[10px] text-zinc-300">
+            <i class="fa-solid fa-user-check text-[8px]" style="color:#ff5722"></i>
+            <span id="header-user-status">Déconnecté</span>
+        </div>
     </div>
 </header>
 
 <div class="flex-1 overflow-y-auto no-scrollbar pb-20" id="main-content">
 
     <div id="tab-home" class="p-4 space-y-4">
+        <!-- 🎵 CARTE GUIDE AUDIO -->
+        <div id="audio-guide-welcome" class="audio-guide-card">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-headphones text-white text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-sm font-bold text-white">🎧 Bienvenue dans Mimbar</h3>
+                    <p class="text-[10px] text-zinc-400">Écoutez le guide pour découvrir l'application</p>
+                </div>
+                <button onclick="AudioManager.playWelcomeGuide()" id="btn-play-welcome" class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center hover:bg-orange-600 transition">
+                    <i class="fa-solid fa-play text-white text-sm" id="welcome-play-icon"></i>
+                </button>
+            </div>
+            <div class="audio-progress-bar">
+                <div class="audio-progress-fill" id="welcome-progress"></div>
+            </div>
+        </div>
+
         <div class="relative">
             <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher Imam, titre, ville..." class="w-full bg-zinc-900/90 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
             <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
@@ -162,7 +240,7 @@ body::before {
                     <select id="imamType" class="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white border border-zinc-700 focus:border-orange-500 focus:outline-none">
                         <option value="">-- Choisir --</option>
                         <option value="preche">📢 Prêche</option>
-                        <option value="tafsir"> Tafsir</option>
+                        <option value="tafsir">📖 Tafsir</option>
                         <option value="hadith">📜 Hadith</option>
                         <option value="coran">🕌 Coran</option>
                     </select>
@@ -188,7 +266,7 @@ body::before {
                     </div>
                     <div class="flex-1">
                         <h3 class="text-sm font-bold text-white">Album en attente de validation</h3>
-                        <p class="text-[11px] text-zinc-300 mt-1">Votre album a été soumis à l'administrateur. Vous pourrez uploader des vidéos une fois qu'il sera approuvé.</p>
+                        <p class="text-[11px] text-zinc-300 mt-1">Votre album a été soumis à l'administrateur.</p>
                         <div class="mt-3 flex items-center gap-2">
                             <div class="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
                                 <div class="h-full bg-gradient-to-r from-yellow-500 to-orange-500 animate-pulse" style="width: 60%"></div>
@@ -440,6 +518,14 @@ body::before {
                     <i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
                 </button>
                 <h3 class="text-xs font-bold text-zinc-500 uppercase mb-3 mt-6">Paramètres</h3>
+                <!-- 🎵 NOUVEAU : BOUTON GUIDE AUDIO -->
+                <button onclick="AudioManager.playFeaturesGuide()" class="menu-item w-full py-3 px-4 bg-zinc-900/90 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
+                    <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center">
+                        <i class="fa-solid fa-headphones text-pink-400"></i>
+                    </div>
+                    <span class="flex-1 text-left">🎧 Guide audio de l'app</span>
+                    <i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
+                </button>
                 <button onclick="showTab('support')" class="menu-item w-full py-3 px-4 bg-zinc-900/90 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
                     <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
                         <i class="fa-solid fa-headset text-blue-400"></i>
@@ -491,7 +577,7 @@ body::before {
                     <option value="question">❓ Question générale</option>
                     <option value="suggestion">💡 Suggestion</option>
                     <option value="album">📁 Problème avec mon album</option>
-                    <option value="other"> Autre</option>
+                    <option value="other">📝 Autre</option>
                 </select>
             </div>
             <div>
@@ -655,11 +741,305 @@ body::before {
     </div>
 </div>
 
+<!-- 🎵 BOUTON FLOTTANT AUDIO -->
+<div id="audio-float-btn" class="audio-player-float hidden" onclick="AudioManager.togglePlayPause()" title="Audio en cours">
+    <i class="fa-solid fa-music text-white" id="audio-float-icon"></i>
+</div>
+
 </div>
 
 <script>
 // ============================================
-// 🔥 FIREBASE INIT
+// 🎵 GESTIONNAIRE AUDIO COMPLET
+// ============================================
+const AudioManager = {
+    // URL de l'audio principal depuis GitHub
+    welcomeAudioUrl: 'https://raw.githubusercontent.com/zakoyabdoulhafizou959-jpg/mimbar/main/ElevenLabs_2026-06-11T15_43_46_Roger%20-%20Laid-Back,%20Casual,%20Resonant_pre_sp82_s66_sb75_se0_b_m2.mp3',
+    
+    // Éléments audio
+    welcomeAudio: null,
+    featuresAudio: null,
+    currentAudio: null,
+    isMuted: false,
+    isPlaying: false,
+    
+    // Initialisation
+    init() {
+        // Charger la préférence de mute
+        this.isMuted = localStorage.getItem('audioMuted') === 'true';
+        this.updateMuteIcon();
+        
+        // Précharger l'audio de bienvenue
+        this.welcomeAudio = new Audio(this.welcomeAudioUrl);
+        this.welcomeAudio.preload = 'auto';
+        
+        // Événements pour l'audio de bienvenue
+        this.welcomeAudio.addEventListener('play', () => {
+            this.isPlaying = true;
+            this.currentAudio = this.welcomeAudio;
+            this.updateUI();
+        });
+        
+        this.welcomeAudio.addEventListener('pause', () => {
+            this.isPlaying = false;
+            this.updateUI();
+        });
+        
+        this.welcomeAudio.addEventListener('ended', () => {
+            this.isPlaying = false;
+            this.currentAudio = null;
+            this.updateUI();
+            const progressBar = document.getElementById('welcome-progress');
+            if (progressBar) progressBar.style.width = '0%';
+            const icon = document.getElementById('welcome-play-icon');
+            if (icon) icon.className = 'fa-solid fa-play text-white text-sm';
+        });
+        
+        this.welcomeAudio.addEventListener('timeupdate', () => {
+            const progressBar = document.getElementById('welcome-progress');
+            if (progressBar && this.welcomeAudio.duration) {
+                const percent = (this.welcomeAudio.currentTime / this.welcomeAudio.duration) * 100;
+                progressBar.style.width = percent + '%';
+            }
+        });
+        
+        console.log('🎵 AudioManager initialisé');
+    },
+    
+    // Jouer l'audio de bienvenue
+    playWelcomeGuide() {
+        if (this.isMuted) {
+            alert('🔇 Le son est désactivé. Cliquez sur l\'icône haut-parleur en haut pour l\'activer.');
+            return;
+        }
+        
+        const icon = document.getElementById('welcome-play-icon');
+        const card = document.getElementById('audio-guide-welcome');
+        
+        if (this.welcomeAudio && !this.welcomeAudio.paused) {
+            // Pause
+            this.welcomeAudio.pause();
+            if (icon) icon.className = 'fa-solid fa-play text-white text-sm';
+            if (card) card.classList.remove('playing');
+        } else {
+            // Play
+            if (this.welcomeAudio) {
+                this.welcomeAudio.currentTime = 0;
+                this.welcomeAudio.play().then(() => {
+                    if (icon) icon.className = 'fa-solid fa-pause text-white text-sm';
+                    if (card) card.classList.add('playing');
+                }).catch(err => {
+                    console.error('❌ Erreur lecture audio:', err);
+                    alert('❌ Impossible de lire l\'audio. Vérifiez votre connexion internet.');
+                });
+            }
+        }
+    },
+    
+    // Jouer le guide des fonctionnalités
+    playFeaturesGuide() {
+        if (this.isMuted) {
+            alert('🔇 Le son est désactivé.');
+            return;
+        }
+        
+        // Utiliser le même audio de bienvenue pour présenter l'app
+        if (this.welcomeAudio) {
+            this.welcomeAudio.currentTime = 0;
+            this.welcomeAudio.play().then(() => {
+                this.currentAudio = this.welcomeAudio;
+                this.showFloatingButton();
+                AudioManager.showNotification('🎧 Guide audio', 'Écoutez la présentation de l\'application');
+            }).catch(err => {
+                console.error('❌ Erreur:', err);
+            });
+        }
+    },
+    
+    // Jouer un son de notification court (synthétique)
+    playNotificationSound() {
+        if (this.isMuted) return;
+        
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        } catch (e) {
+            console.error('❌ Erreur son notification:', e);
+        }
+    },
+    
+    // Jouer un son de succès
+    playSuccessSound() {
+        if (this.isMuted) return;
+        
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Premier son (note haute)
+            const osc1 = audioContext.createOscillator();
+            const gain1 = audioContext.createGain();
+            osc1.connect(gain1);
+            gain1.connect(audioContext.destination);
+            osc1.frequency.value = 523.25; // Do
+            osc1.type = 'sine';
+            gain1.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            osc1.start(audioContext.currentTime);
+            osc1.stop(audioContext.currentTime + 0.2);
+            
+            // Deuxième son (note plus haute)
+            const osc2 = audioContext.createOscillator();
+            const gain2 = audioContext.createGain();
+            osc2.connect(gain2);
+            gain2.connect(audioContext.destination);
+            osc2.frequency.value = 659.25; // Mi
+            osc2.type = 'sine';
+            gain2.gain.setValueAtTime(0.2, audioContext.currentTime + 0.15);
+            gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+            osc2.start(audioContext.currentTime + 0.15);
+            osc2.stop(audioContext.currentTime + 0.4);
+            
+            // Troisième son (note encore plus haute)
+            const osc3 = audioContext.createOscillator();
+            const gain3 = audioContext.createGain();
+            osc3.connect(gain3);
+            gain3.connect(audioContext.destination);
+            osc3.frequency.value = 783.99; // Sol
+            osc3.type = 'sine';
+            gain3.gain.setValueAtTime(0.2, audioContext.currentTime + 0.3);
+            gain3.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
+            osc3.start(audioContext.currentTime + 0.3);
+            osc3.stop(audioContext.currentTime + 0.6);
+        } catch (e) {
+            console.error('❌ Erreur son succès:', e);
+        }
+    },
+    
+    // Jouer un son d'erreur
+    playErrorSound() {
+        if (this.isMuted) return;
+        
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 200;
+            oscillator.type = 'sawtooth';
+            
+            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        } catch (e) {}
+    },
+    
+    // Toggle mute
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        localStorage.setItem('audioMuted', this.isMuted);
+        this.updateMuteIcon();
+        
+        if (this.isMuted && this.currentAudio && !this.currentAudio.paused) {
+            this.currentAudio.pause();
+        }
+        
+        AudioManager.showNotification(
+            this.isMuted ? '🔇 Son désactivé' : '🔊 Son activé',
+            this.isMuted ? 'Les sons sont maintenant coupés' : 'Les sons sont maintenant activés'
+        );
+    },
+    
+    // Update mute icon
+    updateMuteIcon() {
+        const icon = document.getElementById('mute-icon');
+        if (icon) {
+            icon.className = this.isMuted ? 'fa-solid fa-volume-xmark text-xs text-zinc-500' : 'fa-solid fa-volume-high text-xs';
+            if (!this.isMuted) icon.style.color = '#ff5722';
+        }
+    },
+    
+    // Toggle play/pause
+    togglePlayPause() {
+        if (this.currentAudio) {
+            if (this.currentAudio.paused) {
+                this.currentAudio.play();
+            } else {
+                this.currentAudio.pause();
+            }
+        }
+    },
+    
+    // Update UI
+    updateUI() {
+        const floatBtn = document.getElementById('audio-float-btn');
+        const floatIcon = document.getElementById('audio-float-icon');
+        
+        if (this.isPlaying && this.currentAudio === this.welcomeAudio) {
+            // Ne pas montrer le bouton flottant pour l'audio de bienvenue (il a sa propre carte)
+        } else if (this.isPlaying) {
+            if (floatBtn) floatBtn.classList.remove('hidden');
+            if (floatBtn) floatBtn.classList.add('playing');
+            if (floatIcon) floatIcon.className = 'fa-solid fa-pause text-white';
+        } else {
+            if (floatBtn) floatBtn.classList.add('hidden');
+            if (floatBtn) floatBtn.classList.remove('playing');
+        }
+    },
+    
+    // Show floating button
+    showFloatingButton() {
+        const floatBtn = document.getElementById('audio-float-btn');
+        if (floatBtn) {
+            floatBtn.classList.remove('hidden');
+            floatBtn.classList.add('playing');
+        }
+    },
+    
+    // Notification visuelle
+    showNotification(title, message) {
+        // Créer une notification visuelle temporaire
+        const notif = document.createElement('div');
+        notif.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-zinc-900 border border-orange-500/50 rounded-xl px-4 py-3 shadow-2xl z-[9999] fade-in';
+        notif.style.minWidth = '250px';
+        notif.innerHTML = `
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-bell text-orange-400"></i>
+                <div>
+                    <p class="text-xs font-bold text-white">${title}</p>
+                    <p class="text-[10px] text-zinc-400">${message}</p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(notif);
+        
+        setTimeout(() => {
+            notif.style.opacity = '0';
+            notif.style.transition = 'opacity 0.3s';
+            setTimeout(() => notif.remove(), 300);
+        }, 3000);
+    }
+};
+
+// ============================================
+// 🔥 FIREBASE INIT AVEC PERSISTENCE
 // ============================================
 const firebaseConfig = {
     apiKey: "AIzaSyC3ybM8gMQZ-IjVLLXqs0MZLPEzqGmyREA",
@@ -669,11 +1049,24 @@ const firebaseConfig = {
     messagingSenderId: "287190157826",
     appId: "1:287190157826:web:c1fd927c6cf0ea0ecdb51b"
 };
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => {}).catch((e) => {});
-db.settings({ cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED, experimentalForceLongPolling: true });
+
+// ✅ PERSISTANCE LOCALE (CRUCIAL POUR APK CAPACITOR)
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    .then(() => {
+        console.log('✅ Persistence Firebase activée');
+    })
+    .catch((error) => {
+        console.error('❌ Erreur persistence:', error);
+    });
+
+db.settings({ 
+    cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED, 
+    experimentalForceLongPolling: true 
+});
 
 // ============================================
 // ✅ VARIABLES GLOBALES
@@ -721,6 +1114,19 @@ function formatDuration(seconds) {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
+// ✅ DÉTECTION CAPACITOR OU WEBVIEW
+function isWebView() {
+    const ua = navigator.userAgent.toLowerCase();
+    return (
+        ua.includes('wv') || 
+        ua.includes('webview') || 
+        ua.includes('median') ||
+        ua.includes('capacitor') ||
+        (ua.includes('android') && !ua.includes('chrome')) ||
+        (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())
+    );
+}
+
 // ============================================
 // 🔐 AUTH
 // ============================================
@@ -730,13 +1136,19 @@ auth.onAuthStateChanged(async (user) => {
         safeSetText('header-user-status', user.email?.split('@')[0] || 'Connecté');
         try {
             const token = await user.getIdToken();
-            try { localStorage.setItem('firebaseToken', token); localStorage.setItem('firebaseUser', JSON.stringify({ uid: user.uid, email: user.email })); } catch (e) {}
+            try { 
+                localStorage.setItem('firebaseToken', token); 
+                localStorage.setItem('firebaseUser', JSON.stringify({ uid: user.uid, email: user.email })); 
+            } catch (e) {}
             await loadUserData();
         } catch (error) { currentUser = null; }
     } else {
         safeSetText('header-user-status', 'Déconnecté');
         userAlbum = null;
-        try { localStorage.removeItem('firebaseToken'); localStorage.removeItem('firebaseUser'); } catch (e) {}
+        try { 
+            localStorage.removeItem('firebaseToken'); 
+            localStorage.removeItem('firebaseUser'); 
+        } catch (e) {}
     }
     updateProfileUI();
     await loadAllAlbums();
@@ -745,41 +1157,102 @@ auth.onAuthStateChanged(async (user) => {
     checkForInterruptedUpload();
 });
 
+// ✅ GOOGLE SIGN-IN CORRIGÉ POUR CAPACITOR
 async function handleGoogleSignIn() {
     try {
         const provider = new firebase.auth.GoogleAuthProvider();
-        const isWebView = navigator.userAgent.includes('wv') || navigator.userAgent.includes('Median');
-        if (isWebView) await auth.signInWithRedirect(provider);
-        else await auth.signInWithPopup(provider);
+        
+        // ✅ DANS APK : TOUJOURS utiliser signInWithRedirect
+        if (isWebView()) {
+            console.log('📱 Mode APK détecté → signInWithRedirect');
+            await auth.signInWithRedirect(provider);
+        } else {
+            console.log('🌐 Mode Web → signInWithPopup');
+            await auth.signInWithPopup(provider);
+        }
+        
         showTab('home');
     } catch(e) {
-        if (e.code === 'auth/popup-blocked') {
-            try { await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); } catch (e2) { showAuthError(`❌ ${e2.message}`); }
-        } else { showAuthError(`❌ ${e.message}`); }
+        console.error('❌ Erreur Google Sign-In:', e);
+        if (e.code === 'auth/popup-blocked' || e.code === 'auth/redirect-cancelled-by-user') {
+            try { 
+                await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); 
+            } catch (e2) { 
+                showAuthError(`❌ ${e2.message}`); 
+            }
+        } else { 
+            showAuthError(`❌ ${e.message}`); 
+        }
     }
 }
-auth.getRedirectResult().then((result) => { if (result && result.user) showTab('home'); }).catch((error) => {});
+
+// ✅ RÉCUPÉRATION AU RETOUR DE GOOGLE
+auth.getRedirectResult()
+    .then((result) => {
+        if (result && result.user) {
+            console.log('✅ Connexion Google réussie via redirect');
+            localStorage.setItem('firebaseUser', JSON.stringify({
+                uid: result.user.uid,
+                email: result.user.email,
+                displayName: result.user.displayName,
+                photoURL: result.user.photoURL
+            }));
+            showTab('home');
+            AudioManager.playSuccessSound();
+            AudioManager.showNotification('✅ Connexion réussie', `Bienvenue ${result.user.email?.split('@')[0]}`);
+        } else {
+            console.log('ℹ️ Pas de résultat redirect (connexion normale)');
+        }
+    })
+    .catch((error) => {
+        console.error('❌ Erreur redirect result:', error);
+    });
 
 async function handleLogin() {
     const email = safeGetElement('loginEmail').value.trim();
     const pwd = safeGetElement('loginPassword').value;
     if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
     if (pwd.length < 6) { showAuthError("Mot de passe min 6 caractères"); return; }
-    try { await auth.signInWithEmailAndPassword(email, pwd); showTab('home'); } catch(e) { showAuthError(`❌ ${e.message}`); }
+    try { 
+        await auth.signInWithEmailAndPassword(email, pwd); 
+        showTab('home');
+        AudioManager.playSuccessSound();
+    } catch(e) { 
+        showAuthError(`❌ ${e.message}`);
+        AudioManager.playErrorSound();
+    }
 }
 async function handleSignup() {
     const email = safeGetElement('loginEmail').value.trim();
     const pwd = safeGetElement('loginPassword').value;
     if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
     if (pwd.length < 6) { showAuthError("Mot de passe min 6 caractères"); return; }
-    try { await auth.createUserWithEmailAndPassword(email, pwd); showTab('home'); } catch(e) { showAuthError(`❌ ${e.message}`); }
+    try { 
+        await auth.createUserWithEmailAndPassword(email, pwd); 
+        showTab('home');
+        AudioManager.playSuccessSound();
+    } catch(e) { 
+        showAuthError(`❌ ${e.message}`);
+        AudioManager.playErrorSound();
+    }
 }
-function handleLogout() { auth.signOut(); showTab('profile'); }
+function handleLogout() { 
+    auth.signOut(); 
+    showTab('profile');
+    AudioManager.playNotificationSound();
+}
 async function resetPassword() {
     const email = safeGetElement('loginEmail').value.trim();
     if (!email || !email.includes('@')) { showAuthError("Saisissez votre email"); return; }
     if (!confirm(`Envoyer un email à ${email} ?`)) return;
-    try { await auth.sendPasswordResetEmail(email); alert(`✅ Email envoyé !`); } catch(e) { showAuthError(`❌ ${e.message}`); }
+    try { 
+        await auth.sendPasswordResetEmail(email); 
+        alert(`✅ Email envoyé !`);
+        AudioManager.playSuccessSound();
+    } catch(e) { 
+        showAuthError(`❌ ${e.message}`);
+        AudioManager.playErrorSound();
+    }
 }
 function showAuthError(msg) {
     let errorDiv = safeGetElement('auth-error');
@@ -914,7 +1387,11 @@ async function submitAlbumRequest() {
         await loadUserData(); 
         updateProfileUI();
         showTab('myalbum');
-    } catch(error) { alert("❌ Erreur: " + error.message); }
+        AudioManager.playSuccessSound();
+    } catch(error) { 
+        alert("❌ Erreur: " + error.message);
+        AudioManager.playErrorSound();
+    }
 }
 
 function downloadApp() {
@@ -922,7 +1399,11 @@ function downloadApp() {
     link.href = APK_DOWNLOAD_URL; link.download = 'mimbar-v1.0.0.apk';
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
     localStorage.setItem('appInstalled', 'true');
-    setTimeout(() => { updateProfileUI(); sendNotification('✅ Application téléchargée', 'Merci !'); }, 1000);
+    setTimeout(() => { 
+        updateProfileUI(); 
+        sendNotification('✅ Application téléchargée', 'Merci !');
+        AudioManager.playSuccessSound();
+    }, 1000);
 }
 
 // ============================================
@@ -1033,7 +1514,7 @@ function openVideoInNewTab() {
 }
 
 // ============================================
-// ✅ LONG PRESS & TÉLÉCHARGEMENT (FETCH + BLOB)
+// ✅ LONG PRESS & TÉLÉCHARGEMENT
 // ============================================
 function startLongPress(videoId) {
     isLongPress = false;
@@ -1050,6 +1531,7 @@ function startLongPress(videoId) {
             simulateDownloadProgress(downloadId);
             executeRealDownload(download);
             showTab('downloads');
+            AudioManager.playNotificationSound();
         }
     }, 800);
 }
@@ -1087,28 +1569,79 @@ function simulateDownloadProgress(downloadId) {
     }, 500);
 }
 
+// ✅ TÉLÉCHARGEMENT OPTIMISÉ POUR CAPACITOR ET WEB
 async function executeRealDownload(download) {
     const fileName = `${download.title.replace(/[^a-z0-9]/gi, '_')}.mp4`;
     const fileUrl = download.url;
-    console.log('📥 Démarrage téléchargement réel:', fileName);
+    
+    console.log('📥 Démarrage téléchargement:', fileName);
+    console.log('📱 Mode APK/WebView:', isWebView());
+    
+    // ✅ MODE APK : window.open déclenche le DownloadManager Android
+    if (isWebView()) {
+        try {
+            const newWindow = window.open(fileUrl, '_blank');
+            if (newWindow) {
+                setTimeout(() => {
+                    try { newWindow.close(); } catch(e) {}
+                }, 5000);
+                completeDownload(download.id);
+                console.log('✅ Téléchargement déclenché via window.open');
+                return;
+            }
+        } catch (e) {
+            console.error('❌ window.open échoué:', e);
+        }
+        
+        try {
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = fileUrl;
+            document.body.appendChild(iframe);
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+                completeDownload(download.id);
+            }, 8000);
+            console.log('✅ Téléchargement déclenché via iframe');
+            return;
+        } catch (e) {
+            console.error('❌ iframe échoué:', e);
+        }
+    }
+    
+    // ✅ MODE WEB : fetch + blob
     try {
         const response = await fetch(fileUrl);
         if (!response.ok) throw new Error(`Erreur HTTP ${response.status}`);
+        
         const blob = await response.blob();
         const blobUrl = URL.createObjectURL(blob);
+        
         const link = document.createElement('a');
         link.href = blobUrl;
         link.download = fileName;
         link.style.display = 'none';
         document.body.appendChild(link);
         link.click();
-        setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(blobUrl); }, 1000);
+        
+        setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
+        }, 1000);
+        
         completeDownload(download.id);
+        console.log('✅ Téléchargement terminé (mode web)');
+        
     } catch (error) {
         console.error('❌ Erreur téléchargement:', error);
-        alert(' Erreur lors du téléchargement : ' + error.message);
+        alert('❌ Erreur : ' + error.message);
+        
         const index = activeDownloads.findIndex(d => d.id === download.id);
-        if (index !== -1) { activeDownloads.splice(index, 1); renderDownloads(); }
+        if (index !== -1) {
+            activeDownloads.splice(index, 1);
+            renderDownloads();
+        }
+        AudioManager.playErrorSound();
     }
 }
 
@@ -1121,6 +1654,7 @@ function completeDownload(downloadId) {
     renderDownloads();
     sendNotification('✅ Téléchargement terminé', `${download.title} est prêt !`);
     incrementVideoDownloads(download.videoId);
+    AudioManager.playSuccessSound();
 }
 function cancelDownload(downloadId) {
     const index = activeDownloads.findIndex(d => d.id === downloadId);
@@ -1154,7 +1688,7 @@ function toggleDlSubTab(sub) {
 }
 
 // ============================================
-// 💾 UPLOAD (CORRECTION "ERREUR DE LECTURE" + LIMITE 2 GO)
+// 💾 UPLOAD
 // ============================================
 function saveUploadProgress(data) {
     try {
@@ -1191,18 +1725,12 @@ function getTimeAgo(timestamp) {
     return `il y a ${Math.floor(seconds / 86400)} jour(s)`;
 }
 
-// ✅ CORRECTION : Plus de FileReader, utilisation directe de l'objet File + LIMITE 2 GO + VALIDATION
 function handleFileSelected(input) {
-    if (!input.files?.length) {
-        console.error('❌ Aucun fichier sélectionné');
-        return;
-    }
-    
+    if (!input.files?.length) return;
     const file = input.files[0];
-    console.log(' Fichier sélectionné:', file.name, '| Taille:', (file.size / 1024 / 1024).toFixed(2), 'Mo');
     
     if (!currentUser || !userAlbum || userAlbum.status !== 'approved') { 
-        alert(" Votre album doit être approuvé par l'administrateur avant de pouvoir uploader des vidéos.");
+        alert("⏳ Votre album doit être approuvé par l'administrateur avant de pouvoir uploader des vidéos.");
         input.value = ''; return; 
     }
     if (!file.type.startsWith('video/')) {
@@ -1212,7 +1740,7 @@ function handleFileSelected(input) {
     
     const MAX_SIZE = 2000 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
-        alert(`❌ Fichier trop volumineux !\n\nTaille maximale autorisée : 2000 Mo (2 Go)\nVotre fichier : ${(file.size / 1024 / 1024).toFixed(1)} Mo`);
+        alert(`❌ Fichier trop volumineux !\n\nTaille maximale : 2000 Mo (2 Go)\nVotre fichier : ${(file.size / 1024 / 1024).toFixed(1)} Mo`);
         input.value = ''; return;
     }
     
@@ -1228,10 +1756,12 @@ function handleFileSelected(input) {
         if (titleInput) titleInput.value = file.name.replace(/\.[^/.]+$/, "");
         safeRemoveClass('upload-form', 'hidden');
         console.log('✅ Fichier prêt pour l\'upload:', file.name, '| Taille:', (file.size / 1024 / 1024).toFixed(2), 'Mo');
+        AudioManager.playNotificationSound();
     } catch (error) {
         console.error('❌ Erreur sélection fichier:', error);
         alert('❌ Erreur : ' + error.message);
         input.value = '';
+        AudioManager.playErrorSound();
     }
 }
 
@@ -1242,26 +1772,22 @@ function cancelFileSelection() {
     safeAddClass('upload-form', 'hidden');
 }
 
-// ✅ VALIDATION AVANT UPLOAD
 function validateFileBeforeUpload() {
     if (!currentFileBlob) {
         alert('❌ Aucun fichier sélectionné. Veuillez resélectionner le fichier.');
         return false;
     }
-    
     if (currentFileBlob.size === 0) {
-        alert('❌ Le fichier est vide ou corrompu. Veuillez resélectionner le fichier.');
+        alert('❌ Le fichier est vide ou corrompu.');
         currentFileBlob = null;
         safeAddClass('upload-form', 'hidden');
         return false;
     }
-    
     try {
         const testSlice = currentFileBlob.slice(0, 1);
         return true;
     } catch (error) {
-        console.error(' Fichier inaccessible:', error);
-        alert(' Le fichier n\'est plus accessible. Veuillez le resélectionner.');
+        alert('❌ Le fichier n\'est plus accessible.');
         currentFileBlob = null;
         safeAddClass('upload-form', 'hidden');
         return false;
@@ -1274,7 +1800,6 @@ async function generateThumbnailFromBlob(fileBlob) {
             const video = document.createElement('video');
             video.preload = 'metadata'; video.muted = true; video.playsInline = true;
             const timeout = setTimeout(() => {
-                console.warn('⚠️ Timeout génération miniature');
                 resolve({ thumbnail: '', duration: '00:00' });
             }, 15000);
             let duration = 0;
@@ -1328,6 +1853,7 @@ async function uploadVideoWithChunking() {
         if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.innerHTML = '<i class="fa-solid fa-upload mr-1"></i>Publier'; }
         if (cancelBtn) cancelBtn.classList.add('hidden');
         await releaseWakeLock();
+        AudioManager.playErrorSound();
     }
 }
 
@@ -1485,7 +2011,9 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
     
     await loadAllVideos(); updateProfileUI(); renderAll();
     sendNotification('✅ Vidéo publiée', 'Votre vidéo a été publiée avec succès !');
-    alert(`✅ Vidéo publiée !`); isResumingUpload = false;
+    alert(`✅ Vidéo publiée !`); 
+    isResumingUpload = false;
+    AudioManager.playSuccessSound();
 }
 
 function uploadChunkWithProgress(uploadUrl, authorizationToken, chunk, partNumber, sha1, onProgress) {
@@ -1583,6 +2111,7 @@ async function uploadSimpleFile(fileName, fileBlob, thumbnail, duration, title, 
     await loadAllVideos(); updateProfileUI(); renderAll();
     sendNotification('✅ Vidéo publiée', 'Votre vidéo a été publiée avec succès !');
     alert(`✅ Vidéo publiée !`);
+    AudioManager.playSuccessSound();
 }
 
 function cancelUpload() { if (confirm("Annuler l'upload ? La progression sera sauvegardée.")) uploadAborted = true; }
@@ -1622,7 +2151,11 @@ async function deleteMyVideo(videoId) {
         await db.collection('videos').doc(videoId).delete();
         await loadAllVideos(); updateProfileUI(); renderMyVideos();
         sendNotification('🗑️ Supprimée', 'La vidéo a été retirée de votre album.');
-    } catch(e) { alert("Erreur: " + e.message); }
+        AudioManager.playNotificationSound();
+    } catch(e) { 
+        alert("Erreur: " + e.message);
+        AudioManager.playErrorSound();
+    }
 }
 
 // ============================================
@@ -1701,7 +2234,7 @@ function toggleAccordion(id) {
 }
 
 // ============================================
-// 🔄 NAVIGATION & UTILITAIRES DIVERS
+// 🔄 NAVIGATION & UTILITAIRES
 // ============================================
 function showTab(tab) {
     ['home','downloads','azkar','profile','create','myalbum','support','privacy'].forEach(t => {
@@ -1773,7 +2306,7 @@ async function downloadSelectedHome() {
 }
 
 async function toggleNotifications() {
-    if (!('Notification' in window)) { alert(" Notifications non supportées"); return; }
+    if (!('Notification' in window)) { alert("❌ Notifications non supportées"); return; }
     if (Notification.permission === 'granted') { sendNotification('🔔 Test', 'Les notifications fonctionnent !'); return; }
     if (Notification.permission === 'denied') { alert("❌ Notifications bloquées."); return; }
     const permission = await Notification.requestPermission();
@@ -1783,23 +2316,10 @@ function sendNotification(title, body) {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     try {
         const notif = new Notification(title, { body: body, vibrate: [200, 100, 200], tag: 'mimbar-' + Date.now() });
-        playNotificationSound();
+        AudioManager.playNotificationSound();
         if ('vibrate' in navigator) navigator.vibrate([200, 100, 200, 100, 200]);
         notif.onclick = () => { window.focus(); notif.close(); };
         setTimeout(() => notif.close(), 5000);
-    } catch (e) {}
-}
-function playNotificationSound() {
-    try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        oscillator.connect(gainNode); gainNode.connect(audioContext.destination);
-        oscillator.frequency.value = 800; oscillator.type = 'sine';
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
     } catch (e) {}
 }
 
@@ -1904,7 +2424,11 @@ async function submitSupport() {
         safeAddClass('voice-preview', 'hidden');
         sendNotification('✅ Message envoyé', 'Nous vous répondrons bientôt.');
         setTimeout(() => { safeAddClass('support-success', 'hidden'); showTab('profile'); }, 3000);
-    } catch (error) { alert('❌ Erreur : ' + error.message); }
+        AudioManager.playSuccessSound();
+    } catch (error) { 
+        alert('❌ Erreur : ' + error.message);
+        AudioManager.playErrorSound();
+    }
     finally { if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>Envoyer le message'; } }
 }
 async function uploadSupportFile(file, folder, customName = null) {
@@ -1923,7 +2447,62 @@ async function uploadSupportFile(file, folder, customName = null) {
     });
 }
 
-showTab('home');
+// ============================================
+// 🔄 GESTION CYCLE DE VIE APP (CAPACITOR)
+// ============================================
+if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+    window.Capacitor.Plugins.App.addListener('pause', () => {
+        console.log('⏸️ App en arrière-plan');
+        try {
+            localStorage.setItem('appState', JSON.stringify({
+                lastActive: Date.now(),
+                currentTab: getCurrentTab(),
+                userId: currentUser ? currentUser.uid : null
+            }));
+        } catch (e) {}
+    });
+    
+    window.Capacitor.Plugins.App.addListener('resume', () => {
+        console.log('▶️ App au premier plan');
+    });
+}
+
+function getCurrentTab() {
+    const tabs = ['home','downloads','azkar','profile','create','myalbum'];
+    for (const tab of tabs) {
+        const el = document.getElementById(`tab-${tab}`);
+        if (el && !el.classList.contains('hidden')) return tab;
+    }
+    return 'home';
+}
+
+function restoreAppState() {
+    try {
+        const state = JSON.parse(localStorage.getItem('appState') || '{}');
+        if (state.currentTab && state.currentTab !== 'home') {
+            setTimeout(() => showTab(state.currentTab), 500);
+        }
+    } catch (e) {}
+}
+
+// ============================================
+// 🚀 DÉMARRAGE DE L'APPLICATION
+// ============================================
+(async function initApp() {
+    // Initialiser le gestionnaire audio
+    AudioManager.init();
+    
+    // Attendre que Firebase soit prêt
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Restaurer l'état précédent
+    restoreAppState();
+    
+    // Afficher la page d'accueil
+    showTab('home');
+    
+    console.log('🚀 Application démarrée');
+})();
 </script>
 </body>
 </html>
