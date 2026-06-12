@@ -2,7 +2,7 @@
 <html lang="fr" class="h-full bg-zinc-950 text-white select-none">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>أهل السنة والجماعة</title>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -17,6 +17,7 @@ body {
     background-position: center;
     background-attachment: fixed;
     background-repeat: no-repeat;
+    font-family: system-ui, -apple-system, sans-serif;
 }
 body::before {
     content: '';
@@ -122,7 +123,6 @@ body::before {
 
 <div class="flex-1 overflow-y-auto no-scrollbar pb-20" id="main-content">
 
-    <!-- ✅ PAGE ACCUEIL - SANS AUDIO -->
     <div id="tab-home" class="p-4 space-y-4">
         <div class="relative">
             <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher Imam, titre, ville..." class="w-full bg-zinc-900/90 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
@@ -193,7 +193,7 @@ body::before {
                         <option value="">-- Choisir --</option>
                         <option value="preche">📢 Prêche</option>
                         <option value="tafsir">📖 Tafsir</option>
-                        <option value="hadith">📜 Hadith</option>
+                        <option value="hadith"> Hadith</option>
                         <option value="coran">🕌 Coran</option>
                     </select>
                 </div>
@@ -502,7 +502,6 @@ body::before {
         </div>
     </div>
 
-    <!-- ✅ PAGE AIDE & SUPPORT - AVEC AUDIO -->
     <div id="tab-support" class="hidden p-4 space-y-4">
         <div class="flex items-center gap-2 mb-2">
             <button onclick="showTab('profile')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
@@ -511,7 +510,6 @@ body::before {
             <h2 class="text-lg font-bold text-white">Aide & Support</h2>
         </div>
         
-        <!-- 🎵 CARTE AUDIO GUIDE -->
         <div id="audio-guide-support" class="audio-guide-card">
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center shrink-0">
@@ -542,7 +540,7 @@ body::before {
                     <option value="question">❓ Question générale</option>
                     <option value="suggestion">💡 Suggestion</option>
                     <option value="album">📁 Problème avec mon album</option>
-                    <option value="other">📝 Autre</option>
+                    <option value="other"> Autre</option>
                 </select>
             </div>
             <div>
@@ -614,7 +612,7 @@ body::before {
                     <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy1-icon"></i>
                 </button>
                 <div id="privacy1" class="accordion-content">
-                    <p class="text-xs text-zinc-400 mt-3 leading-relaxed">Nous collectons uniquement les données nécessaires : email, vidéos uploadées, messages de support.</p>
+                    <p class="text-xs text-zinc-400 mt-3 leading-relaxed">Nous collectons uniquement les données nécessaires.</p>
                 </div>
             </div>
             <div class="bg-zinc-900/90 rounded-xl p-4 border border-zinc-800">
@@ -628,7 +626,7 @@ body::before {
                     <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy2-icon"></i>
                 </button>
                 <div id="privacy2" class="accordion-content">
-                    <p class="text-xs text-zinc-400 mt-3 leading-relaxed">Vos données sont protégées par Firebase et Backblaze B2 avec chiffrement de bout en bout.</p>
+                    <p class="text-xs text-zinc-400 mt-3 leading-relaxed">Vos données sont protégées par Firebase et Backblaze B2.</p>
                 </div>
             </div>
             <div class="bg-zinc-900/90 rounded-xl p-4 border border-zinc-800">
@@ -642,7 +640,7 @@ body::before {
                     <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy3-icon"></i>
                 </button>
                 <div id="privacy3" class="accordion-content">
-                    <p class="text-xs text-zinc-400 mt-3 leading-relaxed">Nous ne vendons ni ne partageons vos données personnelles avec des tiers.</p>
+                    <p class="text-xs text-zinc-400 mt-3 leading-relaxed">Nous ne vendons ni ne partageons vos données personnelles.</p>
                 </div>
             </div>
             <div class="bg-zinc-900/90 rounded-xl p-4 border border-zinc-800">
@@ -759,7 +757,7 @@ const AudioManager = {
     
     playWelcomeGuide() {
         if (this.isMuted) {
-            alert('🔇 Le son est désactivé. Cliquez sur l\'icône haut-parleur en haut pour l\'activer.');
+            alert(' Le son est désactivé.');
             return;
         }
         
@@ -778,7 +776,7 @@ const AudioManager = {
                     if (card) card.classList.add('playing');
                 }).catch(err => {
                     console.error('❌ Erreur lecture audio:', err);
-                    alert('❌ Impossible de lire l\'audio. Vérifiez votre connexion internet.');
+                    alert('❌ Impossible de lire l\'audio.');
                 });
             }
         }
@@ -876,8 +874,18 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => {}).catch((e) => {});
-db.settings({ cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED, experimentalForceLongPolling: true });
+
+// ✅ Persistence locale pour APK
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    .then(() => console.log('✅ Persistence Firebase activée'))
+    .catch(e => console.error('❌ Erreur persistence:', e));
+
+// ✅ Settings Firestore pour WebView
+db.settings({
+    cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
+    experimentalForceLongPolling: true,
+    useFetchStreams: false
+});
 
 // ============================================
 // ✅ VARIABLES GLOBALES
@@ -924,7 +932,7 @@ function formatDuration(seconds) {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
-// ✅ DÉTECTION WEBVIEW (pour Google Sign-In uniquement)
+// ✅ DÉTECTION WEBVIEW (pour Google Sign-In)
 function isWebView() {
     const ua = navigator.userAgent.toLowerCase();
     return (ua.includes('wv') || ua.includes('webview') || ua.includes('median') || ua.includes('capacitor') || (ua.includes('android') && !ua.includes('chrome')));
@@ -957,59 +965,75 @@ auth.onAuthStateChanged(async (user) => {
 async function handleGoogleSignIn() {
     try {
         const provider = new firebase.auth.GoogleAuthProvider();
+        
         if (isWebView()) {
-            console.log('📱 Mode APK → signInWithRedirect');
+            console.log('📱 Mode WebView → signInWithRedirect');
             await auth.signInWithRedirect(provider);
         } else {
             console.log('🌐 Mode Web → signInWithPopup');
             await auth.signInWithPopup(provider);
         }
-        showTab('home');
+        
     } catch(e) {
-        if (e.code === 'auth/popup-blocked') {
-            try { await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); } catch (e2) { showAuthError(`❌ ${e2.message}`); }
-        } else { showAuthError(`❌ ${e.message}`); }
+        console.error('❌ Erreur Google Sign-In:', e);
+        if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user') {
+            await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());
+        } else {
+            alert('❌ Erreur: ' + e.message);
+        }
     }
 }
-auth.getRedirectResult().then((result) => { 
-    if (result && result.user) {
-        localStorage.setItem('firebaseUser', JSON.stringify({
-            uid: result.user.uid, email: result.user.email
-        }));
-        showTab('home');
-        AudioManager.playSuccessSound();
-    }
-}).catch((error) => {});
+
+auth.getRedirectResult()
+    .then((result) => {
+        if (result && result.user) {
+            console.log('✅ Connexion réussie via redirect');
+            localStorage.setItem('firebaseUser', JSON.stringify({
+                uid: result.user.uid,
+                email: result.user.email
+            }));
+            showTab('home');
+            AudioManager.playSuccessSound();
+        }
+    })
+    .catch((error) => {
+        console.error('❌ Erreur redirect:', error);
+    });
 
 async function handleLogin() {
     const email = safeGetElement('loginEmail').value.trim();
     const pwd = safeGetElement('loginPassword').value;
-    if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
-    if (pwd.length < 6) { showAuthError("Mot de passe min 6 caractères"); return; }
-    try { await auth.signInWithEmailAndPassword(email, pwd); showTab('home'); AudioManager.playSuccessSound(); } catch(e) { showAuthError(`❌ ${e.message}`); AudioManager.playErrorSound(); }
+    if (!email || !email.includes('@')) { alert("Email invalide"); return; }
+    if (pwd.length < 6) { alert("Mot de passe min 6 caractères"); return; }
+    try { 
+        await auth.signInWithEmailAndPassword(email, pwd); 
+        showTab('home');
+        AudioManager.playSuccessSound();
+    } catch(e) { 
+        alert('❌ ' + e.message);
+        AudioManager.playErrorSound();
+    }
 }
 async function handleSignup() {
     const email = safeGetElement('loginEmail').value.trim();
     const pwd = safeGetElement('loginPassword').value;
-    if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
-    if (pwd.length < 6) { showAuthError("Mot de passe min 6 caractères"); return; }
-    try { await auth.createUserWithEmailAndPassword(email, pwd); showTab('home'); AudioManager.playSuccessSound(); } catch(e) { showAuthError(`❌ ${e.message}`); AudioManager.playErrorSound(); }
+    if (!email || !email.includes('@')) { alert("Email invalide"); return; }
+    if (pwd.length < 6) { alert("Mot de passe min 6 caractères"); return; }
+    try { 
+        await auth.createUserWithEmailAndPassword(email, pwd); 
+        showTab('home');
+        AudioManager.playSuccessSound();
+    } catch(e) { 
+        alert('❌ ' + e.message);
+        AudioManager.playErrorSound();
+    }
 }
 function handleLogout() { auth.signOut(); showTab('profile'); }
 async function resetPassword() {
     const email = safeGetElement('loginEmail').value.trim();
-    if (!email || !email.includes('@')) { showAuthError("Saisissez votre email"); return; }
+    if (!email || !email.includes('@')) { alert("Saisissez votre email"); return; }
     if (!confirm(`Envoyer un email à ${email} ?`)) return;
-    try { await auth.sendPasswordResetEmail(email); alert(`✅ Email envoyé !`); } catch(e) { showAuthError(`❌ ${e.message}`); }
-}
-function showAuthError(msg) {
-    let errorDiv = safeGetElement('auth-error');
-    if (!errorDiv) return;
-    if (!msg) { errorDiv.classList.add('hidden'); return; }
-    errorDiv.classList.remove('hidden');
-    errorDiv.innerText = msg;
-    errorDiv.style.background = 'rgba(239,68,68,0.2)';
-    errorDiv.style.color = '#ef4444';
+    try { await auth.sendPasswordResetEmail(email); alert('✅ Email envoyé !'); } catch(e) { alert('❌ ' + e.message); }
 }
 
 // ============================================
@@ -1085,11 +1109,6 @@ function updateProfileUI() {
             safeSetText('my-album-title', userAlbum.imamName || 'Mon Album');
             safeSetText('my-album-imam', userAlbum.imamName || '');
             safeSetText('my-album-location', `${userAlbum.city || ''}, ${userAlbum.country || ''}`);
-            const pendingDate = safeGetElement('pending-submission-date');
-            if (pendingDate && userAlbum.createdAt) {
-                const date = userAlbum.createdAt.toDate ? userAlbum.createdAt.toDate() : new Date(userAlbum.createdAt);
-                pendingDate.innerText = date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
-            }
         } else if (userAlbum.status === 'approved') {
             if (myalbumEmpty) myalbumEmpty.classList.add('hidden');
             if (myalbumContent) myalbumContent.classList.remove('hidden');
@@ -1137,7 +1156,7 @@ function filterByType(typeId) { selectedTypeFilter = typeId; renderTypeChips(); 
 function filterByAlbum(albumId) { selectedAlbumFilter = albumId; renderAlbumChips(); renderVideoGrid(); }
 function renderTypeChips() {
     const container = safeGetElement('type-chips'); if (!container) return;
-    const types = [{ id: null, name: '🔥 Tout' }, { id: 'preche', name: '📢 Prêche' }, { id: 'tafsir', name: '📖 Tafsir' }, { id: 'hadith', name: '📜 Hadith' }, { id: 'coran', name: '🕌 Coran' }];
+    const types = [{ id: null, name: '🔥 Tout' }, { id: 'preche', name: '📢 Prêche' }, { id: 'tafsir', name: '📖 Tafsir' }, { id: 'hadith', name: '📜 Hadith' }, { id: 'coran', name: ' Coran' }];
     container.innerHTML = types.map(t => `<button onclick="filterByType(${t.id ? `'${t.id}'` : 'null'})" class="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap ${selectedTypeFilter === t.id ? 'text-white' : 'bg-zinc-800 text-zinc-400'}" ${selectedTypeFilter === t.id ? 'style="background:#ff5722"' : ''}>${t.name}</button>`).join('');
 }
 function renderAlbumChips() {
@@ -1293,8 +1312,7 @@ function simulateDownloadProgress(downloadId) {
     }, 500);
 }
 
-// ✅ MÉTHODE 2 QUI FONCTIONNE : fetch() + blob() + download
-// Cette méthode fonctionne partout : Median, Capacitor, navigateur web
+// ✅ TÉLÉCHARGEMENT : fetch() + blob() (fonctionne partout)
 async function executeRealDownload(download) {
     const fileName = `${download.title.replace(/[^a-z0-9]/gi, '_')}.mp4`;
     const fileUrl = download.url;
@@ -1302,44 +1320,35 @@ async function executeRealDownload(download) {
     console.log('📥 Démarrage téléchargement:', fileName);
     
     try {
-        // Étape 1 : Télécharger la vidéo en mémoire via fetch
         const response = await fetch(fileUrl);
         
         if (!response.ok) {
             throw new Error(`Erreur HTTP ${response.status}`);
         }
         
-        // Étape 2 : Convertir en Blob
         const blob = await response.blob();
         console.log('✅ Blob créé:', (blob.size / 1024 / 1024).toFixed(2), 'Mo');
         
-        // Étape 3 : Créer une URL locale pour le blob
         const blobUrl = URL.createObjectURL(blob);
         
-        // Étape 4 : Créer le lien de téléchargement
         const link = document.createElement('a');
         link.href = blobUrl;
         link.download = fileName;
         link.style.display = 'none';
         document.body.appendChild(link);
-        
-        // Étape 5 : Déclencher le téléchargement
         link.click();
         
-        // Étape 6 : Nettoyer
         setTimeout(() => {
             document.body.removeChild(link);
             URL.revokeObjectURL(blobUrl);
         }, 1000);
         
-        // Étape 7 : Marquer comme terminé
         completeDownload(download.id);
-        
         console.log('✅ Téléchargement déclenché !');
         
     } catch (error) {
-        console.error('❌ Erreur téléchargement:', error);
-        alert('❌ Erreur lors du téléchargement : ' + error.message);
+        console.error(' Erreur téléchargement:', error);
+        alert('❌ Erreur : ' + error.message);
         
         const index = activeDownloads.findIndex(d => d.id === download.id);
         if (index !== -1) {
@@ -1463,7 +1472,7 @@ function handleFileSelected(input) {
         console.log('✅ Fichier prêt:', file.name);
         AudioManager.playNotificationSound();
     } catch (error) {
-        alert('❌ Erreur : ' + error.message);
+        alert(' Erreur : ' + error.message);
         input.value = '';
         AudioManager.playErrorSound();
     }
@@ -1840,7 +1849,7 @@ const AZKAR_DATA = [
     { category: '💧 Ablutions & Prière', color: 'cyan', duas: [
         { title: 'Au nom d\'Allah', arabic: 'بِسْمِ اللَّهِ', phonetic: 'Bismillâh.', translation: 'Au nom d\'Allah.' },
         { title: 'Invocation après les ablutions', arabic: 'أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ. اللَّهُمَّ اجْعَلْنِي مِنَ التَّوَّابِينَ، وَاجْعَلْنِي مِنَ الْمُتَطَهِّرِينَ', phonetic: 'Ashhadu an lâ ilâha illâ-llâhu wahdahu lâ sharîka lahu, wa ashhadu anna Muhammadan \'abduhu wa rasûluhu. Allâhumma-j\'alnî mina-t-tawwâbîna wa-j\'alnî mina-l-mutatahhirîn.', translation: 'Je témoigne qu\'il n\'y a de divinité digne d\'adoration qu\'Allah, l\'Unique, sans associé, et je témoigne que Muhammad est Son serviteur et Messager. Ô Allah, place-moi parmi ceux qui se repentent et parmi ceux qui se purifient.' },
-        { title: 'Invocation pour la lumière', arabic: 'اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا، وَفِي بَصَرِي نُورًا، وَفِي سَمْعِي نُورًا، وَعَنْ يَمِينِي نُورًا، وَعَنْ شِمَالِي نُورًا، وَمِنْ فَوْقِي نُورًا، وَمِنْ تَحْتِي نُورًا، وَأَمَامِي نُورًا، وَخَلْفِي نُورًا، وَاجْعَلْ لِي نُورًا', phonetic: 'Allâhumma-j\'al fî qalbî nûran, wa fî baṣarî nûran, wa fî sam\'î nûran, wa \'an yamînî nûran, wa \'an shimâlî nûran, wa min fawqî nûran, wa min taḥtī nûran, wa amâmî nûran, wa khalfî nûran, waj\'al lî nûran.', translation: 'Ô Allah, mets de la lumière dans mon cœur, dans ma vue, dans mon ouïe, à ma droite, à ma gauche, au-dessus de moi, au-dessous de moi, devant moi, derrière moi, et accorde-moi une lumière.' },
+        { title: 'Invocation pour la lumière', arabic: 'اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا، وَفِي بَصَرِي نُورًا، وَفِي سَمْعِي نُورًا، وَعَنْ يَمِينِي نُورًا، وَعَنْ شِمَالِي نُورًا، وَمِنْ فَوْقِي نُورًا، وَمِنْ تَحْتِي نُورًا، وَأَمَامِي نُورًا، وَخَلْفِي نُورًا، وَاجْعَلْ لِي نُورًا', phonetic: 'Allâhumma-j\'al fî qalbî nûran, wa fî baarî nûran, wa fî sam\'î nûran, wa \'an yamînî nûran, wa \'an shimâlî nûran, wa min fawqî nûran, wa min taḥtī nûran, wa amâmî nûran, wa khalfî nûran, waj\'al lî nûran.', translation: 'Ô Allah, mets de la lumière dans mon cœur, dans ma vue, dans mon ouïe, à ma droite, à ma gauche, au-dessus de moi, au-dessous de moi, devant moi, derrière moi, et accorde-moi une lumière.' },
         { title: 'Invocation d\'ouverture de la prière (Istiftah)', arabic: 'اللَّهُمَّ بَاعِدْ بَيْنِي وَبَيْنَ خَطَايَايَ كَمَا بَاعَدْتَ بَيْنَ الْمَشْرِقِ وَالْمَغْرِبِ، اللَّهُمَّ نَقِّنِي مِنْ خَطَايَايَ كَمَا يُنَقَّى الثَّوْبُ الْأَبْيَضُ مِنَ الدَّنَسِ، اللَّهُمَّ اغْسِلْنِي مِنْ خَطَايَايَ بِالْثَّلْجِ وَالْمَاءِ وَالْبَرَدِ', phonetic: 'Allâhumma bâ\'id baynî wa bayna khatâyâya kamâ bâ\'adta bayna-l-mashriqi wa-l-maghrib. Allâhumma naqqinî min khatâyâya kamâ yunaqqa-th-thawbu-l-abyadu mina-d-danas. Allâhumma-ghsilnî min khatâyâya bi-th-thalji wa-l-mâ\'i wa-l-barad.', translation: 'Ô Allah, éloigne-moi de mes péchés comme Tu as éloigné l\'Orient de l\'Occident. Ô Allah, purifie-moi de mes fautes comme on nettoie le vêtement blanc de la saleté. Ô Allah, lave-moi de mes péchés avec de la neige, de l\'eau et de la grêle.' },
         { title: 'Inclinaison (Rukoo\')', arabic: 'سُبْحَانَ رَبِّيَ الْعَظِيمِ', phonetic: 'Subhâna Rabbiya-l-\'Adhîm.', translation: 'Gloire à mon Seigneur l\'Immense.' },
         { title: 'Se redresser de l\'inclinaison', arabic: 'سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ • رَبَّنَا وَلَكَ الْحَمْدُ حَمْدًا كَثِيرًا طَيِّبًا مُبَارَكًا فِيهِ', phonetic: 'Sami\'a-llâhu liman hamidah. Rabbanâ wa laka-l-hamd, hamdan kathîran tayyiban mubârakan fîh.', translation: 'Allah entend celui qui Le loue. Ô notre Seigneur, à Toi la louange, une louange abondante, pure et bénie.' },
@@ -1909,7 +1918,7 @@ function toggleAccordion(id) {
 }
 
 // ============================================
-// 🔄 NAVIGATION
+//  NAVIGATION
 // ============================================
 function showTab(tab) {
     ['home','downloads','azkar','profile','create','myalbum','support','privacy'].forEach(t => {
@@ -2152,7 +2161,7 @@ function getCurrentTab() {
 }
 
 // ============================================
-// 🚀 DÉMARRAGE
+//  DÉMARRAGE
 // ============================================
 (async function initApp() {
     AudioManager.init();
