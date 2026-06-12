@@ -69,35 +69,6 @@ body::before {
     border: 2px solid rgba(245,158,11,0.4);
     animation: pulse-border 2.5s infinite;
 }
-
-/* 🎵 STYLES POUR LE SYSTÈME AUDIO */
-.audio-player-float {
-    position: fixed;
-    bottom: 80px;
-    right: 10px;
-    z-index: 100;
-    background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%);
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 15px rgba(255, 87, 34, 0.5);
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-.audio-player-float:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(255, 87, 34, 0.7);
-}
-.audio-player-float.playing {
-    animation: audio-pulse 1.5s infinite;
-}
-@keyframes audio-pulse {
-    0%, 100% { box-shadow: 0 4px 15px rgba(255, 87, 34, 0.5); }
-    50% { box-shadow: 0 4px 25px rgba(255, 87, 34, 0.9); }
-}
 .audio-guide-card {
     background: linear-gradient(135deg, rgba(255,87,34,0.15) 0%, rgba(255,152,0,0.08) 100%);
     border: 1px solid rgba(255,87,34,0.3);
@@ -139,7 +110,6 @@ body::before {
         </div>
     </div>
     <div class="flex items-center gap-2">
-        <!-- 🎵 BOUTON MUTE/UNMUTE -->
         <button onclick="AudioManager.toggleMute()" id="btn-mute" class="w-8 h-8 rounded-full bg-zinc-800/80 flex items-center justify-center" title="Activer/Désactiver le son">
             <i class="fa-solid fa-volume-high text-xs" style="color:#ff5722" id="mute-icon"></i>
         </button>
@@ -152,26 +122,8 @@ body::before {
 
 <div class="flex-1 overflow-y-auto no-scrollbar pb-20" id="main-content">
 
+    <!-- ✅ PAGE ACCUEIL - SANS AUDIO -->
     <div id="tab-home" class="p-4 space-y-4">
-        <!-- 🎵 CARTE GUIDE AUDIO -->
-        <div id="audio-guide-welcome" class="audio-guide-card">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center shrink-0">
-                    <i class="fa-solid fa-headphones text-white text-lg"></i>
-                </div>
-                <div class="flex-1">
-                    <h3 class="text-sm font-bold text-white">🎧 Bienvenue dans Mimbar</h3>
-                    <p class="text-[10px] text-zinc-400">Écoutez le guide pour découvrir l'application</p>
-                </div>
-                <button onclick="AudioManager.playWelcomeGuide()" id="btn-play-welcome" class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center hover:bg-orange-600 transition">
-                    <i class="fa-solid fa-play text-white text-sm" id="welcome-play-icon"></i>
-                </button>
-            </div>
-            <div class="audio-progress-bar">
-                <div class="audio-progress-fill" id="welcome-progress"></div>
-            </div>
-        </div>
-
         <div class="relative">
             <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher Imam, titre, ville..." class="w-full bg-zinc-900/90 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
             <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
@@ -518,14 +470,6 @@ body::before {
                     <i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
                 </button>
                 <h3 class="text-xs font-bold text-zinc-500 uppercase mb-3 mt-6">Paramètres</h3>
-                <!-- 🎵 NOUVEAU : BOUTON GUIDE AUDIO -->
-                <button onclick="AudioManager.playFeaturesGuide()" class="menu-item w-full py-3 px-4 bg-zinc-900/90 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
-                    <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center">
-                        <i class="fa-solid fa-headphones text-pink-400"></i>
-                    </div>
-                    <span class="flex-1 text-left">🎧 Guide audio de l'app</span>
-                    <i class="fa-solid fa-chevron-right text-zinc-600 text-xs"></i>
-                </button>
                 <button onclick="showTab('support')" class="menu-item w-full py-3 px-4 bg-zinc-900/90 rounded-xl text-sm font-bold text-white flex items-center gap-3 border border-zinc-800">
                     <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
                         <i class="fa-solid fa-headset text-blue-400"></i>
@@ -558,6 +502,7 @@ body::before {
         </div>
     </div>
 
+    <!-- ✅ PAGE AIDE & SUPPORT - AVEC AUDIO -->
     <div id="tab-support" class="hidden p-4 space-y-4">
         <div class="flex items-center gap-2 mb-2">
             <button onclick="showTab('profile')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
@@ -565,6 +510,26 @@ body::before {
             </button>
             <h2 class="text-lg font-bold text-white">Aide & Support</h2>
         </div>
+        
+        <!-- 🎵 CARTE AUDIO GUIDE -->
+        <div id="audio-guide-support" class="audio-guide-card">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-headphones text-white text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-sm font-bold text-white">🎧 Guide audio de l'application</h3>
+                    <p class="text-[10px] text-zinc-400">Écoutez pour découvrir toutes les fonctionnalités</p>
+                </div>
+                <button onclick="AudioManager.playWelcomeGuide()" id="btn-play-welcome" class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center hover:bg-orange-600 transition">
+                    <i class="fa-solid fa-play text-white text-sm" id="welcome-play-icon"></i>
+                </button>
+            </div>
+            <div class="audio-progress-bar">
+                <div class="audio-progress-fill" id="welcome-progress"></div>
+            </div>
+        </div>
+        
         <div class="info-card rounded-lg p-3 text-xs text-blue-300">
             <i class="fa-solid fa-circle-info mr-1"></i>
             Notre équipe vous répondra dans les 24-48h.
@@ -649,7 +614,7 @@ body::before {
                     <i class="fa-solid fa-chevron-down text-zinc-500 text-xs transition" id="privacy1-icon"></i>
                 </button>
                 <div id="privacy1" class="accordion-content">
-                    <p class="text-xs text-zinc-400 mt-3 leading-relaxed">Nous collectons uniquement les données nécessaires : email, vidéos uploadées, messages de support. Aucune donnée sensible n'est collectée.</p>
+                    <p class="text-xs text-zinc-400 mt-3 leading-relaxed">Nous collectons uniquement les données nécessaires : email, vidéos uploadées, messages de support.</p>
                 </div>
             </div>
             <div class="bg-zinc-900/90 rounded-xl p-4 border border-zinc-800">
@@ -741,58 +706,44 @@ body::before {
     </div>
 </div>
 
-<!-- 🎵 BOUTON FLOTTANT AUDIO -->
-<div id="audio-float-btn" class="audio-player-float hidden" onclick="AudioManager.togglePlayPause()" title="Audio en cours">
-    <i class="fa-solid fa-music text-white" id="audio-float-icon"></i>
-</div>
-
 </div>
 
 <script>
 // ============================================
-// 🎵 GESTIONNAIRE AUDIO COMPLET
+// 🎵 GESTIONNAIRE AUDIO
 // ============================================
 const AudioManager = {
-    // URL de l'audio principal depuis GitHub
     welcomeAudioUrl: 'https://raw.githubusercontent.com/zakoyabdoulhafizou959-jpg/mimbar/main/ElevenLabs_2026-06-11T15_43_46_Roger%20-%20Laid-Back,%20Casual,%20Resonant_pre_sp82_s66_sb75_se0_b_m2.mp3',
-    
-    // Éléments audio
     welcomeAudio: null,
-    featuresAudio: null,
     currentAudio: null,
     isMuted: false,
     isPlaying: false,
     
-    // Initialisation
     init() {
-        // Charger la préférence de mute
         this.isMuted = localStorage.getItem('audioMuted') === 'true';
         this.updateMuteIcon();
         
-        // Précharger l'audio de bienvenue
         this.welcomeAudio = new Audio(this.welcomeAudioUrl);
         this.welcomeAudio.preload = 'auto';
         
-        // Événements pour l'audio de bienvenue
         this.welcomeAudio.addEventListener('play', () => {
             this.isPlaying = true;
             this.currentAudio = this.welcomeAudio;
-            this.updateUI();
         });
         
         this.welcomeAudio.addEventListener('pause', () => {
             this.isPlaying = false;
-            this.updateUI();
         });
         
         this.welcomeAudio.addEventListener('ended', () => {
             this.isPlaying = false;
             this.currentAudio = null;
-            this.updateUI();
             const progressBar = document.getElementById('welcome-progress');
             if (progressBar) progressBar.style.width = '0%';
             const icon = document.getElementById('welcome-play-icon');
             if (icon) icon.className = 'fa-solid fa-play text-white text-sm';
+            const card = document.getElementById('audio-guide-support');
+            if (card) card.classList.remove('playing');
         });
         
         this.welcomeAudio.addEventListener('timeupdate', () => {
@@ -806,7 +757,6 @@ const AudioManager = {
         console.log('🎵 AudioManager initialisé');
     },
     
-    // Jouer l'audio de bienvenue
     playWelcomeGuide() {
         if (this.isMuted) {
             alert('🔇 Le son est désactivé. Cliquez sur l\'icône haut-parleur en haut pour l\'activer.');
@@ -814,15 +764,13 @@ const AudioManager = {
         }
         
         const icon = document.getElementById('welcome-play-icon');
-        const card = document.getElementById('audio-guide-welcome');
+        const card = document.getElementById('audio-guide-support');
         
         if (this.welcomeAudio && !this.welcomeAudio.paused) {
-            // Pause
             this.welcomeAudio.pause();
             if (icon) icon.className = 'fa-solid fa-play text-white text-sm';
             if (card) card.classList.remove('playing');
         } else {
-            // Play
             if (this.welcomeAudio) {
                 this.welcomeAudio.currentTime = 0;
                 this.welcomeAudio.play().then(() => {
@@ -836,210 +784,86 @@ const AudioManager = {
         }
     },
     
-    // Jouer le guide des fonctionnalités
-    playFeaturesGuide() {
-        if (this.isMuted) {
-            alert('🔇 Le son est désactivé.');
-            return;
-        }
-        
-        // Utiliser le même audio de bienvenue pour présenter l'app
-        if (this.welcomeAudio) {
-            this.welcomeAudio.currentTime = 0;
-            this.welcomeAudio.play().then(() => {
-                this.currentAudio = this.welcomeAudio;
-                this.showFloatingButton();
-                AudioManager.showNotification('🎧 Guide audio', 'Écoutez la présentation de l\'application');
-            }).catch(err => {
-                console.error('❌ Erreur:', err);
-            });
-        }
-    },
-    
-    // Jouer un son de notification court (synthétique)
     playNotificationSound() {
         if (this.isMuted) return;
-        
         try {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.value = 800;
-            oscillator.type = 'sine';
-            
+            oscillator.connect(gainNode); gainNode.connect(audioContext.destination);
+            oscillator.frequency.value = 800; oscillator.type = 'sine';
             gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-            
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.5);
-        } catch (e) {
-            console.error('❌ Erreur son notification:', e);
-        }
+        } catch (e) {}
     },
     
-    // Jouer un son de succès
     playSuccessSound() {
         if (this.isMuted) return;
-        
         try {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Premier son (note haute)
             const osc1 = audioContext.createOscillator();
             const gain1 = audioContext.createGain();
-            osc1.connect(gain1);
-            gain1.connect(audioContext.destination);
-            osc1.frequency.value = 523.25; // Do
-            osc1.type = 'sine';
+            osc1.connect(gain1); gain1.connect(audioContext.destination);
+            osc1.frequency.value = 523.25; osc1.type = 'sine';
             gain1.gain.setValueAtTime(0.2, audioContext.currentTime);
             gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-            osc1.start(audioContext.currentTime);
-            osc1.stop(audioContext.currentTime + 0.2);
+            osc1.start(audioContext.currentTime); osc1.stop(audioContext.currentTime + 0.2);
             
-            // Deuxième son (note plus haute)
             const osc2 = audioContext.createOscillator();
             const gain2 = audioContext.createGain();
-            osc2.connect(gain2);
-            gain2.connect(audioContext.destination);
-            osc2.frequency.value = 659.25; // Mi
-            osc2.type = 'sine';
+            osc2.connect(gain2); gain2.connect(audioContext.destination);
+            osc2.frequency.value = 659.25; osc2.type = 'sine';
             gain2.gain.setValueAtTime(0.2, audioContext.currentTime + 0.15);
             gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-            osc2.start(audioContext.currentTime + 0.15);
-            osc2.stop(audioContext.currentTime + 0.4);
+            osc2.start(audioContext.currentTime + 0.15); osc2.stop(audioContext.currentTime + 0.4);
             
-            // Troisième son (note encore plus haute)
             const osc3 = audioContext.createOscillator();
             const gain3 = audioContext.createGain();
-            osc3.connect(gain3);
-            gain3.connect(audioContext.destination);
-            osc3.frequency.value = 783.99; // Sol
-            osc3.type = 'sine';
+            osc3.connect(gain3); gain3.connect(audioContext.destination);
+            osc3.frequency.value = 783.99; osc3.type = 'sine';
             gain3.gain.setValueAtTime(0.2, audioContext.currentTime + 0.3);
             gain3.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
-            osc3.start(audioContext.currentTime + 0.3);
-            osc3.stop(audioContext.currentTime + 0.6);
-        } catch (e) {
-            console.error('❌ Erreur son succès:', e);
-        }
+            osc3.start(audioContext.currentTime + 0.3); osc3.stop(audioContext.currentTime + 0.6);
+        } catch (e) {}
     },
     
-    // Jouer un son d'erreur
     playErrorSound() {
         if (this.isMuted) return;
-        
         try {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.value = 200;
-            oscillator.type = 'sawtooth';
-            
+            oscillator.connect(gainNode); gainNode.connect(audioContext.destination);
+            oscillator.frequency.value = 200; oscillator.type = 'sawtooth';
             gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-            
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.3);
         } catch (e) {}
     },
     
-    // Toggle mute
     toggleMute() {
         this.isMuted = !this.isMuted;
         localStorage.setItem('audioMuted', this.isMuted);
         this.updateMuteIcon();
-        
         if (this.isMuted && this.currentAudio && !this.currentAudio.paused) {
             this.currentAudio.pause();
         }
-        
-        AudioManager.showNotification(
-            this.isMuted ? '🔇 Son désactivé' : '🔊 Son activé',
-            this.isMuted ? 'Les sons sont maintenant coupés' : 'Les sons sont maintenant activés'
-        );
     },
     
-    // Update mute icon
     updateMuteIcon() {
         const icon = document.getElementById('mute-icon');
         if (icon) {
             icon.className = this.isMuted ? 'fa-solid fa-volume-xmark text-xs text-zinc-500' : 'fa-solid fa-volume-high text-xs';
             if (!this.isMuted) icon.style.color = '#ff5722';
         }
-    },
-    
-    // Toggle play/pause
-    togglePlayPause() {
-        if (this.currentAudio) {
-            if (this.currentAudio.paused) {
-                this.currentAudio.play();
-            } else {
-                this.currentAudio.pause();
-            }
-        }
-    },
-    
-    // Update UI
-    updateUI() {
-        const floatBtn = document.getElementById('audio-float-btn');
-        const floatIcon = document.getElementById('audio-float-icon');
-        
-        if (this.isPlaying && this.currentAudio === this.welcomeAudio) {
-            // Ne pas montrer le bouton flottant pour l'audio de bienvenue (il a sa propre carte)
-        } else if (this.isPlaying) {
-            if (floatBtn) floatBtn.classList.remove('hidden');
-            if (floatBtn) floatBtn.classList.add('playing');
-            if (floatIcon) floatIcon.className = 'fa-solid fa-pause text-white';
-        } else {
-            if (floatBtn) floatBtn.classList.add('hidden');
-            if (floatBtn) floatBtn.classList.remove('playing');
-        }
-    },
-    
-    // Show floating button
-    showFloatingButton() {
-        const floatBtn = document.getElementById('audio-float-btn');
-        if (floatBtn) {
-            floatBtn.classList.remove('hidden');
-            floatBtn.classList.add('playing');
-        }
-    },
-    
-    // Notification visuelle
-    showNotification(title, message) {
-        // Créer une notification visuelle temporaire
-        const notif = document.createElement('div');
-        notif.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-zinc-900 border border-orange-500/50 rounded-xl px-4 py-3 shadow-2xl z-[9999] fade-in';
-        notif.style.minWidth = '250px';
-        notif.innerHTML = `
-            <div class="flex items-center gap-3">
-                <i class="fa-solid fa-bell text-orange-400"></i>
-                <div>
-                    <p class="text-xs font-bold text-white">${title}</p>
-                    <p class="text-[10px] text-zinc-400">${message}</p>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(notif);
-        
-        setTimeout(() => {
-            notif.style.opacity = '0';
-            notif.style.transition = 'opacity 0.3s';
-            setTimeout(() => notif.remove(), 300);
-        }, 3000);
     }
 };
 
 // ============================================
-// 🔥 FIREBASE INIT AVEC PERSISTENCE
+// 🔥 FIREBASE INIT
 // ============================================
 const firebaseConfig = {
     apiKey: "AIzaSyC3ybM8gMQZ-IjVLLXqs0MZLPEzqGmyREA",
@@ -1049,24 +873,11 @@ const firebaseConfig = {
     messagingSenderId: "287190157826",
     appId: "1:287190157826:web:c1fd927c6cf0ea0ecdb51b"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-
-// ✅ PERSISTANCE LOCALE (CRUCIAL POUR APK CAPACITOR)
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-    .then(() => {
-        console.log('✅ Persistence Firebase activée');
-    })
-    .catch((error) => {
-        console.error('❌ Erreur persistence:', error);
-    });
-
-db.settings({ 
-    cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED, 
-    experimentalForceLongPolling: true 
-});
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => {}).catch((e) => {});
+db.settings({ cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED, experimentalForceLongPolling: true });
 
 // ============================================
 // ✅ VARIABLES GLOBALES
@@ -1085,13 +896,12 @@ let currentPlayingVideo = null, activeDownloads = [], completedDownloads = [], d
 let longPressTimer = null, isLongPress = false;
 
 // ============================================
-// 🔧 FONCTIONS UTILITAIRES SÉCURISÉES
+// 🔧 FONCTIONS UTILITAIRES
 // ============================================
 function safeGetElement(id) { return document.getElementById(id); }
 function safeAddClass(id, className) { const el = safeGetElement(id); if (el) el.classList.add(className); }
 function safeRemoveClass(id, className) { const el = safeGetElement(id); if (el) el.classList.remove(className); }
 function safeSetText(id, text) { const el = safeGetElement(id); if (el) el.innerText = text; }
-function safeSetHTML(id, html) { const el = safeGetElement(id); if (el) el.innerHTML = html; }
 
 function getCdnUrl(originalUrl) {
     if (!originalUrl) return '';
@@ -1114,17 +924,10 @@ function formatDuration(seconds) {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
-// ✅ DÉTECTION CAPACITOR OU WEBVIEW
+// ✅ DÉTECTION WEBVIEW (pour Google Sign-In uniquement)
 function isWebView() {
     const ua = navigator.userAgent.toLowerCase();
-    return (
-        ua.includes('wv') || 
-        ua.includes('webview') || 
-        ua.includes('median') ||
-        ua.includes('capacitor') ||
-        (ua.includes('android') && !ua.includes('chrome')) ||
-        (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())
-    );
+    return (ua.includes('wv') || ua.includes('webview') || ua.includes('median') || ua.includes('capacitor') || (ua.includes('android') && !ua.includes('chrome')));
 }
 
 // ============================================
@@ -1136,19 +939,13 @@ auth.onAuthStateChanged(async (user) => {
         safeSetText('header-user-status', user.email?.split('@')[0] || 'Connecté');
         try {
             const token = await user.getIdToken();
-            try { 
-                localStorage.setItem('firebaseToken', token); 
-                localStorage.setItem('firebaseUser', JSON.stringify({ uid: user.uid, email: user.email })); 
-            } catch (e) {}
+            try { localStorage.setItem('firebaseToken', token); localStorage.setItem('firebaseUser', JSON.stringify({ uid: user.uid, email: user.email })); } catch (e) {}
             await loadUserData();
         } catch (error) { currentUser = null; }
     } else {
         safeSetText('header-user-status', 'Déconnecté');
         userAlbum = null;
-        try { 
-            localStorage.removeItem('firebaseToken'); 
-            localStorage.removeItem('firebaseUser'); 
-        } catch (e) {}
+        try { localStorage.removeItem('firebaseToken'); localStorage.removeItem('firebaseUser'); } catch (e) {}
     }
     updateProfileUI();
     await loadAllAlbums();
@@ -1157,102 +954,53 @@ auth.onAuthStateChanged(async (user) => {
     checkForInterruptedUpload();
 });
 
-// ✅ GOOGLE SIGN-IN CORRIGÉ POUR CAPACITOR
 async function handleGoogleSignIn() {
     try {
         const provider = new firebase.auth.GoogleAuthProvider();
-        
-        // ✅ DANS APK : TOUJOURS utiliser signInWithRedirect
         if (isWebView()) {
-            console.log('📱 Mode APK détecté → signInWithRedirect');
+            console.log('📱 Mode APK → signInWithRedirect');
             await auth.signInWithRedirect(provider);
         } else {
             console.log('🌐 Mode Web → signInWithPopup');
             await auth.signInWithPopup(provider);
         }
-        
         showTab('home');
     } catch(e) {
-        console.error('❌ Erreur Google Sign-In:', e);
-        if (e.code === 'auth/popup-blocked' || e.code === 'auth/redirect-cancelled-by-user') {
-            try { 
-                await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); 
-            } catch (e2) { 
-                showAuthError(`❌ ${e2.message}`); 
-            }
-        } else { 
-            showAuthError(`❌ ${e.message}`); 
-        }
+        if (e.code === 'auth/popup-blocked') {
+            try { await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); } catch (e2) { showAuthError(`❌ ${e2.message}`); }
+        } else { showAuthError(`❌ ${e.message}`); }
     }
 }
-
-// ✅ RÉCUPÉRATION AU RETOUR DE GOOGLE
-auth.getRedirectResult()
-    .then((result) => {
-        if (result && result.user) {
-            console.log('✅ Connexion Google réussie via redirect');
-            localStorage.setItem('firebaseUser', JSON.stringify({
-                uid: result.user.uid,
-                email: result.user.email,
-                displayName: result.user.displayName,
-                photoURL: result.user.photoURL
-            }));
-            showTab('home');
-            AudioManager.playSuccessSound();
-            AudioManager.showNotification('✅ Connexion réussie', `Bienvenue ${result.user.email?.split('@')[0]}`);
-        } else {
-            console.log('ℹ️ Pas de résultat redirect (connexion normale)');
-        }
-    })
-    .catch((error) => {
-        console.error('❌ Erreur redirect result:', error);
-    });
+auth.getRedirectResult().then((result) => { 
+    if (result && result.user) {
+        localStorage.setItem('firebaseUser', JSON.stringify({
+            uid: result.user.uid, email: result.user.email
+        }));
+        showTab('home');
+        AudioManager.playSuccessSound();
+    }
+}).catch((error) => {});
 
 async function handleLogin() {
     const email = safeGetElement('loginEmail').value.trim();
     const pwd = safeGetElement('loginPassword').value;
     if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
     if (pwd.length < 6) { showAuthError("Mot de passe min 6 caractères"); return; }
-    try { 
-        await auth.signInWithEmailAndPassword(email, pwd); 
-        showTab('home');
-        AudioManager.playSuccessSound();
-    } catch(e) { 
-        showAuthError(`❌ ${e.message}`);
-        AudioManager.playErrorSound();
-    }
+    try { await auth.signInWithEmailAndPassword(email, pwd); showTab('home'); AudioManager.playSuccessSound(); } catch(e) { showAuthError(`❌ ${e.message}`); AudioManager.playErrorSound(); }
 }
 async function handleSignup() {
     const email = safeGetElement('loginEmail').value.trim();
     const pwd = safeGetElement('loginPassword').value;
     if (!email || !email.includes('@')) { showAuthError("Email invalide"); return; }
     if (pwd.length < 6) { showAuthError("Mot de passe min 6 caractères"); return; }
-    try { 
-        await auth.createUserWithEmailAndPassword(email, pwd); 
-        showTab('home');
-        AudioManager.playSuccessSound();
-    } catch(e) { 
-        showAuthError(`❌ ${e.message}`);
-        AudioManager.playErrorSound();
-    }
+    try { await auth.createUserWithEmailAndPassword(email, pwd); showTab('home'); AudioManager.playSuccessSound(); } catch(e) { showAuthError(`❌ ${e.message}`); AudioManager.playErrorSound(); }
 }
-function handleLogout() { 
-    auth.signOut(); 
-    showTab('profile');
-    AudioManager.playNotificationSound();
-}
+function handleLogout() { auth.signOut(); showTab('profile'); }
 async function resetPassword() {
     const email = safeGetElement('loginEmail').value.trim();
     if (!email || !email.includes('@')) { showAuthError("Saisissez votre email"); return; }
     if (!confirm(`Envoyer un email à ${email} ?`)) return;
-    try { 
-        await auth.sendPasswordResetEmail(email); 
-        alert(`✅ Email envoyé !`);
-        AudioManager.playSuccessSound();
-    } catch(e) { 
-        showAuthError(`❌ ${e.message}`);
-        AudioManager.playErrorSound();
-    }
+    try { await auth.sendPasswordResetEmail(email); alert(`✅ Email envoyé !`); } catch(e) { showAuthError(`❌ ${e.message}`); }
 }
 function showAuthError(msg) {
     let errorDiv = safeGetElement('auth-error');
@@ -1308,8 +1056,6 @@ function updateProfileUI() {
     if (!currentUser) {
         if (unauth) unauth.classList.remove('hidden');
         if (authDiv) authDiv.classList.add('hidden');
-        if (myalbumEmpty) myalbumEmpty.classList.remove('hidden');
-        if (myalbumContent) myalbumContent.classList.add('hidden');
         return;
     }
 
@@ -1344,8 +1090,6 @@ function updateProfileUI() {
                 const date = userAlbum.createdAt.toDate ? userAlbum.createdAt.toDate() : new Date(userAlbum.createdAt);
                 pendingDate.innerText = date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
             }
-            const myVideosList = safeGetElement('my-videos-list');
-            if (myVideosList) myVideosList.innerHTML = '<div class="text-center py-8"><i class="fa-solid fa-hourglass-half text-3xl text-yellow-500/50"></i><p class="text-xs text-zinc-500 mt-2">Aucune vidéo pour le moment</p></div>';
         } else if (userAlbum.status === 'approved') {
             if (myalbumEmpty) myalbumEmpty.classList.add('hidden');
             if (myalbumContent) myalbumContent.classList.remove('hidden');
@@ -1356,17 +1100,6 @@ function updateProfileUI() {
             safeSetText('my-album-imam', userAlbum.imamName || '');
             safeSetText('my-album-location', `${userAlbum.city || ''}, ${userAlbum.country || ''}`);
             renderMyVideos();
-        } else if (userAlbum.status === 'rejected') {
-            if (myalbumEmpty) myalbumEmpty.classList.add('hidden');
-            if (myalbumContent) myalbumContent.classList.remove('hidden');
-            if (pendingBanner) pendingBanner.classList.add('hidden');
-            if (uploadSection) uploadSection.style.display = 'none';
-            if (statusBadge) { statusBadge.innerText = 'REJETÉ'; statusBadge.className = 'px-2 py-0.5 rounded bg-red-500 text-white text-[9px] font-black uppercase'; }
-            safeSetText('my-album-title', userAlbum.imamName || 'Mon Album');
-            const myVideosList = safeGetElement('my-videos-list');
-            if (myVideosList) {
-                myVideosList.innerHTML = `<div class="text-center py-8 bg-red-900/20 border border-red-500/30 rounded-xl"><i class="fa-solid fa-circle-xmark text-3xl text-red-400"></i><p class="text-xs text-red-300 mt-2">Votre album a été rejeté</p><button onclick="showTab('support')" class="mt-3 px-4 py-2 rounded-lg text-xs font-bold text-white bg-red-600"><i class="fa-solid fa-headset mr-1"></i>Contacter le support</button></div>`;
-            }
         }
     }
 }
@@ -1383,15 +1116,10 @@ async function submitAlbumRequest() {
             userId: currentUser.uid, imamName, city, country, type,
             status: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        alert("✅ Demande soumise !\n\nVotre album est en attente de validation.\nVous pourrez uploader des vidéos une fois l'album approuvé.");
-        await loadUserData(); 
-        updateProfileUI();
-        showTab('myalbum');
+        alert("✅ Demande soumise !");
+        await loadUserData(); updateProfileUI(); showTab('myalbum');
         AudioManager.playSuccessSound();
-    } catch(error) { 
-        alert("❌ Erreur: " + error.message);
-        AudioManager.playErrorSound();
-    }
+    } catch(error) { alert("❌ Erreur: " + error.message); AudioManager.playErrorSound(); }
 }
 
 function downloadApp() {
@@ -1399,11 +1127,7 @@ function downloadApp() {
     link.href = APK_DOWNLOAD_URL; link.download = 'mimbar-v1.0.0.apk';
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
     localStorage.setItem('appInstalled', 'true');
-    setTimeout(() => { 
-        updateProfileUI(); 
-        sendNotification('✅ Application téléchargée', 'Merci !');
-        AudioManager.playSuccessSound();
-    }, 1000);
+    setTimeout(() => { updateProfileUI(); sendNotification('✅ Application téléchargée', 'Merci !'); }, 1000);
 }
 
 // ============================================
@@ -1476,14 +1200,14 @@ async function incrementVideoViews(videoId) {
         await db.collection('videos').doc(videoId).update({ views: firebase.firestore.FieldValue.increment(1) });
         const video = allVideos.find(v => v.id === videoId);
         if (video) video.views = (video.views || 0) + 1;
-    } catch (error) { console.error('❌ Erreur incrément vue:', error); }
+    } catch (error) {}
 }
 async function incrementVideoDownloads(videoId) {
     try {
         await db.collection('videos').doc(videoId).update({ downloads: firebase.firestore.FieldValue.increment(1) });
         const video = allVideos.find(v => v.id === videoId);
         if (video) video.downloads = (video.downloads || 0) + 1;
-    } catch (error) { console.error('❌ Erreur incrément téléchargement:', error); }
+    } catch (error) {}
 }
 
 function handleVideoClick(videoId, event) {
@@ -1569,72 +1293,53 @@ function simulateDownloadProgress(downloadId) {
     }, 500);
 }
 
-// ✅ TÉLÉCHARGEMENT OPTIMISÉ POUR CAPACITOR ET WEB
+// ✅ MÉTHODE 2 QUI FONCTIONNE : fetch() + blob() + download
+// Cette méthode fonctionne partout : Median, Capacitor, navigateur web
 async function executeRealDownload(download) {
     const fileName = `${download.title.replace(/[^a-z0-9]/gi, '_')}.mp4`;
     const fileUrl = download.url;
     
     console.log('📥 Démarrage téléchargement:', fileName);
-    console.log('📱 Mode APK/WebView:', isWebView());
     
-    // ✅ MODE APK : window.open déclenche le DownloadManager Android
-    if (isWebView()) {
-        try {
-            const newWindow = window.open(fileUrl, '_blank');
-            if (newWindow) {
-                setTimeout(() => {
-                    try { newWindow.close(); } catch(e) {}
-                }, 5000);
-                completeDownload(download.id);
-                console.log('✅ Téléchargement déclenché via window.open');
-                return;
-            }
-        } catch (e) {
-            console.error('❌ window.open échoué:', e);
-        }
-        
-        try {
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = fileUrl;
-            document.body.appendChild(iframe);
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-                completeDownload(download.id);
-            }, 8000);
-            console.log('✅ Téléchargement déclenché via iframe');
-            return;
-        } catch (e) {
-            console.error('❌ iframe échoué:', e);
-        }
-    }
-    
-    // ✅ MODE WEB : fetch + blob
     try {
+        // Étape 1 : Télécharger la vidéo en mémoire via fetch
         const response = await fetch(fileUrl);
-        if (!response.ok) throw new Error(`Erreur HTTP ${response.status}`);
         
+        if (!response.ok) {
+            throw new Error(`Erreur HTTP ${response.status}`);
+        }
+        
+        // Étape 2 : Convertir en Blob
         const blob = await response.blob();
+        console.log('✅ Blob créé:', (blob.size / 1024 / 1024).toFixed(2), 'Mo');
+        
+        // Étape 3 : Créer une URL locale pour le blob
         const blobUrl = URL.createObjectURL(blob);
         
+        // Étape 4 : Créer le lien de téléchargement
         const link = document.createElement('a');
         link.href = blobUrl;
         link.download = fileName;
         link.style.display = 'none';
         document.body.appendChild(link);
+        
+        // Étape 5 : Déclencher le téléchargement
         link.click();
         
+        // Étape 6 : Nettoyer
         setTimeout(() => {
             document.body.removeChild(link);
             URL.revokeObjectURL(blobUrl);
         }, 1000);
         
+        // Étape 7 : Marquer comme terminé
         completeDownload(download.id);
-        console.log('✅ Téléchargement terminé (mode web)');
+        
+        console.log('✅ Téléchargement déclenché !');
         
     } catch (error) {
         console.error('❌ Erreur téléchargement:', error);
-        alert('❌ Erreur : ' + error.message);
+        alert('❌ Erreur lors du téléchargement : ' + error.message);
         
         const index = activeDownloads.findIndex(d => d.id === download.id);
         if (index !== -1) {
@@ -1730,17 +1435,17 @@ function handleFileSelected(input) {
     const file = input.files[0];
     
     if (!currentUser || !userAlbum || userAlbum.status !== 'approved') { 
-        alert("⏳ Votre album doit être approuvé par l'administrateur avant de pouvoir uploader des vidéos.");
+        alert("⏳ Votre album doit être approuvé par l'administrateur.");
         input.value = ''; return; 
     }
     if (!file.type.startsWith('video/')) {
-        alert("❌ Veuillez sélectionner un fichier vidéo valide (MP4, MOV, WebM, etc.)");
+        alert("❌ Veuillez sélectionner un fichier vidéo valide");
         input.value = ''; return;
     }
     
     const MAX_SIZE = 2000 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
-        alert(`❌ Fichier trop volumineux !\n\nTaille maximale : 2000 Mo (2 Go)\nVotre fichier : ${(file.size / 1024 / 1024).toFixed(1)} Mo`);
+        alert(`❌ Fichier trop volumineux !\n\nTaille maximale : 2000 Mo\nVotre fichier : ${(file.size / 1024 / 1024).toFixed(1)} Mo`);
         input.value = ''; return;
     }
     
@@ -1755,10 +1460,9 @@ function handleFileSelected(input) {
         const titleInput = safeGetElement('videoTitle');
         if (titleInput) titleInput.value = file.name.replace(/\.[^/.]+$/, "");
         safeRemoveClass('upload-form', 'hidden');
-        console.log('✅ Fichier prêt pour l\'upload:', file.name, '| Taille:', (file.size / 1024 / 1024).toFixed(2), 'Mo');
+        console.log('✅ Fichier prêt:', file.name);
         AudioManager.playNotificationSound();
     } catch (error) {
-        console.error('❌ Erreur sélection fichier:', error);
         alert('❌ Erreur : ' + error.message);
         input.value = '';
         AudioManager.playErrorSound();
@@ -1772,36 +1476,12 @@ function cancelFileSelection() {
     safeAddClass('upload-form', 'hidden');
 }
 
-function validateFileBeforeUpload() {
-    if (!currentFileBlob) {
-        alert('❌ Aucun fichier sélectionné. Veuillez resélectionner le fichier.');
-        return false;
-    }
-    if (currentFileBlob.size === 0) {
-        alert('❌ Le fichier est vide ou corrompu.');
-        currentFileBlob = null;
-        safeAddClass('upload-form', 'hidden');
-        return false;
-    }
-    try {
-        const testSlice = currentFileBlob.slice(0, 1);
-        return true;
-    } catch (error) {
-        alert('❌ Le fichier n\'est plus accessible.');
-        currentFileBlob = null;
-        safeAddClass('upload-form', 'hidden');
-        return false;
-    }
-}
-
 async function generateThumbnailFromBlob(fileBlob) {
     return new Promise((resolve) => {
         try {
             const video = document.createElement('video');
             video.preload = 'metadata'; video.muted = true; video.playsInline = true;
-            const timeout = setTimeout(() => {
-                resolve({ thumbnail: '', duration: '00:00' });
-            }, 15000);
+            const timeout = setTimeout(() => { resolve({ thumbnail: '', duration: '00:00' }); }, 15000);
             let duration = 0;
             video.onloadedmetadata = () => { duration = video.duration || 0; video.currentTime = Math.min(5, duration * 0.1); };
             video.onseeked = () => {
@@ -1821,10 +1501,9 @@ async function generateThumbnailFromBlob(fileBlob) {
 }
 
 async function uploadVideoWithChunking() {
-    if (!validateFileBeforeUpload()) return;
-    
+    if (!currentFileBlob) { alert("❌ Aucun fichier"); return; }
     if (!currentUser || !userAlbum || userAlbum.status !== 'approved') {
-        alert("⏳ Votre album n'est pas encore validé par l'administrateur."); return;
+        alert("⏳ Album non validé."); return;
     }
     const title = safeGetElement('videoTitle').value.trim();
     const videoType = safeGetElement('videoType').value;
@@ -1872,7 +1551,7 @@ async function startChunkedUpload(fileName, fileBlob, thumbnail, duration, title
 
 async function resumeInterruptedUpload() {
     if (!interruptedUploadData) { alert('Aucune donnée'); return; }
-    if (!currentFileBlob) { alert('❌ Le fichier original n\'est plus disponible.'); cancelInterruptedUpload(); return; }
+    if (!currentFileBlob) { alert('❌ Fichier non disponible.'); cancelInterruptedUpload(); return; }
     isResumingUpload = true;
     safeAddClass('interrupted-upload-banner', 'hidden');
     safeRemoveClass('upload-form', 'hidden');
@@ -2011,8 +1690,7 @@ async function uploadChunks(fileName, fileBlob, fileId, authorizationToken, star
     
     await loadAllVideos(); updateProfileUI(); renderAll();
     sendNotification('✅ Vidéo publiée', 'Votre vidéo a été publiée avec succès !');
-    alert(`✅ Vidéo publiée !`); 
-    isResumingUpload = false;
+    alert(`✅ Vidéo publiée !`); isResumingUpload = false;
     AudioManager.playSuccessSound();
 }
 
@@ -2114,7 +1792,7 @@ async function uploadSimpleFile(fileName, fileBlob, thumbnail, duration, title, 
     AudioManager.playSuccessSound();
 }
 
-function cancelUpload() { if (confirm("Annuler l'upload ? La progression sera sauvegardée.")) uploadAborted = true; }
+function cancelUpload() { if (confirm("Annuler l'upload ?")) uploadAborted = true; }
 async function requestWakeLock() {
     try {
         if ('wakeLock' in navigator) {
@@ -2146,20 +1824,17 @@ function renderMyVideos() {
     }).join('');
 }
 async function deleteMyVideo(videoId) {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette vidéo ?\n\nVoulez-vous continuer ? (Oui / Non)")) return;
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cette vidéo ?")) return;
     try {
         await db.collection('videos').doc(videoId).delete();
         await loadAllVideos(); updateProfileUI(); renderMyVideos();
-        sendNotification('🗑️ Supprimée', 'La vidéo a été retirée de votre album.');
+        sendNotification('🗑️ Supprimée', 'La vidéo a été retirée.');
         AudioManager.playNotificationSound();
-    } catch(e) { 
-        alert("Erreur: " + e.message);
-        AudioManager.playErrorSound();
-    }
+    } catch(e) { alert("Erreur: " + e.message); AudioManager.playErrorSound(); }
 }
 
 // ============================================
-// 📿 AZKAR DATA - 31 INVOCATIONS COMPLÈTES
+// 📿 AZKAR DATA - 31 INVOCATIONS
 // ============================================
 const AZKAR_DATA = [
     { category: '💧 Ablutions & Prière', color: 'cyan', duas: [
@@ -2175,37 +1850,37 @@ const AZKAR_DATA = [
         { title: 'À la fin du Tachahoud', arabic: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ جَهَنَّمَ، وَمِنْ عَذَابِ الْقَبْرِ، وَمِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ، وَمِنْ شَرِّ فِتْنَةِ الْمَسِيحِ الدَّجَّالِ', phonetic: 'Allâhumma innî a\'ûdhu bika min \'adhâbi jahannam, wa min \'adhâbi-l-qabr, wa min fitnati-l-mahyâ wa-l-mamât, wa min sharri fitnati-l-masîhi-d-dajjâl.', translation: 'Ô Allah, je cherche refuge auprès de Toi contre le châtiment de l\'Enfer, contre le châtiment de la tombe, contre les tentations de la vie et de la mort, et contre le mal de la tentation de l\'Antéchrist.' }
     ]},
     { category: '🌙 Zakat & Jeûne', color: 'amber', duas: [
-        { title: 'En donnant la Zakat', arabic: 'اللَّهُمَّ اجْعَلْهَا غُنْمًا وَلَا تَجْعَلْهَا غُرْمًا', phonetic: 'Allâhumma-j\'alhâ ghunman wa lâ taj\'alhâ ghurman.', translation: 'Ô Allah, fais de cette aumône (Zakat) un gain spirituel et ne la considère pas comme une perte financière.' },
+        { title: 'En donnant la Zakat', arabic: 'اللَّهُمَّ اجْعَلْهَا غُنْمًا وَلَا تَجْعَلْهَا غُرْمًا', phonetic: 'Allâhumma-j\'alhâ ghunman wa lâ taj\'alhâ ghurman.', translation: 'Ô Allah, fais de cette aumône un gain spirituel et ne la considère pas comme une perte.' },
         { title: 'À la rupture du jeûne (Iftar)', arabic: 'ذَهَبَ الظَّمَأُ وَابْتَلَّتِ الْعُرُوقُ، وَثَبَتَ الْأَجْرُ إِنْ شَاءَ اللَّهُ', phonetic: 'Dhahaba-dh-dhama\'u wa-btallati-l-\'urûqu, wa thabata-l-ajru in shâ\'a-llâh.', translation: 'La soif est étanchée, les veines sont abreuvées, et la récompense est assurée, si Allah le veut.' },
         { title: 'Invocation classique de l\'Iftar', arabic: 'اللَّهُمَّ لَكَ صُمْتُ وَعَلَى رِزْقِكَ أَفْطَرْتُ', phonetic: 'Allâhumma laka sumtu wa \'alâ rizqika aftartu.', translation: 'Ô Allah, c\'est pour Toi que j\'ai jeûné, et c\'est avec Ta subsistance que je romps mon jeûne.' },
         { title: 'Invocation d\'Ibn \'Omar à la rupture du jeûne', arabic: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ بِرَحْمَتِكَ الَّتِي وَسِعَتْ كُلَّ شَيْءٍ أَنْ تَغْفِرَ لِي', phonetic: 'Allâhumma innî as\'aluka bi-rahmatika-llatî wasi\'at kulla shay\'in an taghfira lî.', translation: 'Ô Allah, je Te demande par Ta miséricorde qui englobe toute chose, de me pardonner.' },
-        { title: 'Pour la Nuit du Destin (Laylat al-Qadr)', arabic: 'اللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي', phonetic: 'Allâhumma innaka \'afuwwun tuhibbu-l-\'afwa fa-\'fu \'annî.', translation: 'Ô Allah, Tu es Pardonneur, Tu aimes le pardon, alors pardonne-moi.' }
+        { title: 'Pour la Nuit du Destin', arabic: 'اللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي', phonetic: 'Allâhumma innaka \'afuwwun tuhibbu-l-\'afwa fa-\'fu \'annî.', translation: 'Ô Allah, Tu es Pardonneur, Tu aimes le pardon, alors pardonne-moi.' }
     ]},
     { category: '🤲 Pardon & Clémence', color: 'emerald', duas: [
-        { title: 'Sayyid al-Istighfar (Le maître du pardon)', arabic: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ لِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ', phonetic: 'Allâhumma Anta Rabbî, lâ ilâha illâ Anta, khalaqtanî wa ana \'abduka, wa ana \'alâ \'ahdika wa wa\'dika ma-stata\'tu. A\'ûdhu bika min sharri mâ sana\'tu, abû\'u laka bi-ni\'matika \'alayya, wa abû\'u bi-dhanbî faghfir lî, fa-innahû lâ yaghfiru-dh-dhunûba illâ Anta.', translation: 'Ô Allah, Tu es mon Seigneur, nul ne mérite d\'être adoré en dehors de Toi. Tu m\'as créé, je suis Ton serviteur et je respecte Ton pacte et Ta promesse autant que je le puis. Je cherche refuge auprès de Toi contre le mal de mes actes. Je reconnais Tes bienfaits envers moi et je confesse mon péché. Pardonne-moi donc, car nul ne pardonne les péchés si ce n\'est Toi.' },
-        { title: 'Demande de pardon suprême', arabic: 'أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ', phonetic: 'Astaghfiru-llâha-l-\'Adhîma-lladhî lâ ilâha illâ Huwa-l-Hayyu-l-Qayyûmu wa atûbu ilayh.', translation: 'Je demande pardon à Allah l\'Immense, en dehors de Qui nulle divinité ne mérite d\'être adorée, le Vivant, Celui qui subsiste par Lui-même, et je me repens à Lui.' },
+        { title: 'Sayyid al-Istighfar', arabic: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ لِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ', phonetic: 'Allâhumma Anta Rabbî, lâ ilâha illâ Anta, khalaqtanî wa ana \'abduka, wa ana \'alâ \'ahdika wa wa\'dika ma-stata\'tu. A\'ûdhu bika min sharri mâ sana\'tu, abû\'u laka bi-ni\'matika \'alayya, wa abû\'u bi-dhanbî faghfir lî, fa-innahû lâ yaghfiru-dh-dhunûba illâ Anta.', translation: 'Ô Allah, Tu es mon Seigneur, nul ne mérite d\'être adoré en dehors de Toi. Tu m\'as créé, je suis Ton serviteur. Pardonne-moi donc, car nul ne pardonne les péchés si ce n\'est Toi.' },
+        { title: 'Demande de pardon suprême', arabic: 'أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ', phonetic: 'Astaghfiru-llâha-l-\'Adhîma-lladhî lâ ilâha illâ Huwa-l-Hayyu-l-Qayyûmu wa atûbu ilayh.', translation: 'Je demande pardon à Allah l\'Immense, en dehors de Qui nulle divinité ne mérite d\'être adorée, et je me repens à Lui.' },
         { title: 'Pour le nouveau musulman', arabic: 'اللَّهُمَّ اغْفِرْ لِي، وَارْحَمْنِي، وَاهْدِنِي، وَعَافِنِي، وَارْزُقْنِي', phonetic: 'Allâhumma-ghfir lî, wa-rhamnî, wa-hdinî, wa \'âfinî, wa-rzuqnî.', translation: 'Ô Allah, pardonne-moi, fais-moi miséricorde, guide-moi, accorde-moi la santé et accorde-moi ma subsistance.' }
     ]},
     { category: '💀 Tombe & Jugement', color: 'gray', duas: [
-        { title: 'Contre le châtiment de la tombe', arabic: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، وَأَعُوذُ بِكَ مِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ', phonetic: 'Allâhumma innî a\'ûdhu bika min \'adhâbi-l-qabr, wa a\'ûdhu bika min fitnati-l-mahyâ wa-l-mamât.', translation: 'Ô Allah, je cherche refuge auprès de Toi contre le châtiment de la tombe, et je cherche refuge auprès de Toi contre les épreuves de la vie et de la mort.' },
-        { title: 'À mettre au bord de la tombe après l\'enterrement', arabic: 'اللَّهُمَّ ثَبِّتْهُ عِنْدَ السُّؤَالِ • اللَّهُمَّ اغْفِرْ لَهُ وَثَبِّتْهُ', phonetic: 'Allâhumma thabbithu \'inda-s-su\'âl. Allâhumma-ghfir lahu wa thabbithu.', translation: 'Ô Allah, affermis-le lors de l\'interrogatoire (des anges Mounkar et Nakîr). Ô Allah, pardonne-lui et donne-lui la fermeté.' },
+        { title: 'Contre le châtiment de la tombe', arabic: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، وَأَعُوذُ بِكَ مِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ', phonetic: 'Allâhumma innî a\'ûdhu bika min \'adhâbi-l-qabr, wa a\'ûdhu bika min fitnati-l-mahyâ wa-l-mamât.', translation: 'Ô Allah, je cherche refuge auprès de Toi contre le châtiment de la tombe et contre les épreuves de la vie et de la mort.' },
+        { title: 'À mettre au bord de la tombe', arabic: 'اللَّهُمَّ ثَبِّتْهُ عِنْدَ السُّؤَالِ • اللَّهُمَّ اغْفِرْ لَهُ وَثَبِّتْهُ', phonetic: 'Allâhumma thabbithu \'inda-s-su\'âl. Allâhumma-ghfir lahu wa thabbithu.', translation: 'Ô Allah, affermis-le lors de l\'interrogatoire. Ô Allah, pardonne-lui et donne-lui la fermeté.' },
         { title: 'Le matin ou au soir', arabic: 'اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ', phonetic: 'Allâhumma qinî \'adhâbaka yawma tab\'athu \'ibâdak.', translation: 'Ô Allah, protège-moi de Ton châtiment le Jour où Tu ressusciteras Tes serviteurs.' },
         { title: 'Pour un jugement facile', arabic: 'اللَّهُمَّ حَاسِبْنِي حِسَابًا يَسِيرًا', phonetic: 'Allâhumma hâsibnî hisâban yasîran.', translation: 'Ô Allah, fais-moi un jugement facile.' }
     ]},
     { category: '💍 Mariage & Couple', color: 'pink', duas: [
-        { title: 'Pour féliciter les nouveaux mariés', arabic: 'بَارَكَ اللَّهُ لَكَ، وَبَارَكَ عَلَيْكَ، وَجَمَعَ بَيْنَكُمَا فِي خَيْرٍ', phonetic: 'Bâraka-llâhu laka, wa bâraka \'alayka, wa jama\'a baynakumâ fî khayr.', translation: 'Qu\'Allah te bénisse, qu\'Il déverse Sa bénédiction sur toi et qu\'Il vous unisse tous deux dans le bien.' },
-        { title: 'À réciter par l\'époux lors de la première nuit de noces', arabic: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَهَا وَخَيْرَ مَا جَبَلْتَهَا عَلَيْهِ، وَأَعُوذُ بِكَ مِنْ شَرِّهَا وَمِنْ شَرِّ مَا جَبَلْتَهَا عَلَيْهِ', phonetic: 'Allâhumma innî as\'aluka khayrahâ wa khayra mâ jabaltahâ \'alayh, wa a\'ûdhu bika min sharrihâ wa min sharri mâ jabaltahâ \'alayh.', translation: 'Ô Allah, je Te demande son bien et le bien sur lequel Tu l\'as créée, et je cherche refuge auprès de Toi contre son mal et le mal sur lequel Tu l\'as créée.' },
-        { title: 'Avant un rapport intime', arabic: 'بِسْمِ اللَّهِ، اللَّهُمَّ جَنِّبْنَا الشَّيْطَانَ، وَجَنِّبِ الشَّيْطَانَ مَا رَزَقْتَنَا', phonetic: 'Bismillâhi. Allâhumma jannibnâ-sh-shaytâna wa jannibi-sh-shaytâna mâ razaqtanâ.', translation: 'Au nom d\'Allah. Ô Allah, éloigne le Diable de nous et éloigne le Diable du fruit de notre union.' },
-        { title: 'Pour l\'harmonie familiale et des enfants pieux (Coran 25:74)', arabic: 'رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ وَاجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا', phonetic: 'Rabbanâ hab lanâ min azwâjinâ wa dhurriyyâtinâ qurrata a\'yunin wa-j\'alnâ lil-muttaqîna imâmâ.', translation: 'Notre Seigneur, accorde-nous en nos épouses et nos descendants la joie des yeux, et fais de nous des guides pour les pieux.' }
+        { title: 'Pour féliciter les nouveaux mariés', arabic: 'بَارَكَ اللَّهُ لَكَ، وَبَارَكَ عَلَيْكَ، وَجَمَعَ بَيْنَكُمَا فِي خَيْرٍ', phonetic: 'Bâraka-llâhu laka, wa bâraka \'alayka, wa jama\'a baynakumâ fî khayr.', translation: 'Qu\'Allah te bénisse et qu\'Il vous unisse dans le bien.' },
+        { title: 'À réciter par l\'époux', arabic: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَهَا وَخَيْرَ مَا جَبَلْتَهَا عَلَيْهِ، وَأَعُوذُ بِكَ مِنْ شَرِّهَا وَمِنْ شَرِّ مَا جَبَلْتَهَا عَلَيْهِ', phonetic: 'Allâhumma innî as\'aluka khayrahâ wa khayra mâ jabaltahâ \'alayh, wa a\'ûdhu bika min sharrihâ wa min sharri mâ jabaltahâ \'alayh.', translation: 'Ô Allah, je Te demande son bien et je cherche refuge auprès de Toi contre son mal.' },
+        { title: 'Avant un rapport intime', arabic: 'بِسْمِ اللَّهِ، اللَّهُمَّ جَنِّبْنَا الشَّيْطَانَ، وَجَنِّبِ الشَّيْطَانَ مَا رَزَقْتَنَا', phonetic: 'Bismillâhi. Allâhumma jannibnâ-sh-shaytâna wa jannibi-sh-shaytâna mâ razaqtanâ.', translation: 'Au nom d\'Allah. Ô Allah, éloigne le Diable de nous et du fruit de notre union.' },
+        { title: 'Pour l\'harmonie familiale', arabic: 'رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ وَاجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا', phonetic: 'Rabbanâ hab lanâ min azwâjinâ wa dhurriyyâtinâ qurrata a\'yunin wa-j\'alnâ lil-muttaqîna imâmâ.', translation: 'Notre Seigneur, accorde-nous en nos épouses et nos descendants la joie des yeux.' }
     ]},
     { category: '🛡️ Protection & Matin', color: 'indigo', duas: [
-        { title: 'Pour la protection matin et soir (3 fois)', arabic: 'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ', phonetic: 'Bismillâhi-lladhî lâ yadurru ma\'a-smihi shay\'un fî-l-ardi wa lâ fî-s-samâ\'i wa Huwa-s-Samî\'u-l-\'Alîm.', translation: 'Au nom d\'Allah, tel qu\'en compagnie de Son Nom rien ne peut nuire sur terre ni dans les cieux, et Il est l\'Audient, l\'Omniscient.' },
-        { title: 'Protection ultime contre le mal des créatures', arabic: 'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ', phonetic: 'A\'ûdhu bi-kalimâti-llâhi-t-tâmmâti min sharri mâ khalaq.', translation: 'Je cherche refuge auprès des paroles parfaites d\'Allah contre le mal de Ses créatures.' },
-        { title: 'Pour la santé au lever et au coucher du soleil (3 fois)', arabic: 'اللَّهُمَّ عافِني في بَدَني، اللَّهُمَّ عافِني في سَمْعي، اللَّهُمَّ عافِني في بَصَري، لا إلهَ إلَّا أنتَ', phonetic: 'Allâhumma \'âfinî fî badanî, Allâhumma \'âfinî fî sam\'î, Allâhumma \'âfinî fî baṣarî, lâ ilâha illâ Anta.', translation: 'Ô Allah, préserve mon corps, ô Allah, préserve mon ouïe, ô Allah, préserve ma vue. Nul ne mérite d\'être adoré en dehors de Toi.' }
+        { title: 'Pour la protection matin et soir', arabic: 'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ', phonetic: 'Bismillâhi-lladhî lâ yadurru ma\'a-smihi shay\'un fî-l-ardi wa lâ fî-s-samâ\'i wa Huwa-s-Samî\'u-l-\'Alîm.', translation: 'Au nom d\'Allah, tel qu\'en compagnie de Son Nom rien ne peut nuire sur terre ni dans les cieux.' },
+        { title: 'Protection ultime', arabic: 'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ', phonetic: 'A\'ûdhu bi-kalimâti-llâhi-t-tâmmâti min sharri mâ khalaq.', translation: 'Je cherche refuge auprès des paroles parfaites d\'Allah contre le mal de Ses créatures.' },
+        { title: 'Pour la santé', arabic: 'اللَّهُمَّ عافِني في بَدَني، اللَّهُمَّ عافِني في سَمْعي، اللَّهُمَّ عافِني في بَصَري، لا إلهَ إلَّا أنتَ', phonetic: 'Allâhumma \'âfinî fî badanî, Allâhumma \'âfinî fî sam\'î, Allâhumma \'âfinî fî baṣarî, lâ ilâha illâ Anta.', translation: 'Ô Allah, préserve mon corps, mon ouïe et ma vue. Nul ne mérite d\'être adoré en dehors de Toi.' }
     ]},
     { category: '❤️ Détresse & Guérison', color: 'rose', duas: [
-        { title: 'L\'invocation de Jonas (Younous) dans le ventre de la baleine', arabic: 'لَّا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ', phonetic: 'Lâ ilâha illâ Anta subhânaka innî kuntu mina-dh-dhâlimîn.', translation: 'Nulle divinité d\'autre que Toi ! Gloire et pureté à Toi ! J\'ai été vraiment du nombre des injustes.' },
-        { title: 'Raqya pour la guérison d\'un malade', arabic: 'اللَّهُمَّ رَبَّ النَّاسِ أَذْهِبِ الْبَاسَ، اشْفِهِ وَأَنْتَ الشَّافِي، لَا شِفَاءَ إِلَّا شِفَاؤُكَ، شِفَاءً لَا يُغَادِرُ سَقَمًا', phonetic: 'Allâhumma Rabba-n-nâsi, adhhibi-l-ba\'s, ishfihi wa Anta-sh-shâfî, lâ shifâ\'a illâ shifâ\'uka, shifâ\'an lâ yughâdiru saqamâ.', translation: 'Ô Allah, Seigneur des hommes, fais disparaître le mal. Guéris-le, car Tu es le Guérisseur. Il n\'y a de guérison que la Tienne, une guérison qui ne laisse aucune trace de maladie.' }
+        { title: 'L\'invocation de Jonas', arabic: 'لَّا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ', phonetic: 'Lâ ilâha illâ Anta subhânaka innî kuntu mina-dh-dhâlimîn.', translation: 'Nulle divinité d\'autre que Toi ! Gloire à Toi ! J\'ai été du nombre des injustes.' },
+        { title: 'Raqya pour la guérison', arabic: 'اللَّهُمَّ رَبَّ النَّاسِ أَذْهِبِ الْبَاسَ، اشْفِهِ وَأَنْتَ الشَّافِي، لَا شِفَاءَ إِلَّا شِفَاؤُكَ، شِفَاءً لَا يُغَادِرُ سَقَمًا', phonetic: 'Allâhumma Rabba-n-nâsi, adhhibi-l-ba\'s, ishfihi wa Anta-sh-shâfî, lâ shifâ\'a illâ shifâ\'uka, shifâ\'an lâ yughâdiru saqamâ.', translation: 'Ô Allah, Seigneur des hommes, fais disparaître le mal. Guéris-le, car Tu es le Guérisseur.' }
     ]}
 ];
 
@@ -2234,7 +1909,7 @@ function toggleAccordion(id) {
 }
 
 // ============================================
-// 🔄 NAVIGATION & UTILITAIRES
+// 🔄 NAVIGATION
 // ============================================
 function showTab(tab) {
     ['home','downloads','azkar','profile','create','myalbum','support','privacy'].forEach(t => {
@@ -2310,7 +1985,7 @@ async function toggleNotifications() {
     if (Notification.permission === 'granted') { sendNotification('🔔 Test', 'Les notifications fonctionnent !'); return; }
     if (Notification.permission === 'denied') { alert("❌ Notifications bloquées."); return; }
     const permission = await Notification.requestPermission();
-    if (permission === 'granted') { sendNotification('🔔 Notifications activées !', 'Vous recevrez des notifications.'); updateProfileUI(); }
+    if (permission === 'granted') { sendNotification('🔔 Activées', 'Vous recevrez des notifications.'); updateProfileUI(); }
 }
 function sendNotification(title, body) {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
@@ -2331,7 +2006,7 @@ async function inviteFriend() {
 function copyToClipboard(shareData) {
     const text = `${shareData.text}\n${shareData.url}`;
     if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => { alert('✅ Lien copié !'); sendNotification('📨 Invitation', 'Lien copié !'); }).catch(() => fallbackCopy(text));
+        navigator.clipboard.writeText(text).then(() => { alert('✅ Lien copié !'); }).catch(() => fallbackCopy(text));
     } else { fallbackCopy(text); }
 }
 function fallbackCopy(text) {
@@ -2448,7 +2123,7 @@ async function uploadSupportFile(file, folder, customName = null) {
 }
 
 // ============================================
-// 🔄 GESTION CYCLE DE VIE APP (CAPACITOR)
+// 🔄 CYCLE DE VIE (CAPACITOR)
 // ============================================
 if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
     window.Capacitor.Plugins.App.addListener('pause', () => {
@@ -2476,31 +2151,13 @@ function getCurrentTab() {
     return 'home';
 }
 
-function restoreAppState() {
-    try {
-        const state = JSON.parse(localStorage.getItem('appState') || '{}');
-        if (state.currentTab && state.currentTab !== 'home') {
-            setTimeout(() => showTab(state.currentTab), 500);
-        }
-    } catch (e) {}
-}
-
 // ============================================
-// 🚀 DÉMARRAGE DE L'APPLICATION
+// 🚀 DÉMARRAGE
 // ============================================
 (async function initApp() {
-    // Initialiser le gestionnaire audio
     AudioManager.init();
-    
-    // Attendre que Firebase soit prêt
     await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Restaurer l'état précédent
-    restoreAppState();
-    
-    // Afficher la page d'accueil
     showTab('home');
-    
     console.log('🚀 Application démarrée');
 })();
 </script>
