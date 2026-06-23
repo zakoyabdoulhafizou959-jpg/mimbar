@@ -2464,7 +2464,8 @@
                     if (totalTimeEl) totalTimeEl.textContent = formatTimeShort(duration);
                     if (durationLabel) durationLabel.textContent = formatTimeShort(duration);
                     // Remettre le bouton en état
-                    safeSetText('btn-record', '<i class="fa-solid fa-microphone mr-1" style="color:#ef4444"></i>Enregistrer');
+                    const btn = safeGetElement('btn-record'); 
+                    if (btn) btn.innerHTML = '<i class="fa-solid fa-microphone mr-1" style="color:#ef4444"></i>Enregistrer';
                     safeAddClass('recording-timer', 'hidden');
                     clearInterval(recordingInterval);
                     stream.getTracks().forEach(t => t.stop());
