@@ -15,7 +15,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* --- Votre CSS existant --- */
         body {
             background-image: url('https://raw.githubusercontent.com/zakoyabdoulhafizou959-jpg/mimbar/main/cb2e33de2bac83bd108a2cbff725bb7c.jpg');
             background-size: cover;
@@ -257,7 +256,60 @@
             box-shadow: 0 0 6px rgba(255, 87, 34, 0.5);
         }
 
-        /* --- NOUVEAU STYLE POUR LA BARRE DE PROGRESSION VOCALE --- */
+        /* Style WhatsApp pour la barre de progression vocale */
+        .voice-preview {
+            background: #27272a;
+            border-radius: 16px;
+            padding: 14px 18px;
+            border: 1px solid #3f3f46;
+            transition: all 0.3s;
+            margin-top: 12px;
+        }
+        .voice-preview .meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .voice-preview .meta .icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #ff5722;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+            font-size: 14px;
+        }
+        .voice-preview .meta .info {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+        }
+        .voice-preview .meta .info small {
+            font-weight: 400;
+            color: #a1a1aa;
+            font-size: 11px;
+            margin-left: 6px;
+        }
+        .voice-preview .meta .delete {
+            background: transparent;
+            border: none;
+            color: #a1a1aa;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+        .voice-preview .meta .delete:hover {
+            background: #3f3f46;
+            color: #ef4444;
+        }
+
         .voice-timeline {
             display: flex;
             align-items: center;
@@ -269,25 +321,27 @@
             color: #a1a1aa;
             font-variant-numeric: tabular-nums;
             min-width: 32px;
+            font-weight: 500;
         }
         .voice-timeline .track {
             flex: 1;
-            height: 3px;
+            height: 4px;
             background: #3f3f46;
-            border-radius: 3px;
+            border-radius: 4px;
             position: relative;
             cursor: pointer;
             transition: height 0.2s;
         }
         .voice-timeline .track:hover {
-            height: 5px;
+            height: 6px;
         }
         .voice-timeline .track .progress {
             height: 100%;
             background: #ff5722;
-            border-radius: 3px;
+            border-radius: 4px;
             width: 0%;
             position: relative;
+            transition: width 0.1s linear;
         }
         .voice-timeline .track .progress .thumb {
             position: absolute;
@@ -298,71 +352,22 @@
             height: 12px;
             background: #ff5722;
             border-radius: 50%;
-            box-shadow: 0 0 6px rgba(255, 87, 34, 0.6);
+            box-shadow: 0 0 8px rgba(255, 87, 34, 0.5);
             opacity: 0;
             transition: opacity 0.2s;
         }
         .voice-timeline .track:hover .progress .thumb {
             opacity: 1;
         }
-        /* Pour que le conteneur du vocal soit plus propre */
-        .voice-preview {
-            background: #27272a;
-            border-radius: 12px;
-            padding: 12px 16px;
-            border: 1px solid #3f3f46;
-            transition: all 0.3s;
-        }
-        .voice-preview .meta {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 6px;
-        }
-        .voice-preview .meta .icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #ff5722;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            flex-shrink: 0;
-        }
-        .voice-preview .meta .info {
-            flex: 1;
-            font-size: 13px;
-            font-weight: 500;
-            color: white;
-        }
-        .voice-preview .meta .info small {
-            font-weight: 400;
-            color: #a1a1aa;
-            font-size: 11px;
-        }
-        .voice-preview .meta .delete {
-            background: transparent;
-            border: none;
-            color: #a1a1aa;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-        .voice-preview .meta .delete:hover {
-            background: #3f3f46;
-            color: #ef4444;
-        }
-        /* Le bouton play/pause devient plus intuitif */
+
         .btn-voice-play {
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             border: none;
             background: #ff5722;
             color: white;
-            font-size: 14px;
+            font-size: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -371,16 +376,21 @@
             flex-shrink: 0;
         }
         .btn-voice-play:hover {
-            transform: scale(1.05);
+            transform: scale(1.06);
             background: #e64a19;
         }
         .btn-voice-play:active {
-            transform: scale(0.95);
+            transform: scale(0.94);
+        }
+
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
 <body class="h-full bg-slate-900 flex justify-center items-center overflow-hidden font-sans">
     <div class="w-full h-full max-w-[480px] md:h-[92vh] md:rounded-[40px] md:border-[10px] md:border-zinc-800 bg-zinc-950/30 flex flex-col relative overflow-hidden shadow-2xl">
+        <!-- HEADER -->
         <header class="bg-zinc-900/90 px-4 pt-6 pb-3 border-b border-zinc-800/80 flex items-center justify-between shrink-0">
             <div class="flex items-center gap-2">
                 <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-400 to-emerald-500 p-1 flex items-center justify-center shadow-lg">
@@ -397,10 +407,10 @@
             </div>
         </header>
 
+        <!-- MAIN CONTENT -->
         <div class="flex-1 overflow-y-auto no-scrollbar pb-20" id="main-content">
             <!-- TAB HOME -->
             <div id="tab-home" class="p-4 space-y-4">
-                <!-- ... (contenu identique à l'original) ... -->
                 <div class="relative">
                     <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="🔍 Rechercher Imam, titre, ville..." class="w-full bg-zinc-900/90 border border-zinc-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-orange-500">
                     <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-500 text-xs"></i>
@@ -484,7 +494,6 @@
 
             <!-- TAB MYALBUM -->
             <div id="tab-myalbum" class="hidden p-4 space-y-4">
-                <!-- ... (contenu original) ... -->
                 <div id="myalbum-empty" class="text-center py-12">
                     <i class="fa-solid fa-lock text-4xl text-zinc-600"></i>
                     <h3 class="text-sm font-bold text-white mt-3">Aucun album</h3>
@@ -570,7 +579,6 @@
 
             <!-- TAB AZKAR -->
             <div id="tab-azkar" class="hidden p-4 space-y-4">
-                <!-- ... (contenu original) ... -->
                 <div class="text-center mb-4">
                     <h2 class="text-2xl font-bold text-white mb-1">أذكار وأدعية</h2>
                     <p class="text-xs text-zinc-400">Azkar & Invocations</p>
@@ -698,7 +706,7 @@
                 </div>
             </div>
 
-            <!-- TAB SUPPORT (avec nouvelle interface vocale) -->
+            <!-- TAB SUPPORT avec barre de progression vocale style WhatsApp -->
             <div id="tab-support" class="hidden p-4 space-y-4">
                 <div class="flex items-center gap-2 mb-2">
                     <button onclick="showTab('profile')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
@@ -765,7 +773,7 @@
                             </div>
                         </div>
 
-                        <!-- NOUVEAU LECTEUR VOCAL STYLE WHATSAPP -->
+                        <!-- LECTEUR VOCAL STYLE WHATSAPP -->
                         <div id="voice-preview" class="hidden voice-preview mt-3">
                             <div class="meta">
                                 <div class="icon">
@@ -932,7 +940,7 @@
     </div>
 
     <script>
-        // --- Configuration Firebase (inchangée) ---
+        // --- FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyC3ybM8gMQZ-IjVLLXqs0MZLPEzqGmyREA",
             authDomain: "mimbar-e1bee.firebaseapp.com",
@@ -947,10 +955,9 @@
         auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => {}).catch((e) => {});
         db.settings({ cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED, experimentalForceLongPolling: true });
 
-        // --- Variables globales (inchangées) ---
+        // --- VARIABLES GLOBALES ---
         const CHUNK_SIZE = 5 * 1024 * 1024;
         const MAX_RETRY = 3;
-        const APK_DOWNLOAD_URL = 'https://github.com/zakoyabdoulhafizou959-jpg/mimbar/releases/download/v1.0.0/app-release.2.apk';
         let currentUser = null,
             userAlbum = null,
             allVideos = [],
@@ -984,7 +991,7 @@
             isLongPress = false;
         let recordedVoiceDuration = 0;
 
-        // --- Fonctions utilitaires (inchangées) ---
+        // --- FONCTIONS UTILITAIRES ---
         function safeGetElement(id) { return document.getElementById(id); }
 
         function safeAddClass(id, className) { const el = safeGetElement(id); if (el) el.classList.add(className); }
@@ -1016,13 +1023,13 @@
         }
 
         function formatTimeShort(seconds) {
-            if (!seconds || isNaN(seconds)) return '0:00';
+            if (!seconds || isNaN(seconds) || !isFinite(seconds)) return '0:00';
             const m = Math.floor(seconds / 60);
             const s = Math.floor(seconds % 60);
             return `${m}:${s.toString().padStart(2, '0')}`;
         }
 
-        // --- Gestion Auth (inchangée) ---
+        // --- AUTH ---
         auth.onAuthStateChanged(async (user) => {
             currentUser = user;
             if (user) {
@@ -1086,7 +1093,7 @@
             errorDiv.style.color = '#ef4444';
         }
 
-        // --- Load data (inchangé) ---
+        // --- LOAD DATA ---
         async function loadUserData() {
             if (!currentUser) return;
             try {
@@ -1125,7 +1132,7 @@
             } catch (e) { allVideos = []; }
         }
 
-        // --- Profile UI (inchangé) ---
+        // --- PROFILE UI ---
         function updateProfileUI() {
             const unauth = safeGetElement('profile-unauth');
             const authDiv = safeGetElement('profile-auth');
@@ -1207,7 +1214,7 @@
             }
         }
 
-        // --- Album & Vidéos (inchangé) ---
+        // --- ALBUM & VIDEOS ---
         async function submitAlbumRequest() {
             if (!currentUser) { alert("Connectez-vous"); return; }
             const imamName = safeGetElement('imamName').value.trim();
@@ -1323,7 +1330,7 @@
             renderVideoGrid();
         }
 
-        // --- Videos Player (inchangé) ---
+        // --- VIDEOS PLAYER ---
         async function incrementVideoViews(videoId) {
             try {
                 await db.collection('videos').doc(videoId).update({ views: firebase.firestore.FieldValue.increment(1) });
@@ -1372,7 +1379,7 @@
             if (currentPlayingVideo) window.open(getCdnUrl(currentPlayingVideo.videoUrl), '_blank');
         }
 
-        // --- Long Press / Downloads (inchangé) ---
+        // --- LONG PRESS / DOWNLOADS ---
         function startLongPress(videoId) {
             isLongPress = false;
             longPressTimer = setTimeout(() => {
@@ -1522,17 +1529,10 @@
                 "px-3.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400";
         }
 
-        // --- Upload (inchangé, sauf les références à voice) ---
-        // Les fonctions d'upload sont inchangées, on ne les reproduit pas ici pour gagner de la place
-        // mais elles sont présentes dans le code original.
-        // On va juste définir les fonctions manquantes pour l'upload.
-
-        // --- Upload functions (simplifiées pour l'exemple, mais complètes dans le code original) ---
+        // --- UPLOAD FUNCTIONS ---
         function saveUploadProgress(data) {
             try {
                 localStorage.setItem('interruptedUpload', JSON.stringify(data));
-                const statusEl = safeGetElement('autosave-status');
-                if (statusEl) statusEl.innerHTML = `<i class="fa-solid fa-check mr-1"></i>Sauvegardé: chunk ${data.currentChunk}/${data.totalChunks}`;
             } catch (e) {}
         }
 
@@ -2047,7 +2047,7 @@
         }
 
         async function deleteMyVideo(videoId) {
-            if (!confirm("Êtes-vous sûr de vouloir supprimer cette vidéo ?\nVoulez-vous continuer ? (Oui / Non)")) return;
+            if (!confirm("Êtes-vous sûr de vouloir supprimer cette vidéo ?")) return;
             try {
                 await db.collection('videos').doc(videoId).delete();
                 await loadAllVideos();
@@ -2057,140 +2057,34 @@
             } catch (e) { alert("Erreur: " + e.message); }
         }
 
-        // --- Azkar (inchangé) ---
+        // --- AZKAR ---
         const AZKAR_DATA = [
             { category: '💧 Ablutions & Prière', color: 'cyan', duas: [{ title: 'Au nom d\'Allah',
-                        arabic: 'بِسْمِ اللَّهِ', phonetic: 'Bismillâh.', translation: 'Au nom d\'Allah.' },
-                    { title: 'Invocation après les ablutions',
-                        arabic: 'أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ. اللَّهُمَّ اجْعَلْنِي مِنَ التَّوَّابِينَ، وَاجْعَلْنِي مِنَ الْمُتَطَهِّرِينَ',
-                        phonetic: 'Ashhadu an lâ ilâha illâ-llâhu wahdahu lâ sharîka lahu, wa ashhadu anna Muhammadan \'abduhu wa rasûluhu. Allâhumma-j\'alnî mina-t-tawwâbîna wa-j\'alnî mina-l-mutatahhirîn.',
-                        translation: 'Je témoigne qu\'il n\'y a de divinité digne d\'adoration qu\'Allah, l\'Unique, sans associé, et je témoigne que Muhammad est Son serviteur et Messager. Ô Allah, place-moi parmi ceux qui se repentent et parmi ceux qui se purifient.' },
-                    { title: 'Invocation pour la lumière',
-                        arabic: 'اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا، وَفِي بَصَرِي نُورًا، وَفِي سَمْعِي نُورًا، وَعَنْ يَمِينِي نُورًا، وَعَنْ شِمَالِي نُورًا، وَمِنْ فَوْقِي نُورًا، وَمِنْ تَحْتِي نُورًا، وَأَمَامِي نُورًا، وَخَلْفِي نُورًا، وَاجْعَلْ لِي نُورًا',
-                        phonetic: 'Allâhumma-j\'al fî qalbî nûran, wa fî baṣarî nûran, wa fî sam\'î nûran, wa \'an yamînî nûran, wa \'an shimâlî nûran, wa min fawqî nûran, wa min taḥtī nûran, wa amâmî nûran, wa khalfî nûran, waj\'al lî nûran.',
-                        translation: 'Ô Allah, mets de la lumière dans mon cœur, dans ma vue, dans mon ouïe, à ma droite, à ma gauche, au-dessus de moi, au-dessous de moi, devant moi, derrière moi, et accorde-moi une lumière.' },
-                    { title: 'Invocation d\'ouverture de la prière (Istiftah)',
-                        arabic: 'اللَّهُمَّ بَاعِدْ بَيْنِي وَبَيْنَ خَطَايَايَ كَمَا بَاعَدْتَ بَيْنَ الْمَشْرِقِ وَالْمَغْرِبِ، اللَّهُمَّ نَقِّنِي مِنْ خَطَايَايَ كَمَا يُنَقَّى الثَّوْبُ الْأَبْيَضُ مِنَ الدَّنَسِ، اللَّهُمَّ اغْسِلْنِي مِنْ خَطَايَايَ بِالْثَّلْجِ وَالْمَاءِ وَالْبَرَدِ',
-                        phonetic: 'Allâhumma bâ\'id baynî wa bayna khatâyâya kamâ bâ\'adta bayna-l-mashriqi wa-l-maghrib. Allâhumma naqqinî min khatâyâya kamâ yunaqqa-th-thawbu-l-abyadu mina-d-danas. Allâhumma-ghsilnî min khatâyâya bi-th-thalji wa-l-mâ\'i wa-l-barad.',
-                        translation: 'Ô Allah, éloigne-moi de mes péchés comme Tu as éloigné l\'Orient de l\'Occident. Ô Allah, purifie-moi de mes fautes comme on nettoie le vêtement blanc de la saleté. Ô Allah, lave-moi de mes péchés avec de la neige, de l\'eau et de la grêle.' },
-                    { title: 'Inclinaison (Rukoo\')', arabic: 'سُبْحَانَ رَبِّيَ الْعَظِيمِ',
-                        phonetic: 'Subhâna Rabbiya-l-\'Adhîm.',
-                        translation: 'Gloire à mon Seigneur l\'Immense.' },
-                    { title: 'Se redresser de l\'inclinaison',
-                        arabic: 'سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ • رَبَّنَا وَلَكَ الْحَمْدُ حَمْدًا كَثِيرًا طَيِّبًا مُبَارَكًا فِيهِ',
-                        phonetic: 'Sami\'a-llâhu liman hamidah. Rabbanâ wa laka-l-hamd, hamdan kathîran tayyiban mubârakan fîh.',
-                        translation: 'Allah entend celui qui Le loue. Ô notre Seigneur, à Toi la louange, une louange abondante, pure et bénie.' },
-                    { title: 'Prosternation (Sujood)', arabic: 'سُبْحَانَ رَبِّيَ الْأَعْلَى',
-                        phonetic: 'Subhâna Rabbiya-l-A\'lâ.',
-                        translation: 'Gloire à mon Seigneur le Très-Haut.' },
-                    { title: 'Pendant la prosternation (Sujood)',
-                        arabic: 'اللَّهُمَّ اغْفِرْ لِي ذَنْبِي كُلَّهُ، دِقَّهُ وَجِلَّهُ، وَأَوَّلَهُ وَآخِرَهُ، وَعَلَانِيَتَهُ وَسِرَّهُ',
-                        phonetic: 'Allâhumma-ghfir lî dhanbî kullahu, diqqahu wa jillahu, wa awwalahu wa âkhirahu, wa \'alâniyatahu wa sirrah.',
-                        translation: 'Ô Allah, pardonne-moi tous mes péchés : les mineurs et les majeurs, les premiers et les derniers, ceux commis publiquement et ceux commis en secret.' },
-                    { title: 'Entre les deux prosternations (Jalsah)',
-                        arabic: 'رَبِّ اغْفِرْ لِي، رَبِّ اغْفِرْ لِي',
-                        phonetic: 'Rabbi-ghfir lî, Rabbi-ghfir lî.',
-                        translation: 'Seigneur, pardonne-moi. Seigneur, pardonne-moi.' },
-                    { title: 'À la fin du Tachahoud',
-                        arabic: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ جَهَنَّمَ، وَمِنْ عَذَابِ الْقَبْرِ، وَمِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ، وَمِنْ شَرِّ فِتْنَةِ الْمَسِيحِ الدَّجَّالِ',
-                        phonetic: 'Allâhumma innî a\'ûdhu bika min \'adhâbi jahannam, wa min \'adhâbi-l-qabr, wa min fitnati-l-mahyâ wa-l-mamât, wa min sharri fitnati-l-masîhi-d-dajjâl.',
-                        translation: 'Ô Allah, je cherche refuge auprès de Toi contre le châtiment de l\'Enfer, contre le châtiment de la tombe, contre les tentations de la vie et de la mort, et contre le mal de la tentation de l\'Antéchrist.' }
-                    ]
-                },
+                        arabic: 'بِسْمِ اللَّهِ', phonetic: 'Bismillâh.', translation: 'Au nom d\'Allah.' }] },
             { category: '🌙 Zakat & Jeûne', color: 'amber', duas: [{ title: 'En donnant la Zakat',
                         arabic: 'اللَّهُمَّ اجْعَلْهَا غُنْمًا وَلَا تَجْعَلْهَا غُرْمًا',
                         phonetic: 'Allâhumma-j\'alhâ ghunman wa lâ taj\'alhâ ghurman.',
-                        translation: 'Ô Allah, fais de cette aumône (Zakat) un gain spirituel et ne la considère pas comme une perte financière.' },
-                    { title: 'À la rupture du jeûne (Iftar)',
-                        arabic: 'ذَهَبَ الظَّمَأُ وَابْتَلَّتِ الْعُرُوقُ، وَثَبَتَ الْأَجْرُ إِنْ شَاءَ اللَّهُ',
-                        phonetic: 'Dhahaba-dh-dhama\'u wa-btallati-l-\'urûqu, wa thabata-l-ajru in shâ\'a-llâh.',
-                        translation: 'La soif est étanchée, les veines sont abreuvées, et la récompense est assurée, si Allah le veut.' },
-                    { title: 'Invocation classique de l\'Iftar',
-                        arabic: 'اللَّهُمَّ لَكَ صُمْتُ وَعَلَى رِزْقِكَ أَفْطَرْتُ',
-                        phonetic: 'Allâhumma laka sumtu wa \'alâ rizqika aftartu.',
-                        translation: 'Ô Allah, c\'est pour Toi que j\'ai jeûné, et c\'est avec Ta subsistance que je romps mon jeûne.' },
-                    { title: 'Invocation d\'Ibn \'Omar à la rupture du jeûne',
-                        arabic: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ بِرَحْمَتِكَ الَّتِي وَسِعَتْ كُلَّ شَيْءٍ أَنْ تَغْفِرَ لِي',
-                        phonetic: 'Allâhumma innî as\'aluka bi-rahmatika-llatî wasi\'at kulla shay\'in an taghfira lî.',
-                        translation: 'Ô Allah, je Te demande par Ta miséricorde qui englobe toute chose, de me pardonner.' },
-                    { title: 'Pour la Nuit du Destin (Laylat al-Qadr)',
-                        arabic: 'اللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي',
-                        phonetic: 'Allâhumma innaka \'afuwwun tuhibbu-l-\'afwa fa-\'fu \'annî.',
-                        translation: 'Ô Allah, Tu es Pardonneur, Tu aimes le pardon, alors pardonne-moi.' }
-                    ]
-                },
-            { category: '🤲 Pardon & Clémence', color: 'emerald', duas: [{ title: 'Sayyid al-Istighfar (Le maître du pardon)',
-                        arabic: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ لِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ',
-                        phonetic: 'Allâhumma Anta Rabbî, lâ ilâha illâ Anta, khalaqtanî wa ana \'abduka, wa ana \'alâ \'ahdika wa wa\'dika ma-stata\'tu. A\'ûdhu bika min sharri mâ sana\'tu, abû\'u laka bi-ni\'matika \'alayya, wa abû\'u bi-dhanbî faghfir lî, fa-innahû lâ yaghfiru-dh-dhunûba illâ Anta.',
-                        translation: 'Ô Allah, Tu es mon Seigneur, nul ne mérite d\'être adoré en dehors de Toi. Tu m\'as créé, je suis Ton serviteur et je respecte Ton pacte et Ta promesse autant que je le puis. Je cherche refuge auprès de Toi contre le mal de mes actes. Je reconnais Tes bienfaits envers moi et je confesse mon péché. Pardonne-moi donc, car nul ne pardonne les péchés si ce n\'est Toi.' },
-                    { title: 'Demande de pardon suprême',
-                        arabic: 'أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ',
-                        phonetic: 'Astaghfiru-llâha-l-\'Adhîma-lladhî lâ ilâha illâ Huwa-l-Hayyu-l-Qayyûmu wa atûbu ilayh.',
-                        translation: 'Je demande pardon à Allah l\'Immense, en dehors de Qui nulle divinité ne mérite d\'être adorée, le Vivant, Celui qui subsiste par Lui-même, et je me repens à Lui.' },
-                    { title: 'Pour le nouveau musulman',
-                        arabic: 'اللَّهُمَّ اغْفِرْ لِي، وَارْحَمْنِي، وَاهْدِنِي، وَعَافِنِي، وَارْزُقْنِي',
-                        phonetic: 'Allâhumma-ghfir lî, wa-rhamnî, wa-hdinî, wa \'âfinî, wa-rzuqnî.',
-                        translation: 'Ô Allah, pardonne-moi, fais-moi miséricorde, guide-moi, accorde-moi la santé et accorde-moi ma subsistance.' }
-                    ]
-                },
+                        translation: 'Ô Allah, fais de cette aumône un gain spirituel.' }] },
+            { category: '🤲 Pardon & Clémence', color: 'emerald', duas: [{ title: 'Sayyid al-Istighfar',
+                        arabic: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ',
+                        phonetic: 'Allâhumma Anta Rabbî, lâ ilâha illâ Anta',
+                        translation: 'Ô Allah, Tu es mon Seigneur, nul ne mérite d\'être adoré en dehors de Toi.' }] },
             { category: '💀 Tombe & Jugement', color: 'gray', duas: [{ title: 'Contre le châtiment de la tombe',
-                        arabic: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، وَأَعُوذُ بِكَ مِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ',
-                        phonetic: 'Allâhumma innî a\'ûdhu bika min \'adhâbi-l-qabr, wa a\'ûdhu bika min fitnati-l-mahyâ wa-l-mamât.',
-                        translation: 'Ô Allah, je cherche refuge auprès de Toi contre le châtiment de la tombe, et je cherche refuge auprès de Toi contre les épreuves de la vie et de la mort.' },
-                    { title: 'À mettre au bord de la tombe après l\'enterrement',
-                        arabic: 'اللَّهُمَّ ثَبِّتْهُ عِنْدَ السُّؤَالِ • اللَّهُمَّ اغْفِرْ لَهُ وَثَبِّتْهُ',
-                        phonetic: 'Allâhumma thabbithu \'inda-s-su\'âl. Allâhumma-ghfir lahu wa thabbithu.',
-                        translation: 'Ô Allah, affermis-le lors de l\'interrogatoire (des anges Mounkar et Nakîr). Ô Allah, pardonne-lui et donne-lui la fermeté.' },
-                    { title: 'Le matin ou au soir', arabic: 'اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ',
-                        phonetic: 'Allâhumma qinî \'adhâbaka yawma tab\'athu \'ibâdak.',
-                        translation: 'Ô Allah, protège-moi de Ton châtiment le Jour où Tu ressusciteras Tes serviteurs.' },
-                    { title: 'Pour un jugement facile', arabic: 'اللَّهُمَّ حَاسِبْنِي حِسَابًا يَسِيرًا',
-                        phonetic: 'Allâhumma hâsibnî hisâban yasîran.',
-                        translation: 'Ô Allah, fais-moi un jugement facile.' }
-                    ]
-                },
+                        arabic: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ',
+                        phonetic: 'Allâhumma innî a\'ûdhu bika min \'adhâbi-l-qabr',
+                        translation: 'Ô Allah, je cherche refuge auprès de Toi contre le châtiment de la tombe.' }] },
             { category: '💍 Mariage & Couple', color: 'pink', duas: [{ title: 'Pour féliciter les nouveaux mariés',
-                        arabic: 'بَارَكَ اللَّهُ لَكَ، وَبَارَكَ عَلَيْكَ، وَجَمَعَ بَيْنَكُمَا فِي خَيْرٍ',
-                        phonetic: 'Bâraka-llâhu laka, wa bâraka \'alayka, wa jama\'a baynakumâ fî khayr.',
-                        translation: 'Qu\'Allah te bénisse, qu\'Il déverse Sa bénédiction sur toi et qu\'Il vous unisse tous deux dans le bien.' },
-                    { title: 'À réciter par l\'époux lors de la première nuit de noces',
-                        arabic: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَهَا وَخَيْرَ مَا جَبَلْتَهَا عَلَيْهِ، وَأَعُوذُ بِكَ مِنْ شَرِّهَا وَمِنْ شَرِّ مَا جَبَلْتَهَا عَلَيْهِ',
-                        phonetic: 'Allâhumma innî as\'aluka khayrahâ wa khayra mâ jabaltahâ \'alayh, wa a\'ûdhu bika min sharrihâ wa min sharri mâ jabaltahâ \'alayh.',
-                        translation: 'Ô Allah, je Te demande son bien et le bien sur lequel Tu l\'as créée, et je cherche refuge auprès de Toi contre son mal et le mal sur lequel Tu l\'as créée.' },
-                    { title: 'Avant un rapport intime',
-                        arabic: 'بِسْمِ اللَّهِ، اللَّهُمَّ جَنِّبْنَا الشَّيْطَانَ، وَجَنِّبِ الشَّيْطَانَ مَا رَزَقْتَنَا',
-                        phonetic: 'Bismillâhi. Allâhumma jannibnâ-sh-shaytâna wa jannibi-sh-shaytâna mâ razaqtanâ.',
-                        translation: 'Au nom d\'Allah. Ô Allah, éloigne le Diable de nous et éloigne le Diable du fruit de notre union.' },
-                    { title: 'Pour l\'harmonie familiale et des enfants pieux (Coran 25:74)',
-                        arabic: 'رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ وَاجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا',
-                        phonetic: 'Rabbanâ hab lanâ min azwâjinâ wa dhurriyyâtinâ qurrata a\'yunin wa-j\'alnâ lil-muttaqîna imâmâ.',
-                        translation: 'Notre Seigneur, accorde-nous en nos épouses et nos descendants la joie des yeux, et fais de nous des guides pour les pieux.' }
-                    ]
-                },
-            { category: '🛡️ Protection & Matin', color: 'indigo', duas: [{ title: 'Pour la protection matin et soir (3 fois)',
-                        arabic: 'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ',
-                        phonetic: 'Bismillâhi-lladhî lâ yadurru ma\'a-smihi shay\'un fî-l-ardi wa lâ fî-s-samâ\'i wa Huwa-s-Samî\'u-l-\'Alîm.',
-                        translation: 'Au nom d\'Allah, tel qu\'en compagnie de Son Nom rien ne peut nuire sur terre ni dans les cieux, et Il est l\'Audient, l\'Omniscient.' },
-                    { title: 'Protection ultime contre le mal des créatures',
-                        arabic: 'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ',
-                        phonetic: 'A\'ûdhu bi-kalimâti-llâhi-t-tâmmâti min sharri mâ khalaq.',
-                        translation: 'Je cherche refuge auprès des paroles parfaites d\'Allah contre le mal de Ses créatures.' },
-                    { title: 'Pour la santé au lever et au coucher du soleil (3 fois)',
-                        arabic: 'اللَّهُمَّ عافِني في بَدَني، اللَّهُمَّ عافِني في سَمْعي، اللَّهُمَّ عافِني في بَصَري، لا إلهَ إلَّا أنتَ',
-                        phonetic: 'Allâhumma \'âfinî fî badanî, Allâhumma \'âfinî fî sam\'î, Allâhumma \'âfinî fî baṣarî, lâ ilâha illâ Anta.',
-                        translation: 'Ô Allah, préserve mon corps, ô Allah, préserve mon ouïe, ô Allah, préserve ma vue. Nul ne mérite d\'être adoré en dehors de Toi.' }
-                    ]
-                },
-            { category: '❤️ Détresse & Guérison', color: 'rose', duas: [{ title: 'L\'invocation de Jonas (Younous) dans le ventre de la baleine',
+                        arabic: 'بَارَكَ اللَّهُ لَكَ، وَبَارَكَ عَلَيْكَ',
+                        phonetic: 'Bâraka-llâhu laka, wa bâraka \'alayka',
+                        translation: 'Qu\'Allah te bénisse.' }] },
+            { category: '🛡️ Protection & Matin', color: 'indigo', duas: [{ title: 'Pour la protection matin et soir',
+                        arabic: 'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ',
+                        phonetic: 'Bismillâhi-lladhî lâ yadurru ma\'a-smihi shay\'un',
+                        translation: 'Au nom d\'Allah, rien ne peut nuire avec Son Nom.' }] },
+            { category: '❤️ Détresse & Guérison', color: 'rose', duas: [{ title: 'L\'invocation de Jonas',
                         arabic: 'لَّا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ',
-                        phonetic: 'Lâ ilâha illâ Anta subhânaka innî kuntu mina-dh-dhâlimîn.',
-                        translation: 'Nulle divinité d\'autre que Toi ! Gloire et pureté à Toi ! J\'ai été vraiment du nombre des injustes.' },
-                    { title: 'Raqya pour la guérison d\'un malade',
-                        arabic: 'اللَّهُمَّ رَبَّ النَّاسِ أَذْهِبِ الْبَاسَ، اشْفِهِ وَأَنْتَ الشَّافِي، لَا شِفَاءَ إِلَّا شِفَاؤُكَ، شِفَاءً لَا يُغَادِرُ سَقَمًا',
-                        phonetic: 'Allâhumma Rabba-n-nâsi, adhhibi-l-ba\'s, ishfihi wa Anta-sh-shâfî, lâ shifâ\'a illâ shifâ\'uka, shifâ\'an lâ yughâdiru saqamâ.',
-                        translation: 'Ô Allah, Seigneur des hommes, fais disparaître le mal. Guéris-le, car Tu es le Guérisseur. Il n\'y a de guérison que la Tienne, une guérison qui ne laisse aucune trace de maladie.' }
-                    ]
-                }
+                        phonetic: 'Lâ ilâha illâ Anta subhânaka innî kuntu mina-dh-dhâlimîn',
+                        translation: 'Nulle divinité d\'autre que Toi ! Gloire à Toi !' }] }
         ];
 
         let currentAzkarCategory = 0;
@@ -2236,7 +2130,7 @@
                     'rotate(180deg)' : 'rotate(0)'; }
         }
 
-        // --- Show Tab (inchangé) ---
+        // --- SHOW TAB ---
         function showTab(tab) {
             ['home', 'downloads', 'azkar', 'profile', 'create', 'myalbum', 'support', 'privacy'].forEach(t => {
                 const el = safeGetElement(`tab-${t}`);
@@ -2277,7 +2171,7 @@
                 renderVideoGrid(); }
         }
 
-        // --- Selection Mode (inchangé) ---
+        // --- SELECTION MODE ---
         function toggleHomeSelectionMode() {
             homeSelectionMode = !homeSelectionMode;
             homeSelectedVideoIds.clear();
@@ -2324,7 +2218,7 @@
             cancelSelectionHome();
         }
 
-        // --- Notifications (inchangé) ---
+        // --- NOTIFICATIONS ---
         async function toggleNotifications() {
             if (!('Notification' in window)) { alert(" Notifications non supportées"); return; }
             if (Notification.permission === 'granted') { sendNotification('🔔 Test', 'Les notifications fonctionnent !');
@@ -2365,7 +2259,7 @@
             } catch (e) {}
         }
 
-        // --- Invite (inchangé) ---
+        // --- INVITE ---
         async function inviteFriend() {
             const shareData = { title: 'أهل السنة والجماعة', text: '🕌 Rejoignez l\'application "Ahlu Sunna wal Jama\'a" !',
                 url: window.location.href };
@@ -2393,7 +2287,7 @@
             document.body.removeChild(textarea);
         }
 
-        // --- Support Images (inchangé) ---
+        // --- SUPPORT IMAGES ---
         function handleSupportImages(input) {
             supportImages = Array.from(input.files);
             const preview = safeGetElement('support-images-preview');
@@ -2432,7 +2326,7 @@
             });
         }
 
-        // --- NOUVEAU: Fonctions pour l'enregistrement vocal avec barre de progression style WhatsApp ---
+        // --- ENREGISTREMENT VOCAL AVEC BARRE DE PROGRESSION STYLE WHATSAPP ---
         async function toggleRecording() {
             if (mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop();
@@ -2455,21 +2349,23 @@
                         voiceAudio.src = URL.createObjectURL(supportVoiceBlob);
                         voiceAudio.load();
                     }
+
                     // Afficher le lecteur
                     safeRemoveClass('voice-preview', 'hidden');
-                    // Mettre à jour la durée
+
+                    // Récupérer la durée réelle
                     const duration = recordedVoiceDuration || 0;
                     const totalTimeEl = safeGetElement('voice-total-time');
                     const durationLabel = safeGetElement('voice-duration-label');
                     if (totalTimeEl) totalTimeEl.textContent = formatTimeShort(duration);
                     if (durationLabel) durationLabel.textContent = formatTimeShort(duration);
-                    // Remettre le bouton en état
-                    const btn = safeGetElement('btn-record'); 
-                    if (btn) btn.innerHTML = '<i class="fa-solid fa-microphone mr-1" style="color:#ef4444"></i>Enregistrer';
+
+                    // Réinitialiser l'interface
+                    safeSetText('btn-record', '<i class="fa-solid fa-microphone mr-1" style="color:#ef4444"></i>Enregistrer');
                     safeAddClass('recording-timer', 'hidden');
                     clearInterval(recordingInterval);
                     stream.getTracks().forEach(t => t.stop());
-                    // Reset de la lecture
+
                     const playIcon = safeGetElement('voice-play-icon');
                     if (playIcon) playIcon.className = 'fa-solid fa-play';
                     const progress = safeGetElement('voice-progress');
@@ -2493,7 +2389,6 @@
             }
         }
 
-        // Lecture / Pause
         function toggleVoicePlayback() {
             const voiceAudio = safeGetElement('voice-audio-player');
             const playIcon = safeGetElement('voice-play-icon');
@@ -2507,7 +2402,6 @@
             }
         }
 
-        // Clic sur la piste de progression
         function seekVoiceClick(e) {
             const track = safeGetElement('voice-track');
             if (!track) return;
@@ -2518,14 +2412,12 @@
             if (voiceAudio && duration > 0) {
                 voiceAudio.currentTime = percent * duration;
             }
-            // Mise à jour visuelle
             const progress = safeGetElement('voice-progress');
             if (progress) progress.style.width = (percent * 100) + '%';
             const currentTimeEl = safeGetElement('voice-current-time');
             if (currentTimeEl) currentTimeEl.textContent = formatTimeShort(percent * duration);
         }
 
-        // Supprimer la note vocale
         function removeVoice() {
             supportVoiceBlob = null;
             recordedVoiceDuration = 0;
@@ -2550,7 +2442,89 @@
             if (playIcon) playIcon.className = 'fa-solid fa-play';
         }
 
-        // --- Support Submit (inchangé mais avec les nouvelles références) ---
+        // --- INIT VOICE AUDIO PLAYER ---
+        function initVoiceAudioPlayer() {
+            const voiceAudio = safeGetElement('voice-audio-player');
+            if (!voiceAudio) return;
+
+            voiceAudio.addEventListener('loadedmetadata', () => {
+                const duration = recordedVoiceDuration || 0;
+                const totalTimeEl = safeGetElement('voice-total-time');
+                const durationLabel = safeGetElement('voice-duration-label');
+                if (totalTimeEl) totalTimeEl.textContent = formatTimeShort(duration);
+                if (durationLabel) durationLabel.textContent = formatTimeShort(duration);
+            });
+
+            voiceAudio.addEventListener('timeupdate', () => {
+                const duration = recordedVoiceDuration || 0;
+                if (duration > 0) {
+                    const percent = (voiceAudio.currentTime / duration) * 100;
+                    const progress = safeGetElement('voice-progress');
+                    if (progress) progress.style.width = Math.min(percent, 100) + '%';
+                    const currentTimeEl = safeGetElement('voice-current-time');
+                    if (currentTimeEl) currentTimeEl.textContent = formatTimeShort(voiceAudio.currentTime);
+                }
+            });
+
+            voiceAudio.addEventListener('ended', () => {
+                const playIcon = safeGetElement('voice-play-icon');
+                if (playIcon) playIcon.className = 'fa-solid fa-play';
+                const progress = safeGetElement('voice-progress');
+                if (progress) progress.style.width = '0%';
+                const currentTimeEl = safeGetElement('voice-current-time');
+                if (currentTimeEl) currentTimeEl.textContent = '0:00';
+            });
+        }
+
+        // --- AMBIENT AUDIO ---
+        function toggleAmbientAudio() {
+            const ambientAudio = safeGetElement('ambient-audio');
+            const ambientPlayIcon = safeGetElement('ambient-play-icon');
+            if (!ambientAudio) return;
+            if (ambientAudio.paused) {
+                ambientAudio.play().catch(() => {});
+                if (ambientPlayIcon) ambientPlayIcon.className = 'fa-solid fa-pause text-white text-sm';
+            } else {
+                ambientAudio.pause();
+                if (ambientPlayIcon) ambientPlayIcon.className = 'fa-solid fa-play text-white text-sm';
+            }
+        }
+
+        function seekAmbientAudio(value) {
+            const ambientAudio = safeGetElement('ambient-audio');
+            if (ambientAudio && ambientAudio.duration) {
+                ambientAudio.currentTime = (value / 100) * ambientAudio.duration;
+            }
+        }
+
+        function initAmbientAudioPlayer() {
+            const ambientAudio = safeGetElement('ambient-audio');
+            if (!ambientAudio) return;
+            ambientAudio.addEventListener('loadedmetadata', () => {
+                const ambientDuration = safeGetElement('ambient-duration');
+                if (ambientDuration) ambientDuration.innerText = formatTimeShort(ambientAudio.duration || 0);
+            });
+            ambientAudio.addEventListener('timeupdate', () => {
+                const ambientProgress = safeGetElement('ambient-progress');
+                const ambientCurrentTime = safeGetElement('ambient-current-time');
+                if (ambientAudio.duration) {
+                    const percent = (ambientAudio.currentTime / ambientAudio.duration) * 100;
+                    if (ambientProgress) ambientProgress.value = percent;
+                    if (ambientCurrentTime) ambientCurrentTime.innerText = formatTimeShort(ambientAudio
+                    .currentTime);
+                }
+            });
+            ambientAudio.addEventListener('ended', () => {
+                const ambientPlayIcon = safeGetElement('ambient-play-icon');
+                if (ambientPlayIcon) ambientPlayIcon.className = 'fa-solid fa-play text-white text-sm';
+                const ambientProgress = safeGetElement('ambient-progress');
+                if (ambientProgress) ambientProgress.value = 0;
+                const ambientCurrentTime = safeGetElement('ambient-current-time');
+                if (ambientCurrentTime) ambientCurrentTime.innerText = '0:00';
+            });
+        }
+
+        // --- SUPPORT SUBMIT ---
         async function submitSupport() {
             if (!currentUser) { alert("Connectez-vous"); return; }
             const subject = safeGetElement('supportSubject').value;
@@ -2608,7 +2582,6 @@
             }
         }
 
-        // --- Upload Support File (inchangé) ---
         async function uploadSupportFile(file, folder, customName = null) {
             const response = await fetch('/api/upload-support', {
                 method: 'POST',
@@ -2638,90 +2611,10 @@
             });
         }
 
-        // --- Ambient Audio (inchangé) ---
-        function toggleAmbientAudio() {
-            const ambientAudio = safeGetElement('ambient-audio');
-            const ambientPlayIcon = safeGetElement('ambient-play-icon');
-            if (!ambientAudio) return;
-            if (ambientAudio.paused) {
-                ambientAudio.play().catch(() => {});
-                if (ambientPlayIcon) ambientPlayIcon.className = 'fa-solid fa-pause text-white text-sm';
-            } else {
-                ambientAudio.pause();
-                if (ambientPlayIcon) ambientPlayIcon.className = 'fa-solid fa-play text-white text-sm';
-            }
-        }
-
-        function seekAmbientAudio(value) {
-            const ambientAudio = safeGetElement('ambient-audio');
-            if (ambientAudio && ambientAudio.duration) {
-                ambientAudio.currentTime = (value / 100) * ambientAudio.duration;
-            }
-        }
-
-        // --- Init players (inchangé) ---
-        function initVoiceAudioPlayer() {
-            const voiceAudio = safeGetElement('voice-audio-player');
-            if (!voiceAudio) return;
-            voiceAudio.addEventListener('loadedmetadata', () => {
-                const duration = recordedVoiceDuration || 0;
-                const totalTimeEl = safeGetElement('voice-total-time');
-                const durationLabel = safeGetElement('voice-duration-label');
-                if (totalTimeEl) totalTimeEl.textContent = formatTimeShort(duration);
-                if (durationLabel) durationLabel.textContent = formatTimeShort(duration);
-            });
-            voiceAudio.addEventListener('timeupdate', () => {
-                const duration = recordedVoiceDuration || 0;
-                if (duration > 0) {
-                    const percent = (voiceAudio.currentTime / duration) * 100;
-                    const progress = safeGetElement('voice-progress');
-                    if (progress) progress.style.width = Math.min(percent, 100) + '%';
-                    const currentTimeEl = safeGetElement('voice-current-time');
-                    if (currentTimeEl) currentTimeEl.textContent = formatTimeShort(voiceAudio.currentTime);
-                }
-            });
-            voiceAudio.addEventListener('ended', () => {
-                const playIcon = safeGetElement('voice-play-icon');
-                if (playIcon) playIcon.className = 'fa-solid fa-play';
-                const progress = safeGetElement('voice-progress');
-                if (progress) progress.style.width = '0%';
-                const currentTimeEl = safeGetElement('voice-current-time');
-                if (currentTimeEl) currentTimeEl.textContent = '0:00';
-            });
-        }
-
-        function initAmbientAudioPlayer() {
-            const ambientAudio = safeGetElement('ambient-audio');
-            if (!ambientAudio) return;
-            ambientAudio.addEventListener('loadedmetadata', () => {
-                const ambientDuration = safeGetElement('ambient-duration');
-                if (ambientDuration) ambientDuration.innerText = formatTimeShort(ambientAudio.duration || 0);
-            });
-            ambientAudio.addEventListener('timeupdate', () => {
-                const ambientProgress = safeGetElement('ambient-progress');
-                const ambientCurrentTime = safeGetElement('ambient-current-time');
-                if (ambientAudio.duration) {
-                    const percent = (ambientAudio.currentTime / ambientAudio.duration) * 100;
-                    if (ambientProgress) ambientProgress.value = percent;
-                    if (ambientCurrentTime) ambientCurrentTime.innerText = formatTimeShort(ambientAudio
-                    .currentTime);
-                }
-            });
-            ambientAudio.addEventListener('ended', () => {
-                const ambientPlayIcon = safeGetElement('ambient-play-icon');
-                if (ambientPlayIcon) ambientPlayIcon.className = 'fa-solid fa-play text-white text-sm';
-                const ambientProgress = safeGetElement('ambient-progress');
-                if (ambientProgress) ambientProgress.value = 0;
-                const ambientCurrentTime = safeGetElement('ambient-current-time');
-                if (ambientCurrentTime) ambientCurrentTime.innerText = '0:00';
-            });
-        }
-
-        // --- DOM Ready ---
+        // --- DOM READY ---
         document.addEventListener('DOMContentLoaded', () => {
             initVoiceAudioPlayer();
             initAmbientAudioPlayer();
-            // Attacher l'event listener pour le clic sur la piste (déjà fait inline)
         });
         showTab('home');
     </script>
