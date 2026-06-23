@@ -559,7 +559,7 @@ Notre équipe vous répondra dans les 24-48h.
 </div>
 <div class="flex items-center gap-2">
 <span class="text-[9px] text-zinc-400 w-8 text-right" id="voice-current-time">0:00</span>
-<input type="range" id="voice-progress-bar" class="voice-player-bar" min="0" max="100" value="0" oninput="seekVoiceAudio(this.value)">
+<input type="range" id="voice-progress-bar" class="voice-player-bar" min="0" max="100" value="0" step="0.1" oninput="seekVoiceAudio(this.value)">
 <span class="text-[9px] text-zinc-400 w-8" id="voice-total-time">0:00</span>
 </div>
 <audio id="voice-audio-player" preload="metadata"></audio>
@@ -720,20 +720,20 @@ let interruptedUploadData = null, isResumingUpload = false;
 let supportImages = [], supportVoiceBlob = null, mediaRecorder = null, recordingChunks = [], recordingInterval = null, recordingStartTime = 0;
 let currentPlayingVideo = null, activeDownloads = [], completedDownloads = [], downloadInterval = null, showingAllVideos = false;
 let longPressTimer = null, isLongPress = false;
+let recordedVoiceDuration = 0; // Durée réelle de l'enregistrement vocal
 
 function safeGetElement(id) { return document.getElementById(id); }
 function safeAddClass(id, className) { const el = safeGetElement(id); if (el) el.classList.add(className); }
 function safeRemoveClass(id, className) { const el = safeGetElement(id); if (el) el.classList.remove(className); }
 function safeSetText(id, text) { const el = safeGetElement(id); if (el) el.innerText = text; }
 function safeSetHTML(id, html) { const el = safeGetElement(id); if (el) el.innerHTML = html; }
+
+// MODIFIÉ : Suppression du CDN Bunny, retourne l'URL Backblaze B2 directe
 function getCdnUrl(originalUrl) {
-if (!originalUrl) return '';
-if (originalUrl.includes('kitabwasunna.b-cdn.net')) return originalUrl;
-const b2Domain = 'f005.backblazeb2.com';
-const bunnyDomain = 'kitabwasunna.b-cdn.net';
-if (originalUrl.includes(b2Domain)) return originalUrl.replace(b2Domain, bunnyDomain);
-return originalUrl;
+    if (!originalUrl) return '';
+    return originalUrl;
 }
+
 function escapeAttr(str) {
 if (!str) return '';
 return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ').replace(/\r/g, '');
@@ -1372,7 +1372,7 @@ title, speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
 duration, date: new Date().toISOString().split('T')[0],
 views: 0, downloads: 0, downloadURL: finalVideoUrl,
 thumbnail, uploadedAt: new Date(), size: fileBlob.size,
-storage: 'backblaze_b2', cdn: 'bunny_net', videoType, uploadMethod: 'chunked'
+storage: 'backblaze_b2', cdn: 'direct', videoType, uploadMethod: 'chunked'
 });
 clearUploadProgress();
 if (progressBar) progressBar.style.width = '100%';
@@ -1464,7 +1464,7 @@ title, speaker: userAlbum.imamName || currentUser.email?.split('@')[0],
 duration, date: new Date().toISOString().split('T')[0],
 views: 0, downloads: 0, downloadURL: finalVideoUrl,
 thumbnail, uploadedAt: new Date(), size: fileBlob.size,
-storage: 'backblaze_b2', cdn: 'bunny_net', videoType, uploadMethod: 'simple'
+storage: 'backblaze_b2', cdn: 'direct', videoType, uploadMethod: 'simple'
 });
 if (progressBar) progressBar.style.width = '100%';
 if (progressPercent) progressPercent.innerText = '100%';
@@ -1733,25 +1733,98 @@ preview.appendChild(div);
 reader.readAsDataURL(img);
 });
 }
+
+// MODIFIÉ : Correction de la gestion de l'enregistrement vocal
 async function toggleRecording() {
-if (mediaRecorder && mediaRecorder.state === 'recording') { mediaRecorder.stop(); return; }
+if (mediaRecorder && mediaRecorder.state === 'recording') { 
+    mediaRecorder.stop(); 
+    return; 
+}
 try {
 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-mediaRecorder = new MediaRecorder(stream); recordingChunks = [];
-mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordingChunks.push(e.data); };
+mediaRecorder = new MediaRecorder(stream); 
+recordingChunks = [];
+mediaRecorder.ondataavailable = (e) => { 
+    if (e.data.size > 0) recordingChunks.push(e.data); 
+};
 mediaRecorder.onstop = () => {
-supportVoiceBlob = new Blob(recordingChunks, { type: 'audio/webm' });
-const voiceAudio = safeGetElement('voice-audio-player');
-if (voiceAudio) {
-voiceAudio.src = URL.createObjectURL(supportVoiceBlob);
-voiceAudio.load();
+    supportVoiceBlob = new Blob(recordingChunks, { type: 'audio/webm' });
+    const voiceAudio = safeGetElement('voice-audio-player');
+    if (voiceAudio) {
+        if (voiceAudio.src && voiceAudio.src.startsWith('blob:')) {
+            URL.revokeObjectURL(voiceAudio.src);
+        }
+        voiceAudio.src = URL.createObjectURL(supportVoiceBlob);
+        voiceAudio.load();
+    }
+    safeRemoveClass('voice-preview', 'hidden');
+    safeSetText('btn-record', '<i class="fa-solid fa-microphone mr-1" style="color:#ef4444"></i>Enregistrer');
+    safeAddClass('recording-timer', 'hidden');
+    clearInterval(recordingInterval); 
+    stream.getTracks().forEach(t => t.stop());
+    
+    const voicePlayIcon = safeGetElement('voice-play-icon');
+    if (voicePlayIcon) voicePlayIcon.className = 'fa-solid fa-play text-white text-xs';
+    const voiceProgressBar = safeGetElement('voice-progress-bar');
+    if (voiceProgressBar) voiceProgressBar.value = 0;
+    const voiceCurrentTime = safeGetElement('voice-current-time');
+    if (voiceCurrentTime) voiceCurrentTime.innerText = '0:00';
+    
+    // MODIFIÉ : Utiliser la durée réelle de l'enregistrement
+    const voiceTotalTime = safeGetElement('voice-total-time');
+    const voiceDurationLabel = safeGetElement('voice-duration-label');
+    if (voiceTotalTime) voiceTotalTime.innerText = formatTimeShort(recordedVoiceDuration);
+    if (voiceDurationLabel) voiceDurationLabel.innerText = `Durée : ${formatTimeShort(recordedVoiceDuration)}`;
+};
+mediaRecorder.start(); 
+recordingStartTime = Date.now();
+safeSetText('btn-record', '<i class="fa-solid fa-stop mr-1" style="color:#ef4444"></i>Arrêter');
+safeRemoveClass('recording-timer', 'hidden');
+recordingInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+    const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+    const s = (elapsed % 60).toString().padStart(2, '0');
+    safeSetText('rec-time', `${m}:${s}`);
+    // MODIFIÉ : Stocker la durée en temps réel
+    recordedVoiceDuration = elapsed;
+}, 1000);
+} catch (e) { 
+    alert('❌ Microphone : ' + e.message); 
 }
-safeRemoveClass('voice-preview', 'hidden');
-safeSetText('btn-record', '<i class="fa-solid fa-microphone mr-1" style="color:#ef4444"></i>Enregistrer');
-safeAddClass('recording-timer', 'hidden');
-clearInterval(recordingInterval); stream.getTracks().forEach(t => t.stop());
+}
+
+function toggleVoicePlayback() {
+const voiceAudio = safeGetElement('voice-audio-player');
 const voicePlayIcon = safeGetElement('voice-play-icon');
-if (voicePlayIcon) voicePlayIcon.className = 'fa-solid fa-play text-white text-xs';
+if (!voiceAudio) return;
+if (voiceAudio.paused) {
+    voiceAudio.play().catch(() => {});
+    if (voicePlayIcon) voicePlayIcon.className = 'fa-solid fa-pause text-white text-xs';
+} else {
+    voiceAudio.pause();
+    if (voicePlayIcon) voicePlayIcon.className = 'fa-solid fa-play text-white text-xs';
+}
+}
+
+function seekVoiceAudio(value) {
+const voiceAudio = safeGetElement('voice-audio-player');
+if (voiceAudio && recordedVoiceDuration > 0) {
+    voiceAudio.currentTime = (value / 100) * recordedVoiceDuration;
+}
+}
+
+function removeVoice() {
+supportVoiceBlob = null;
+recordedVoiceDuration = 0;
+safeAddClass('voice-preview', 'hidden');
+const voiceAudio = safeGetElement('voice-audio-player');
+if (voiceAudio) { 
+    voiceAudio.pause(); 
+    if (voiceAudio.src && voiceAudio.src.startsWith('blob:')) {
+        URL.revokeObjectURL(voiceAudio.src);
+    }
+    voiceAudio.src = ''; 
+}
 const voiceProgressBar = safeGetElement('voice-progress-bar');
 if (voiceProgressBar) voiceProgressBar.value = 0;
 const voiceCurrentTime = safeGetElement('voice-current-time');
@@ -1759,114 +1832,97 @@ if (voiceCurrentTime) voiceCurrentTime.innerText = '0:00';
 const voiceTotalTime = safeGetElement('voice-total-time');
 if (voiceTotalTime) voiceTotalTime.innerText = '0:00';
 const voiceDurationLabel = safeGetElement('voice-duration-label');
-if (voiceDurationLabel) voiceDurationLabel.innerText = 'Chargement...';
-};
-mediaRecorder.start(); recordingStartTime = Date.now();
-safeSetText('btn-record', '<i class="fa-solid fa-stop mr-1" style="color:#ef4444"></i>Arrêter');
-safeRemoveClass('recording-timer', 'hidden');
-recordingInterval = setInterval(() => {
-const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
-const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
-const s = (elapsed % 60).toString().padStart(2, '0');
-safeSetText('rec-time', `${m}:${s}`);
-}, 1000);
-} catch (e) { alert('❌ Microphone : ' + e.message); }
+if (voiceDurationLabel) voiceDurationLabel.innerText = '0:00';
 }
-function toggleVoicePlayback() {
-const voiceAudio = safeGetElement('voice-audio-player');
-const voicePlayIcon = safeGetElement('voice-play-icon');
-if (!voiceAudio) return;
-if (voiceAudio.paused) {
-voiceAudio.play().catch(() => {});
-if (voicePlayIcon) voicePlayIcon.className = 'fa-solid fa-pause text-white text-xs';
-} else {
-voiceAudio.pause();
-if (voicePlayIcon) voicePlayIcon.className = 'fa-solid fa-play text-white text-xs';
-}
-}
-function seekVoiceAudio(value) {
-const voiceAudio = safeGetElement('voice-audio-player');
-if (voiceAudio && voiceAudio.duration) {
-voiceAudio.currentTime = (value / 100) * voiceAudio.duration;
-}
-}
-function removeVoice() {
-supportVoiceBlob = null;
-safeAddClass('voice-preview', 'hidden');
-const voiceAudio = safeGetElement('voice-audio-player');
-if (voiceAudio) { voiceAudio.pause(); voiceAudio.src = ''; }
-}
+
 function toggleAmbientAudio() {
 const ambientAudio = safeGetElement('ambient-audio');
 const ambientPlayIcon = safeGetElement('ambient-play-icon');
 if (!ambientAudio) return;
 if (ambientAudio.paused) {
-ambientAudio.play().catch(() => {});
-if (ambientPlayIcon) ambientPlayIcon.className = 'fa-solid fa-pause text-white text-sm';
+    ambientAudio.play().catch(() => {});
+    if (ambientPlayIcon) ambientPlayIcon.className = 'fa-solid fa-pause text-white text-sm';
 } else {
-ambientAudio.pause();
-if (ambientPlayIcon) ambientPlayIcon.className = 'fa-solid fa-play text-white text-sm';
+    ambientAudio.pause();
+    if (ambientPlayIcon) ambientPlayIcon.className = 'fa-solid fa-play text-white text-sm';
 }
 }
 function seekAmbientAudio(value) {
 const ambientAudio = safeGetElement('ambient-audio');
 if (ambientAudio && ambientAudio.duration) {
-ambientAudio.currentTime = (value / 100) * ambientAudio.duration;
+    ambientAudio.currentTime = (value / 100) * ambientAudio.duration;
 }
 }
+
+// MODIFIÉ : Correction de l'initialisation du lecteur vocal
 function initVoiceAudioPlayer() {
 const voiceAudio = safeGetElement('voice-audio-player');
 if (!voiceAudio) return;
+
 voiceAudio.addEventListener('loadedmetadata', () => {
-const voiceTotalTime = safeGetElement('voice-total-time');
-const voiceDurationLabel = safeGetElement('voice-duration-label');
-const duration = voiceAudio.duration || 0;
-if (voiceTotalTime) voiceTotalTime.innerText = formatTimeShort(duration);
-if (voiceDurationLabel) voiceDurationLabel.innerText = `Durée : ${formatTimeShort(duration)}`;
+    const voiceTotalTime = safeGetElement('voice-total-time');
+    const voiceDurationLabel = safeGetElement('voice-duration-label');
+    
+    // MODIFIÉ : Utiliser recordedVoiceDuration si voiceAudio.duration est Infinity ou NaN
+    let duration = voiceAudio.duration;
+    if (!duration || isNaN(duration) || !isFinite(duration)) {
+        duration = recordedVoiceDuration;
+    }
+    
+    if (voiceTotalTime) voiceTotalTime.innerText = formatTimeShort(duration);
+    if (voiceDurationLabel) voiceDurationLabel.innerText = `Durée : ${formatTimeShort(duration)}`;
 });
+
 voiceAudio.addEventListener('timeupdate', () => {
-const voiceProgressBar = safeGetElement('voice-progress-bar');
-const voiceCurrentTime = safeGetElement('voice-current-time');
-if (voiceAudio.duration) {
-const percent = (voiceAudio.currentTime / voiceAudio.duration) * 100;
-if (voiceProgressBar) voiceProgressBar.value = percent;
-if (voiceCurrentTime) voiceCurrentTime.innerText = formatTimeShort(voiceAudio.currentTime);
-}
+    const voiceProgressBar = safeGetElement('voice-progress-bar');
+    const voiceCurrentTime = safeGetElement('voice-current-time');
+    
+    // MODIFIÉ : Utiliser recordedVoiceDuration pour le calcul de la progression
+    const duration = (voiceAudio.duration && isFinite(voiceAudio.duration)) ? voiceAudio.duration : recordedVoiceDuration;
+    
+    if (duration > 0) {
+        const percent = (voiceAudio.currentTime / duration) * 100;
+        if (voiceProgressBar) voiceProgressBar.value = percent;
+        if (voiceCurrentTime) voiceCurrentTime.innerText = formatTimeShort(voiceAudio.currentTime);
+    }
 });
+
 voiceAudio.addEventListener('ended', () => {
-const voicePlayIcon = safeGetElement('voice-play-icon');
-if (voicePlayIcon) voicePlayIcon.className = 'fa-solid fa-play text-white text-xs';
-const voiceProgressBar = safeGetElement('voice-progress-bar');
-if (voiceProgressBar) voiceProgressBar.value = 0;
-const voiceCurrentTime = safeGetElement('voice-current-time');
-if (voiceCurrentTime) voiceCurrentTime.innerText = '0:00';
+    const voicePlayIcon = safeGetElement('voice-play-icon');
+    if (voicePlayIcon) voicePlayIcon.className = 'fa-solid fa-play text-white text-xs';
+    const voiceProgressBar = safeGetElement('voice-progress-bar');
+    if (voiceProgressBar) voiceProgressBar.value = 0;
+    const voiceCurrentTime = safeGetElement('voice-current-time');
+    if (voiceCurrentTime) voiceCurrentTime.innerText = '0:00';
 });
 }
+
 function initAmbientAudioPlayer() {
 const ambientAudio = safeGetElement('ambient-audio');
 if (!ambientAudio) return;
 ambientAudio.addEventListener('loadedmetadata', () => {
-const ambientDuration = safeGetElement('ambient-duration');
-if (ambientDuration) ambientDuration.innerText = formatTimeShort(ambientAudio.duration || 0);
+    const ambientDuration = safeGetElement('ambient-duration');
+    if (ambientDuration) ambientDuration.innerText = formatTimeShort(ambientAudio.duration || 0);
 });
 ambientAudio.addEventListener('timeupdate', () => {
-const ambientProgress = safeGetElement('ambient-progress');
-const ambientCurrentTime = safeGetElement('ambient-current-time');
-if (ambientAudio.duration) {
-const percent = (ambientAudio.currentTime / ambientAudio.duration) * 100;
-if (ambientProgress) ambientProgress.value = percent;
-if (ambientCurrentTime) ambientCurrentTime.innerText = formatTimeShort(ambientAudio.currentTime);
-}
+    const ambientProgress = safeGetElement('ambient-progress');
+    const ambientCurrentTime = safeGetElement('ambient-current-time');
+    if (ambientAudio.duration) {
+        const percent = (ambientAudio.currentTime / ambientAudio.duration) * 100;
+        if (ambientProgress) ambientProgress.value = percent;
+        if (ambientCurrentTime) ambientCurrentTime.innerText = formatTimeShort(ambientAudio.currentTime);
+    }
 });
 ambientAudio.addEventListener('ended', () => {
-const ambientPlayIcon = safeGetElement('ambient-play-icon');
-if (ambientPlayIcon) ambientPlayIcon.className = 'fa-solid fa-play text-white text-sm';
-const ambientProgress = safeGetElement('ambient-progress');
-if (ambientProgress) ambientProgress.value = 0;
-const ambientCurrentTime = safeGetElement('ambient-current-time');
-if (ambientCurrentTime) ambientCurrentTime.innerText = '0:00';
+    const ambientPlayIcon = safeGetElement('ambient-play-icon');
+    if (ambientPlayIcon) ambientPlayIcon.className = 'fa-solid fa-play text-white text-sm';
+    const ambientProgress = safeGetElement('ambient-progress');
+    if (ambientProgress) ambientProgress.value = 0;
+    const ambientCurrentTime = safeGetElement('ambient-current-time');
+    if (ambientCurrentTime) ambientCurrentTime.innerText = '0:00';
 });
 }
+
 async function submitSupport() {
 if (!currentUser) { alert("Connectez-vous"); return; }
 const subject = safeGetElement('supportSubject').value;
@@ -1877,42 +1933,71 @@ if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner f
 try {
 const imageUrls = []; let voiceUrl = '';
 if (supportImages.length > 0) {
-for (let i = 0; i < supportImages.length; i++) {
-if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Image ${i+1}/${supportImages.length}...`;
-const url = await uploadSupportFile(supportImages[i], 'support-images'); imageUrls.push(url);
-}
+    for (let i = 0; i < supportImages.length; i++) {
+        if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Image ${i+1}/${supportImages.length}...`;
+        const url = await uploadSupportFile(supportImages[i], 'support-images'); 
+        imageUrls.push(url);
+    }
 }
 if (supportVoiceBlob) {
-if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Note vocale...';
-voiceUrl = await uploadSupportFile(supportVoiceBlob, 'support-voices', 'audio.webm');
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Note vocale...';
+    voiceUrl = await uploadSupportFile(supportVoiceBlob, 'support-voices', 'audio.webm');
 }
 await db.collection('support').add({
-userId: currentUser.uid, userEmail: currentUser.email, subject: subject, message: message,
-images: imageUrls, voice: voiceUrl, status: 'new', createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    userId: currentUser.uid, userEmail: currentUser.email, subject: subject, message: message,
+    images: imageUrls, voice: voiceUrl, status: 'new', createdAt: firebase.firestore.FieldValue.serverTimestamp()
 });
 safeRemoveClass('support-success', 'hidden');
-const messageInput = safeGetElement('supportMessage'); if (messageInput) messageInput.value = '';
-supportImages = []; supportVoiceBlob = null;
-const preview = safeGetElement('support-images-preview'); if (preview) preview.innerHTML = '';
+const messageInput = safeGetElement('supportMessage'); 
+if (messageInput) messageInput.value = '';
+supportImages = []; 
+supportVoiceBlob = null;
+recordedVoiceDuration = 0;
+const preview = safeGetElement('support-images-preview'); 
+if (preview) preview.innerHTML = '';
 safeAddClass('voice-preview', 'hidden');
 sendNotification('✅ Message envoyé', 'Nous vous répondrons bientôt.');
-setTimeout(() => { safeAddClass('support-success', 'hidden'); showTab('profile'); }, 3000);
-} catch (error) { alert('❌ Erreur : ' + error.message); }
-finally { if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>Envoyer le message'; } }
+setTimeout(() => { 
+    safeAddClass('support-success', 'hidden'); 
+    showTab('profile'); 
+}, 3000);
+} catch (error) { 
+    alert('❌ Erreur : ' + error.message); 
+} finally { 
+    if (btn) { 
+        btn.disabled = false; 
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>Envoyer le message'; 
+    } 
 }
+}
+
+// MODIFIÉ : Suppression du CDN pour le support
 async function uploadSupportFile(file, folder, customName = null) {
-const response = await fetch('/api/upload-support', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include' });
+const response = await fetch('/api/upload-support', { 
+    method: 'POST', 
+    headers: { 'Content-Type': 'application/json' }, 
+    credentials: 'include' 
+});
 if (!response.ok) throw new Error(`API error: ${response.status}`);
 const { uploadUrl, authorizationToken, downloadUrl } = await response.json();
 const fileName = `${folder}/${Date.now()}_${customName || file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
 return new Promise((resolve, reject) => {
-const xhr = new XMLHttpRequest(); xhr.open('POST', uploadUrl, true);
-xhr.setRequestHeader('Authorization', authorizationToken);
-xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
-xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
-xhr.onload = () => { if (xhr.status === 200) resolve(downloadUrl + encodeURIComponent(fileName)); else reject(new Error(`Upload failed: ${xhr.status}`)); };
-xhr.onerror = () => reject(new Error('Erreur réseau')); xhr.timeout = 120000; xhr.send(file);
+    const xhr = new XMLHttpRequest(); 
+    xhr.open('POST', uploadUrl, true);
+    xhr.setRequestHeader('Authorization', authorizationToken);
+    xhr.setRequestHeader('X-Bz-File-Name', encodeURIComponent(fileName));
+    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+    xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
+    xhr.onload = () => { 
+        if (xhr.status === 200) {
+            resolve(downloadUrl + encodeURIComponent(fileName));
+        } else {
+            reject(new Error(`Upload failed: ${xhr.status}`));
+        }
+    };
+    xhr.onerror = () => reject(new Error('Erreur réseau')); 
+    xhr.timeout = 120000; 
+    xhr.send(file);
 });
 }
 
